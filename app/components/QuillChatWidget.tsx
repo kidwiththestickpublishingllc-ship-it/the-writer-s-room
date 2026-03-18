@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 //   2. Set USE_AI = true
 //   3. Add ANTHROPIC_API_KEY to .env.local + Vercel
 // =============================================================
-const USE_AI = false;
+const USE_AI = true;
 
 const TTL_SUBMIT_URL = "https://www.the-tiniest-library.com/new-page-1";
 
