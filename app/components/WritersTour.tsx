@@ -176,7 +176,7 @@ function TooltipBox({
   let top = 0;
   let left = rect.left + rect.width / 2 - TIP_W / 2;
 
-  if (step.position === "bottom") {
+  if ((step.position as string) === "bottom") {
     top = rect.top + rect.height + PAD;
   } else {
     top = rect.top - TIP_H - PAD;

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-
+import React, { useState, useEffect, useCallback } from "react";
+import WritersTour from "@/app/components/WritersTour";
 // =========================
 // Constants
 // =========================
@@ -1595,7 +1595,7 @@ export default function WritersRoomHome() {
             <Footer onNavigate={goPage} />
           </div>
         )}
-
+        <WritersTour />
       </div>
     </>
   );
