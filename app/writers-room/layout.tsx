@@ -1,3 +1,4 @@
+"use client";
 import WritersTour from "@/app/components/WritersTour";
 
 export default function WritersRoomLayout({
