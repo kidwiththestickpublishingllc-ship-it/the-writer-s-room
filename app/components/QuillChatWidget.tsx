@@ -97,10 +97,15 @@ async function getAIResponse(messages: Message[]): Promise<string> {
   const res = await fetch("/api/quill-chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({
+      messages: messages.map((m) => ({
+        role: m.role === "quill" ? "assistant" : "user",
+        content: m.text,
+      })),
+    }),
   });
   const data = await res.json();
-  return data.response || QUILL_KB.fallback[0];
+  return data.message || QUILL_KB.fallback[0];
 }
 
 // =========================
