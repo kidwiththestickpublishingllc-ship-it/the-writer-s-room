@@ -2,8 +2,42 @@
 
 import { useEffect, useState, useCallback } from "react";
 
+// =============================================================
+// TWR WELCOME TOUR
+// A two-phase onboarding experience:
+//   Phase 1 — Welcome modal (6 slides introducing The Writer's Room)
+//   Phase 2 — Spotlight tour (highlights real page elements)
+//
+// HOW TO INSTALL:
+//   1. Save as: app/components/WritersTour.tsx
+//   2. In your Writer's Room layout or page, add:
+//      import WritersTour from "./components/WritersTour";
+//      Then place <WritersTour /> just before </body>
+//
+// HOW TO ADD THE REPLAY BUTTON anywhere on the page:
+//   import { startWritersTour } from "./components/WritersTour";
+//   <button onClick={startWritersTour}>Take the Tour</button>
+//
+// HOW TO ADD DATA-TOUR-WRITER ATTRIBUTES TO YOUR PAGES:
+//   The spotlight tour looks for elements with data-tour-writer attributes.
+//   Add these to the matching elements in your Writer's Room page:
+//
+//   Founding 100 banner     → data-tour-writer="twr-founding"
+//   Why Publish section     → data-tour-writer="twr-why"
+//   How It Works section    → data-tour-writer="twr-how"
+//   Ink Economy section     → data-tour-writer="twr-ink"
+//   Formats & Genres section→ data-tour-writer="twr-genres"
+//   Apply / Submit CTA      → data-tour-writer="twr-submit"
+//
+// IMPORTANT: Use data-tour-writer (not data-tour) — these are separate
+// from the Reading Room tour attributes to avoid collisions.
+// =============================================================
+
 const TOUR_KEY = "twr_tour_completed";
 
+// =============================================================
+// Modal slides — the welcome intro
+// =============================================================
 const MODAL_SLIDES = [
   {
     emoji: "🪶",
@@ -55,6 +89,10 @@ const MODAL_SLIDES = [
   },
 ];
 
+// =============================================================
+// Spotlight steps — highlights real page elements
+// Add data-tour-writer="step-id" to elements in your pages
+// =============================================================
 const SPOTLIGHT_STEPS = [
   {
     id: "twr-founding",
@@ -101,10 +139,16 @@ const SPOTLIGHT_STEPS = [
   },
 ];
 
+// =============================================================
+// Global trigger — call this from anywhere to replay the tour
+// =============================================================
 export function startWritersTour() {
   window.dispatchEvent(new CustomEvent("twr-start-tour"));
 }
 
+// =============================================================
+// Spotlight helpers
+// =============================================================
 type SpotlightRect = {
   top: number;
   left: number;
@@ -147,6 +191,7 @@ function TooltipBox({
     top = rect.top - TIP_H - PAD;
   }
 
+  // clamp to viewport
   left = Math.max(12, Math.min(left, window.innerWidth - TIP_W - 12));
   top = Math.max(12, top);
 
@@ -166,12 +211,15 @@ function TooltipBox({
         fontFamily: "'Syne', sans-serif",
       }}
     >
+      {/* purple/gold top line */}
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, borderRadius: "14px 14px 0 0", background: "linear-gradient(90deg, transparent, #a78bfa, #C9A84C, transparent)" }} />
+
       <div style={{ fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(167,139,250,0.7)", marginBottom: 6 }}>
         🪶 Quill — Step {current} of {total}
       </div>
       <p style={{ fontSize: 15, fontWeight: 700, color: "#E2C97E", marginBottom: 6, lineHeight: 1.3 }}>{step.title}</p>
       <p style={{ fontSize: 12, color: "rgba(232,228,218,0.7)", lineHeight: 1.65, marginBottom: 14 }}>{step.body}</p>
+
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
         <button
           type="button"
@@ -196,18 +244,44 @@ function TooltipBox({
   );
 }
 
+// =============================================================
+// Main component
+// =============================================================
 export default function WritersTour() {
-const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("modal");
+  // FIX 1: Initial phase is "idle" — the useEffect below transitions
+  // to "modal" only after the localStorage check passes.
+  const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("idle");
   const [modalSlide, setModalSlide] = useState(0);
   const [spotStep, setSpotStep] = useState(0);
   const [spotRect, setSpotRect] = useState<SpotlightRect | null>(null);
 
-  // Auto-start on first visit
-  useEffect(() => {
-  setTimeout(() => setPhase("modal"), 1200);
-}, []);
+  // FIX 2: completeTour and handleSpotNext are defined here, above the
+  // spotlight useEffect, so the effect captures a stable reference and
+  // never hits a stale closure when skipping a missing element.
+  const completeTour = useCallback(() => {
+    localStorage.setItem(TOUR_KEY, "1");
+    setPhase("idle");
+    setSpotRect(null);
+  }, []);
 
-  // Listen for manual trigger
+  const handleSpotNext = useCallback(() => {
+    setSpotStep((s) => {
+      if (s < SPOTLIGHT_STEPS.length - 1) return s + 1;
+      completeTour();
+      return s;
+    });
+  }, [completeTour]);
+
+  // FIX 3: Auto-start only fires when the tour has NOT been completed.
+  // This mirrors the working TRR pattern exactly.
+  useEffect(() => {
+    const completed = localStorage.getItem(TOUR_KEY);
+    if (!completed) {
+      setTimeout(() => setPhase("modal"), 1200);
+    }
+  }, []);
+
+  // Listen for manual replay trigger
   useEffect(() => {
     const handler = () => {
       setModalSlide(0);
@@ -231,6 +305,8 @@ const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("modal");
         const el = document.querySelector(step.target);
         el?.scrollIntoView({ behavior: "smooth", block: "center" });
       } else {
+        // Element not found — skip to next step.
+        // handleSpotNext is stable (useCallback above) so this is safe.
         handleSpotNext();
       }
     };
@@ -241,28 +317,15 @@ const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("modal");
       clearTimeout(timer);
       window.removeEventListener("resize", update);
     };
-  }, [phase, spotStep]);
-
-  const completeTour = useCallback(() => {
-    localStorage.setItem(TOUR_KEY, "1");
-    setPhase("idle");
-    setSpotRect(null);
-  }, []);
+  }, [phase, spotStep, handleSpotNext]);
 
   const handleModalNext = () => {
     if (modalSlide < MODAL_SLIDES.length - 1) {
       setModalSlide((s) => s + 1);
     } else {
+      // Transition to spotlight phase
       setPhase("spotlight");
       setSpotStep(0);
-    }
-  };
-
-  const handleSpotNext = () => {
-    if (spotStep < SPOTLIGHT_STEPS.length - 1) {
-      setSpotStep((s) => s + 1);
-    } else {
-      completeTour();
     }
   };
 
@@ -274,22 +337,26 @@ const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("modal");
     <>
       <style>{TOUR_STYLES}</style>
 
+      {/* ── MODAL PHASE ── */}
       {phase === "modal" && (
         <div className="twr-tour-overlay">
           <div className="twr-tour-modal">
             <div className="twr-tour-modal-top-line" />
 
+            {/* Quill branding header */}
             <div className="twr-tour-quill-header">
               <span>🪶</span>
               <span className="twr-tour-quill-label">Quill — The Writer's Guide</span>
             </div>
 
+            {/* Progress dots */}
             <div className="twr-tour-dots">
               {MODAL_SLIDES.map((_, i) => (
                 <div key={i} className={`twr-tour-dot ${i === modalSlide ? "twr-tour-dot-active" : ""}`} />
               ))}
             </div>
 
+            {/* Slide content */}
             <div className="twr-tour-slide">
               <div className="twr-tour-emoji">{MODAL_SLIDES[modalSlide].emoji}</div>
               <p className="twr-tour-eyebrow">{MODAL_SLIDES[modalSlide].subtitle}</p>
@@ -303,6 +370,7 @@ const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("modal");
               )}
             </div>
 
+            {/* Actions */}
             <div className="twr-tour-modal-footer">
               <button type="button" onClick={handleSkip} className="twr-tour-skip">
                 Skip tour
@@ -315,8 +383,10 @@ const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("modal");
         </div>
       )}
 
+      {/* ── SPOTLIGHT PHASE ── */}
       {phase === "spotlight" && spotRect && (
         <>
+          {/* Dark overlay with spotlight cutout */}
           <div style={{ position: "fixed", inset: 0, zIndex: 10000, pointerEvents: "none" }}>
             <svg width="100%" height="100%" style={{ position: "absolute", inset: 0 }}>
               <defs>
@@ -333,6 +403,7 @@ const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("modal");
                 </mask>
               </defs>
               <rect width="100%" height="100%" fill="rgba(0,0,0,0.78)" mask="url(#twr-spotlight-mask)" />
+              {/* Purple border around spotlight */}
               <rect
                 x={spotRect.left - 8}
                 y={spotRect.top - 8}
@@ -346,6 +417,8 @@ const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("modal");
               />
             </svg>
           </div>
+
+          {/* Tooltip */}
           <TooltipBox
             step={SPOTLIGHT_STEPS[spotStep]}
             rect={spotRect}
@@ -357,6 +430,7 @@ const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("modal");
         </>
       )}
 
+      {/* Spotlight — waiting for element to be found */}
       {phase === "spotlight" && !spotRect && (
         <div style={{ position: "fixed", inset: 0, zIndex: 10000, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ color: "rgba(167,139,250,0.7)", fontFamily: "'Syne', sans-serif", fontSize: 13, letterSpacing: "0.1em" }}>
@@ -368,6 +442,9 @@ const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("modal");
   );
 }
 
+// =============================================================
+// Styles
+// =============================================================
 const TOUR_STYLES = `
   .twr-tour-overlay {
     position: fixed;

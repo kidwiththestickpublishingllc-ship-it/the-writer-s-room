@@ -3,7 +3,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 // =========================
-// Quill Tour Constants
+// Quill Tour — FIXED
+// Bug 1: phase now starts as "idle" (not "modal")
+// Bug 2: auto-start checks localStorage before firing
+// Bug 3: completeTour + handleSpotNext defined before spotlight
+//         useEffect so the stale-closure skip is safe
 // =========================
 const TOUR_KEY = "twr_tour_completed";
 
@@ -58,16 +62,30 @@ const MODAL_SLIDES = [
   },
 ];
 
-const SPOTLIGHT_STEPS = [
-  { id: "twr-founding", target: "[data-tour-writer='twr-founding']", title: "The Founding 100", body: "This banner tracks how many founding spots are left. Once 100 writers join, this program closes permanently. Claim your spot now.", position: "top" as const },
-  { id: "twr-why", target: "[data-tour-writer='twr-why']", title: "Why Publish on TTL", body: "Three reasons every writer should know — you keep your copyright, you earn through Ink, and you build a real fanbase. No gatekeepers. No algorithms.", position: "top" as const },
-  { id: "twr-how", target: "[data-tour-writer='twr-how']", title: "How It Works", body: "Four simple steps — submit your story, get published, earn Ink revenue, and grow your audience. The whole process is free and reviewed personally.", position: "top" as const },
-  { id: "twr-ink", target: "[data-tour-writer='twr-ink']", title: "The Ink Economy", body: "This section explains exactly how money flows to you. Readers buy Ink, spend it on your chapters, and tip you directly. Revenue goes through Stripe to your account.", position: "top" as const },
-  { id: "twr-genres", target: "[data-tour-writer='twr-genres']", title: "Formats & Genres", body: "See all the formats TTL accepts — short stories, serials, poems, fan fiction, early access chapters, and all 24 genres. If you write it, there's a home for it here.", position: "top" as const },
-  { id: "twr-submit", target: "[data-tour-writer='twr-submit']", title: "Apply to Join", body: "Click Apply to Join to submit your story. We review every submission personally and respond within 5–10 business days. It's completely free.", position: "top" as const, isFinal: true },
-];
+type SpotlightStep = {
+  id: string;
+  target: string;
+  title: string;
+  body: string;
+  position: "top" | "bottom";
+  isFinal?: boolean;
+};
 
-type SpotlightRect = { top: number; left: number; width: number; height: number };
+type SpotlightRect = {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+};
+
+const SPOTLIGHT_STEPS: SpotlightStep[] = [
+  { id: "twr-founding", target: "[data-tour-writer='twr-founding']", title: "The Founding 100", body: "This banner tracks how many founding spots are left. Once 100 writers join, this program closes permanently. Claim your spot now.", position: "bottom" },
+  { id: "twr-why", target: "[data-tour-writer='twr-why']", title: "Why Publish on TTL", body: "Three reasons every writer should know — you keep your copyright, you earn through Ink, and you build a real fanbase. No gatekeepers. No algorithms.", position: "bottom" },
+  { id: "twr-how", target: "[data-tour-writer='twr-how']", title: "How It Works", body: "Four simple steps — submit your story, get published, earn Ink revenue, and grow your audience. The whole process is free and reviewed personally.", position: "bottom" },
+  { id: "twr-ink", target: "[data-tour-writer='twr-ink']", title: "The Ink Economy", body: "This section explains exactly how money flows to you. Readers buy Ink, spend it on your chapters, and tip you directly. Revenue goes through Stripe to your account.", position: "top" },
+  { id: "twr-genres", target: "[data-tour-writer='twr-genres']", title: "Formats & Genres", body: "See all the formats TTL accepts — short stories, serials, poems, fan fiction, early access chapters, and all 24 genres. If you write it, there's a home for it here.", position: "top" },
+  { id: "twr-submit", target: "[data-tour-writer='twr-submit']", title: "Apply to Join", body: "Click Apply to Join to submit your story. We review every submission personally and respond within 5–10 business days. It's completely free.", position: "top", isFinal: true },
+];
 
 function getSpotRect(selector: string): SpotlightRect | null {
   const el = document.querySelector(selector);
@@ -77,11 +95,15 @@ function getSpotRect(selector: string): SpotlightRect | null {
 }
 
 function QuillTooltip({ step, rect, current, total, onNext, onSkip }: {
-  step: typeof SPOTLIGHT_STEPS[0]; rect: SpotlightRect;
-  current: number; total: number; onNext: () => void; onSkip: () => void;
+  step: SpotlightStep;
+  rect: SpotlightRect;
+  current: number;
+  total: number;
+  onNext: () => void;
+  onSkip: () => void;
 }) {
   const PAD = 16, TIP_W = 300, TIP_H = 160;
-  let top = (step.position as string) === "bottom" ? rect.top + rect.height + PAD : rect.top - TIP_H - PAD;
+  let top = step.position === "bottom" ? rect.top + rect.height + PAD : rect.top - TIP_H - PAD;
   let left = Math.max(12, Math.min(rect.left + rect.width / 2 - TIP_W / 2, window.innerWidth - TIP_W - 12));
   top = Math.max(12, top);
   return (
@@ -101,39 +123,65 @@ function QuillTooltip({ step, rect, current, total, onNext, onSkip }: {
 }
 
 function WritersTour() {
-const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("modal");
+  // FIX 1: start idle, not "modal"
+  const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("idle");
   const [modalSlide, setModalSlide] = useState(0);
   const [spotStep, setSpotStep] = useState(0);
   const [spotRect, setSpotRect] = useState<SpotlightRect | null>(null);
 
-  useEffect(() => {
-  // if (!localStorage.getItem(TOUR_KEY)) 
-  setTimeout(() => setPhase("modal"), 1200);
-}, []);
+  // FIX 2: completeTour and handleSpotNext defined BEFORE the spotlight
+  // useEffect so the closure always captures the latest reference.
+  const completeTour = useCallback(() => {
+    localStorage.setItem(TOUR_KEY, "1");
+    setPhase("idle");
+    setSpotRect(null);
+  }, []);
 
+  const handleSpotNext = useCallback(() => {
+    setSpotStep((s) => {
+      if (s < SPOTLIGHT_STEPS.length - 1) return s + 1;
+      completeTour();
+      return s;
+    });
+  }, [completeTour]);
+
+  // FIX 3: only auto-start if tour has NOT been completed
+  useEffect(() => {
+    if (!localStorage.getItem(TOUR_KEY)) {
+      setTimeout(() => setPhase("modal"), 1200);
+    }
+  }, []);
+
+  // Manual replay trigger
   useEffect(() => {
     const handler = () => { setModalSlide(0); setSpotStep(0); setPhase("modal"); };
     window.addEventListener("twr-start-tour", handler);
     return () => window.removeEventListener("twr-start-tour", handler);
   }, []);
 
+  // Spotlight rect updater — handleSpotNext is stable so this is safe
   useEffect(() => {
     if (phase !== "spotlight") return;
     const step = SPOTLIGHT_STEPS[spotStep];
     if (!step) return;
     const update = () => {
       const rect = getSpotRect(step.target);
-      if (rect) { setSpotRect(rect); document.querySelector(step.target)?.scrollIntoView({ behavior: "smooth", block: "center" }); }
-      else handleSpotNext();
+      if (rect) {
+        setSpotRect(rect);
+        document.querySelector(step.target)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        handleSpotNext();
+      }
     };
     const timer = setTimeout(update, 350);
     window.addEventListener("resize", update);
     return () => { clearTimeout(timer); window.removeEventListener("resize", update); };
-  }, [phase, spotStep]);
+  }, [phase, spotStep, handleSpotNext]);
 
-  const completeTour = useCallback(() => { localStorage.setItem(TOUR_KEY, "1"); setPhase("idle"); setSpotRect(null); }, []);
-  const handleModalNext = () => modalSlide < MODAL_SLIDES.length - 1 ? setModalSlide(s => s + 1) : (setPhase("spotlight"), setSpotStep(0));
-  const handleSpotNext = () => spotStep < SPOTLIGHT_STEPS.length - 1 ? setSpotStep(s => s + 1) : completeTour();
+  const handleModalNext = () => modalSlide < MODAL_SLIDES.length - 1
+    ? setModalSlide(s => s + 1)
+    : (setPhase("spotlight"), setSpotStep(0));
+
   const handleSkip = () => completeTour();
 
   if (phase === "idle") return null;
@@ -802,7 +850,6 @@ const TWR_STYLES = `
 
   .twr-footer-actions { display: flex; gap: 10px; align-items: center; }
 
-  /* FOOTER PAGE LINKS */
   .twr-footer-pages {
     display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
     padding-top: 16px;
@@ -833,10 +880,7 @@ const TWR_STYLES = `
     user-select: none;
   }
 
-  /* ===================== */
-  /* SUB-PAGE STYLES       */
-  /* ===================== */
-
+  /* SUB-PAGE STYLES */
   .twr-subpage {
     position: relative; z-index: 1;
     max-width: 900px; margin: 0 auto;
@@ -881,10 +925,7 @@ const TWR_STYLES = `
     border-bottom: 1px solid var(--ink-border-gold);
   }
 
-  /* Content blocks */
-  .twr-content-block {
-    margin-bottom: 48px;
-  }
+  .twr-content-block { margin-bottom: 48px; }
 
   .twr-content-h2 {
     font-family: 'Cormorant Garamond', serif;
@@ -906,13 +947,8 @@ const TWR_STYLES = `
     margin-bottom: 14px;
   }
 
-  .twr-content-p a {
-    color: var(--gold-light);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
+  .twr-content-p a { color: var(--gold-light); text-decoration: underline; text-underline-offset: 3px; }
 
-  /* Checklist */
   .twr-checklist { display: flex; flex-direction: column; gap: 10px; }
 
   .twr-checklist-item {
@@ -934,7 +970,6 @@ const TWR_STYLES = `
 
   .twr-checklist-text strong { color: var(--text-main); font-weight: 700; }
 
-  /* Info panel */
   .twr-info-panel {
     background: linear-gradient(135deg, rgba(201,168,76,0.06), rgba(167,139,250,0.04));
     border: 1px solid var(--gold-dim);
@@ -963,7 +998,6 @@ const TWR_STYLES = `
   .twr-info-panel-text strong { color: var(--gold-light); }
   .twr-info-panel-quill .twr-info-panel-text strong { color: var(--quill); }
 
-  /* FAQ Accordion */
   .twr-faq-list { display: flex; flex-direction: column; gap: 4px; }
 
   .twr-faq-item {
@@ -989,11 +1023,7 @@ const TWR_STYLES = `
     color: var(--text-main); line-height: 1.5;
   }
 
-  .twr-faq-arrow {
-    color: var(--gold-dim); font-size: 16px; flex-shrink: 0;
-    transition: transform 0.25s;
-  }
-
+  .twr-faq-arrow { color: var(--gold-dim); font-size: 16px; flex-shrink: 0; transition: transform 0.25s; }
   .twr-faq-item.open .twr-faq-arrow { transform: rotate(180deg); color: var(--gold-light); }
 
   .twr-faq-a {
@@ -1005,7 +1035,6 @@ const TWR_STYLES = `
 
   .twr-faq-item.open .twr-faq-a { display: block; }
 
-  /* Contact Form */
   .twr-contact-grid {
     display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
     margin-bottom: 16px;
@@ -1030,15 +1059,9 @@ const TWR_STYLES = `
     appearance: none;
   }
 
-  .twr-field-input::placeholder,
-  .twr-field-textarea::placeholder { color: var(--text-faint); }
-
-  .twr-field-input:focus, .twr-field-select:focus, .twr-field-textarea:focus {
-    border-color: var(--gold-dim);
-  }
-
+  .twr-field-input::placeholder, .twr-field-textarea::placeholder { color: var(--text-faint); }
+  .twr-field-input:focus, .twr-field-select:focus, .twr-field-textarea:focus { border-color: var(--gold-dim); }
   .twr-field-textarea { resize: vertical; min-height: 140px; }
-
   .twr-field-select { color: var(--text-dim); }
   .twr-field-select option { background: #111; color: var(--text-main); }
 
@@ -1062,7 +1085,6 @@ const TWR_STYLES = `
     font-size: 13px; color: var(--text-dim); line-height: 1.7;
   }
 
-  /* Copyright highlight box */
   .twr-copyright-highlight {
     background: linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.04));
     border: 1px solid var(--gold-dim);
@@ -1135,67 +1157,31 @@ const RULES = [
 ];
 
 const FAQS = [
-  {
-    q: "Is it free to submit my writing?",
-    a: "Yes, completely free. There is no submission fee, no membership cost, and no hidden charges to publish on The Tiniest Library. You earn money; you don't spend it to join."
-  },
-  {
-    q: "Do I give up my copyright when I publish here?",
-    a: "No. You keep 100% of your copyright. Publishing on TTL grants us a non-exclusive licence to display your work on the platform, but ownership of your work remains entirely yours. You can publish the same work elsewhere, adapt it, or take it down at any time."
-  },
-  {
-    q: "What genres do you accept?",
-    a: "We publish across all 24 TTL genres including Fan Fiction, Horror, Fantasy, Romance, Sci-Fi, Literary Fiction, YA, Children's Literature, LGBTQ+ Fiction, Psychological Fiction, Historical Fiction, Contemporary Fiction, Serialised Fiction, and more. If it's a story, there's a home for it here."
-  },
-  {
-    q: "How does the Ink system work?",
-    a: "Ink is our reader currency. Readers buy Ink packs starting at $1 for 100 Ink and use it to unlock stories (25 Ink per chapter) or tip writers directly from their author cards. When readers spend Ink on your work, a portion of that revenue is paid out to you via Stripe."
-  },
-  {
-    q: "How long does the review process take?",
-    a: "We review every submission personally and aim to respond within 5–10 business days. Founding writer applications may be reviewed faster given the limited spots available."
-  },
-  {
-    q: "Can I submit a work in progress or serialised story?",
-    a: "Absolutely. Serials are one of the most popular formats on TTL. You can publish chapter by chapter on whatever schedule suits you. Readers can follow your author profile to be notified when new chapters drop."
-  },
-  {
-    q: "What happens if my submission isn't accepted?",
-    a: "If your submission isn't accepted, we'll let you know and you're welcome to revise and resubmit. Not every rejection is a no forever — sometimes it's a matter of timing, format, or fit. We try to give useful feedback where we can."
-  },
-  {
-    q: "Can I publish work that's already been published elsewhere?",
-    a: "In most cases, yes — as long as you hold the rights to it and any prior publication agreement doesn't prohibit it. If you're unsure, check the terms of your previous publication before submitting."
-  },
-  {
-    q: "Is there a word count minimum or maximum?",
-    a: "We don't enforce strict word count limits. Flash fiction, short stories, novellas, and full novels all have a place here. For serialised work, chapters can be as short or as long as your story requires."
-  },
-  {
-    q: "What is a Founding Writer?",
-    a: "The first 100 writers to join The Tiniest Library earn Founding Writer status. This includes permanent recognition on your author profile, a founding badge, priority placement in genre listings, and a small piece of TTL history. There are a limited number of spots remaining."
-  },
+  { q: "Is it free to submit my writing?", a: "Yes, completely free. There is no submission fee, no membership cost, and no hidden charges to publish on The Tiniest Library. You earn money; you don't spend it to join." },
+  { q: "Do I give up my copyright when I publish here?", a: "No. You keep 100% of your copyright. Publishing on TTL grants us a non-exclusive licence to display your work on the platform, but ownership of your work remains entirely yours. You can publish the same work elsewhere, adapt it, or take it down at any time." },
+  { q: "What genres do you accept?", a: "We publish across all 24 TTL genres including Fan Fiction, Horror, Fantasy, Romance, Sci-Fi, Literary Fiction, YA, Children's Literature, LGBTQ+ Fiction, Psychological Fiction, Historical Fiction, Contemporary Fiction, Serialised Fiction, and more. If it's a story, there's a home for it here." },
+  { q: "How does the Ink system work?", a: "Ink is our reader currency. Readers buy Ink packs starting at $1 for 100 Ink and use it to unlock stories (25 Ink per chapter) or tip writers directly from their author cards. When readers spend Ink on your work, a portion of that revenue is paid out to you via Stripe." },
+  { q: "How long does the review process take?", a: "We review every submission personally and aim to respond within 5–10 business days. Founding writer applications may be reviewed faster given the limited spots available." },
+  { q: "Can I submit a work in progress or serialised story?", a: "Absolutely. Serials are one of the most popular formats on TTL. You can publish chapter by chapter on whatever schedule suits you. Readers can follow your author profile to be notified when new chapters drop." },
+  { q: "What happens if my submission isn't accepted?", a: "If your submission isn't accepted, we'll let you know and you're welcome to revise and resubmit. Not every rejection is a no forever — sometimes it's a matter of timing, format, or fit. We try to give useful feedback where we can." },
+  { q: "Can I publish work that's already been published elsewhere?", a: "In most cases, yes — as long as you hold the rights to it and any prior publication agreement doesn't prohibit it. If you're unsure, check the terms of your previous publication before submitting." },
+  { q: "Is there a word count minimum or maximum?", a: "We don't enforce strict word count limits. Flash fiction, short stories, novellas, and full novels all have a place here. For serialised work, chapters can be as short or as long as your story requires." },
+  { q: "What is a Founding Writer?", a: "The first 100 writers to join The Tiniest Library earn Founding Writer status. This includes permanent recognition on your author profile, a founding badge, priority placement in genre listings, and a small piece of TTL history. There are a limited number of spots remaining." },
 ];
-
-// =========================
-// Types
-// =========================
-interface BackProps { onBack: () => void; }
-interface NavigateProps { onNavigate: (page: string) => void; }
 
 // =========================
 // Sub-Page: Submission Guidelines
 // =========================
+interface BackProps { onBack: () => void; }
+interface NavigateProps { onNavigate: (page: string) => void; }
+
 function PageSubmissionGuidelines({ onBack }: BackProps) {
   return (
     <div className="twr-subpage">
       <button className="twr-subpage-back" onClick={onBack}>← Back to The Writer's Room</button>
       <span className="twr-subpage-eyebrow">How to submit</span>
       <h1 className="twr-subpage-title">Submission<br />Guidelines</h1>
-      <p className="twr-subpage-intro">
-        Everything you need to know before you submit your writing to The Tiniest Library.
-        We keep the process simple, human, and free.
-      </p>
+      <p className="twr-subpage-intro">Everything you need to know before you submit your writing to The Tiniest Library. We keep the process simple, human, and free.</p>
 
       <div className="twr-content-block">
         <h2 className="twr-content-h2"><span className="twr-content-h2-bar" />Who can submit</h2>
@@ -1257,9 +1243,7 @@ function PageSubmissionGuidelines({ onBack }: BackProps) {
       </div>
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
-        <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary">
-          Apply to Join →
-        </a>
+        <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
         <button className="twr-btn-ghost" onClick={onBack}>Back to Writer's Room</button>
       </div>
     </div>
@@ -1267,21 +1251,16 @@ function PageSubmissionGuidelines({ onBack }: BackProps) {
 }
 
 // =========================
-// Sub-Page: Tiniest FAQs
+// Sub-Page: FAQs
 // =========================
 function PageFAQs({ onBack }: BackProps) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
-
   return (
     <div className="twr-subpage">
       <button className="twr-subpage-back" onClick={onBack}>← Back to The Writer's Room</button>
       <span className="twr-subpage-eyebrow">Questions & answers</span>
       <h1 className="twr-subpage-title">Tiniest<br />FAQs</h1>
-      <p className="twr-subpage-intro">
-        Everything writers ask us most. If your question isn't here,
-        use the Contact page and we'll get back to you personally.
-      </p>
-
+      <p className="twr-subpage-intro">Everything writers ask us most. If your question isn't here, use the Contact page and we'll get back to you personally.</p>
       <div className="twr-faq-list">
         {FAQS.map((faq, i) => (
           <div key={i} className={`twr-faq-item${openIdx === i ? ' open' : ''}`}>
@@ -1293,19 +1272,12 @@ function PageFAQs({ onBack }: BackProps) {
           </div>
         ))}
       </div>
-
       <div className="twr-info-panel twr-info-panel-quill" style={{ marginTop: 48 }}>
         <span className="twr-info-panel-label twr-info-panel-label-quill">Still have questions?</span>
-        <p className="twr-info-panel-text">
-          We read every message. If you couldn't find your answer here, head to our <strong>Contact Us</strong> page and ask us directly.
-          We aim to reply within 2 business days.
-        </p>
+        <p className="twr-info-panel-text">We read every message. Head to our <strong>Contact Us</strong> page and ask us directly. We aim to reply within 2 business days.</p>
       </div>
-
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
-        <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary">
-          Apply to Join →
-        </a>
+        <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
         <button className="twr-btn-ghost" onClick={onBack}>Back to Writer's Room</button>
       </div>
     </div>
@@ -1313,7 +1285,7 @@ function PageFAQs({ onBack }: BackProps) {
 }
 
 // =========================
-// Sub-Page: Keep Your Copyright
+// Sub-Page: Copyright
 // =========================
 function PageCopyright({ onBack }: BackProps) {
   return (
@@ -1321,21 +1293,13 @@ function PageCopyright({ onBack }: BackProps) {
       <button className="twr-subpage-back" onClick={onBack}>← Back to The Writer's Room</button>
       <span className="twr-subpage-eyebrow">Your rights, always</span>
       <h1 className="twr-subpage-title">Keep Your<br />Copyright</h1>
-      <p className="twr-subpage-intro">
-        At The Tiniest Library, your work belongs to you — not to us, not to any algorithm,
-        not to the platform. This is a non-negotiable principle of how TTL works.
-      </p>
-
-      <div className="twr-copyright-highlight">
-        <p>"You own what you write. Publishing here changes nothing about that."</p>
-      </div>
-
+      <p className="twr-subpage-intro">At The Tiniest Library, your work belongs to you — not to us, not to any algorithm, not to the platform. This is a non-negotiable principle of how TTL works.</p>
+      <div className="twr-copyright-highlight"><p>"You own what you write. Publishing here changes nothing about that."</p></div>
       <div className="twr-content-block">
         <h2 className="twr-content-h2"><span className="twr-content-h2-bar" />What copyright means for you</h2>
         <p className="twr-content-p">Copyright is the legal right of the creator of an original work to control how that work is used, reproduced, and distributed. When you write a story, poem, or any creative work, you automatically own that copyright from the moment it is created — no registration required.</p>
         <p className="twr-content-p">Publishing your work on The Tiniest Library does not change this. You are not selling your copyright, assigning it, or signing it over in any form.</p>
       </div>
-
       <div className="twr-content-block">
         <h2 className="twr-content-h2"><span className="twr-content-h2-bar" />What you grant TTL</h2>
         <div className="twr-info-panel">
@@ -1346,7 +1310,6 @@ function PageCopyright({ onBack }: BackProps) {
         </div>
         <p className="twr-content-p">We do not claim the right to sell, sublicense, translate, adapt, or reproduce your work in any other medium or for any commercial purpose outside of displaying it to readers within The Tiniest Library platform.</p>
       </div>
-
       <div className="twr-content-block">
         <h2 className="twr-content-h2"><span className="twr-content-h2-bar twr-content-h2-bar-quill" />What you can always do</h2>
         <div className="twr-checklist">
@@ -1365,7 +1328,6 @@ function PageCopyright({ onBack }: BackProps) {
           ))}
         </div>
       </div>
-
       <div className="twr-content-block">
         <h2 className="twr-content-h2"><span className="twr-content-h2-bar" />Why this matters</h2>
         <p className="twr-content-p">Many platforms bury exploitative clauses in their terms of service — broad licences that let the platform use your work in advertising, AI training, or merchandise without additional permission or payment. TTL is built on the opposite principle.</p>
@@ -1380,9 +1342,7 @@ function PageCopyright({ onBack }: BackProps) {
       </div>
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
-        <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary">
-          Apply to Join →
-        </a>
+        <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
         <button className="twr-btn-ghost" onClick={onBack}>Back to Writer's Room</button>
       </div>
     </div>
@@ -1390,29 +1350,20 @@ function PageCopyright({ onBack }: BackProps) {
 }
 
 // =========================
-// Sub-Page: Contact Us
+// Sub-Page: Contact
 // =========================
 function PageContact({ onBack }: BackProps) {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [sent, setSent] = useState(false);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
-
-  const handleSubmit = () => {
-    if (!form.name || !form.email || !form.message) return;
-    setSent(true);
-  };
+  const handleSubmit = () => { if (!form.name || !form.email || !form.message) return; setSent(true); };
 
   return (
     <div className="twr-subpage">
       <button className="twr-subpage-back" onClick={onBack}>← Back to The Writer's Room</button>
       <span className="twr-subpage-eyebrow">Get in touch</span>
       <h1 className="twr-subpage-title">Contact<br />Us</h1>
-      <p className="twr-subpage-intro">
-        We read every message personally. Whether you have a question about submitting,
-        your work on the platform, or anything else — reach out and we'll get back to you.
-      </p>
-
+      <p className="twr-subpage-intro">We read every message personally. Whether you have a question about submitting, your work on the platform, or anything else — reach out and we'll get back to you.</p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 40 }}>
         {[
           { icon: "🪶", label: "Submissions", text: "Questions about submitting your work or the review process" },
@@ -1422,34 +1373,21 @@ function PageContact({ onBack }: BackProps) {
         ].map(item => (
           <div key={item.label} className="twr-rule-card" style={{ cursor: 'default' }}>
             <span className="twr-rule-icon">{item.icon}</span>
-            <div>
-              <div className="twr-rule-title">{item.label}</div>
-              <div className="twr-rule-text">{item.text}</div>
-            </div>
+            <div><div className="twr-rule-title">{item.label}</div><div className="twr-rule-text">{item.text}</div></div>
           </div>
         ))}
       </div>
-
       {sent ? (
         <div className="twr-contact-sent">
           <span className="twr-contact-sent-icon">🪶</span>
           <div className="twr-contact-sent-title">Message received.</div>
-          <p className="twr-contact-sent-text">
-            Thank you for reaching out. We aim to reply within 2 business days.<br />
-            We look forward to reading your work.
-          </p>
+          <p className="twr-contact-sent-text">Thank you for reaching out. We aim to reply within 2 business days.<br />We look forward to reading your work.</p>
         </div>
       ) : (
         <div>
           <div className="twr-contact-grid">
-            <div className="twr-field">
-              <label className="twr-field-label">Your Name</label>
-              <input className="twr-field-input" name="name" placeholder="How should we address you?" value={form.name} onChange={handleChange} />
-            </div>
-            <div className="twr-field">
-              <label className="twr-field-label">Email Address</label>
-              <input className="twr-field-input" name="email" type="email" placeholder="We'll reply here" value={form.email} onChange={handleChange} />
-            </div>
+            <div className="twr-field"><label className="twr-field-label">Your Name</label><input className="twr-field-input" name="name" placeholder="How should we address you?" value={form.name} onChange={handleChange} /></div>
+            <div className="twr-field"><label className="twr-field-label">Email Address</label><input className="twr-field-input" name="email" type="email" placeholder="We'll reply here" value={form.email} onChange={handleChange} /></div>
           </div>
           <div className="twr-field" style={{ marginBottom: 16 }}>
             <label className="twr-field-label">Subject</label>
@@ -1468,9 +1406,7 @@ function PageContact({ onBack }: BackProps) {
             <textarea className="twr-field-textarea" name="message" placeholder="Tell us what's on your mind..." value={form.message} onChange={handleChange} />
           </div>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <button className="twr-btn-primary" onClick={handleSubmit}>
-              Send Message →
-            </button>
+            <button className="twr-btn-primary" onClick={handleSubmit}>Send Message →</button>
             <button className="twr-btn-ghost" onClick={onBack}>Back to Writer's Room</button>
           </div>
           <p style={{ fontFamily: "'Syne', sans-serif", fontSize: 11, color: 'var(--text-faint)', marginTop: 16, lineHeight: 1.7 }}>
@@ -1498,12 +1434,8 @@ function Footer({ onNavigate }: NavigateProps) {
         </div>
         <span className="twr-footer-copy">© {new Date().getFullYear()} The Tiniest Library. All rights reserved.</span>
         <div className="twr-footer-actions">
-          <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-ghost" style={{ fontSize: '9px', padding: '8px 18px', borderRadius: '8px' }}>
-            Submit Your Story
-          </a>
-          <a href={TTL_READING_ROOM_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary" style={{ fontSize: '9px', padding: '8px 18px', borderRadius: '8px' }}>
-            Reading Room →
-          </a>
+          <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-ghost" style={{ fontSize: '9px', padding: '8px 18px', borderRadius: '8px' }}>Submit Your Story</a>
+          <a href={TTL_READING_ROOM_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary" style={{ fontSize: '9px', padding: '8px 18px', borderRadius: '8px' }}>Reading Room →</a>
         </div>
       </div>
       <div className="twr-footer-pages">
@@ -1522,16 +1454,16 @@ function Footer({ onNavigate }: NavigateProps) {
 }
 
 // =========================
-// Page Component
+// Main Page
 // =========================
 export default function WritersRoomHome() {
   const [spotsLeft] = useState(87);
-  const [page, setPage] = useState('home'); // 'home' | 'guidelines' | 'faqs' | 'copyright' | 'contact'
+  const [page, setPage] = useState('home');
 
   const goHome = () => { setPage('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const goPage = (p: string) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-  const NAV_PAGES = [
+  const NAV_PAGES: { key: string; label: string }[] = [
     { key: 'guidelines', label: 'Guidelines' },
     { key: 'faqs', label: 'FAQs' },
     { key: 'copyright', label: 'Your Copyright' },
@@ -1563,7 +1495,7 @@ export default function WritersRoomHome() {
                     <a href="#formats" className="twr-nav-link">Formats</a>
                     <a href="#ink" className="twr-nav-link">Ink Revenue</a>
                     <a href="#rules" className="twr-nav-link">Rules</a>
-                    {NAV_PAGES.map((p: { key: string; label: string }) => (
+                    {NAV_PAGES.map(p => (
                       <button key={p.key} className="twr-nav-link" onClick={() => goPage(p.key)}>{p.label}</button>
                     ))}
                     <a href={TTL_READING_ROOM_URL} className="twr-nav-link" target="_blank" rel="noopener noreferrer">Reading Room</a>
@@ -1571,7 +1503,7 @@ export default function WritersRoomHome() {
                 ) : (
                   <>
                     <button className="twr-nav-link" onClick={goHome}>Home</button>
-                    {NAV_PAGES.map((p2: { key: string; label: string }) => (
+                    {NAV_PAGES.map(p2 => (
                       <button key={p2.key} className={`twr-nav-link${page === p2.key ? ' active' : ''}`} onClick={() => goPage(p2.key)}>{p2.label}</button>
                     ))}
                     <a href={TTL_READING_ROOM_URL} className="twr-nav-link" target="_blank" rel="noopener noreferrer">Reading Room</a>
@@ -1580,10 +1512,7 @@ export default function WritersRoomHome() {
               </div>
             </div>
             <div className="twr-nav-right">
-              <div className="twr-nav-badge">
-                <span>🪶</span>
-                <span>{spotsLeft} Spots Left</span>
-              </div>
+              <div className="twr-nav-badge"><span>🪶</span><span>{spotsLeft} Spots Left</span></div>
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent("twr-start-tour"))}
                 className="twr-btn-ghost"
@@ -1613,10 +1542,7 @@ export default function WritersRoomHome() {
               <div className="twr-hero-inner">
                 <span className="twr-hero-eyebrow">The Tiniest Library — For Writers</span>
                 <h1 className="twr-hero-title">The<br />Writer's<br />Room</h1>
-                <p className="twr-hero-sub">
-                  A home for independent writers. Publish your stories, earn through Ink,
-                  keep your copyright, and build the readership your work deserves.
-                </p>
+                <p className="twr-hero-sub">A home for independent writers. Publish your stories, earn through Ink, keep your copyright, and build the readership your work deserves.</p>
                 <div className="twr-hero-actions">
                   <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
                   <a href="#how" className="twr-btn-ghost">How it works</a>
@@ -1628,17 +1554,14 @@ export default function WritersRoomHome() {
             {/* MAIN CONTENT */}
             <div className="twr-wrap">
 
-              {/* FOUNDING 100 BANNER */}
+              {/* FOUNDING 100 — data-tour-writer already present */}
               <div className="twr-section">
                 <div className="twr-founding-banner" data-tour-writer="twr-founding">
                   <div className="twr-founding-num">100</div>
                   <div className="twr-founding-content">
                     <span className="twr-founding-label">Limited — Founding Writer Program</span>
                     <h2 className="twr-founding-headline">Be one of the first 100.</h2>
-                    <p className="twr-founding-sub">
-                      The first 100 writers to join The Tiniest Library receive founding writer status —
-                      permanent recognition, priority placement, and a founding badge on their author profile.
-                    </p>
+                    <p className="twr-founding-sub">The first 100 writers to join The Tiniest Library receive founding writer status — permanent recognition, priority placement, and a founding badge on their author profile.</p>
                     <div className="twr-founding-spots">
                       {Array.from({ length: 20 }).map((_, i) => (
                         <div key={i} className={`twr-spot-dot${i >= 20 - Math.floor((spotsLeft / 100) * 20) ? '' : ' taken'}`} />
@@ -1652,14 +1575,11 @@ export default function WritersRoomHome() {
                 </div>
               </div>
 
-              {/* WHY TTL */}
+              {/* WHY TTL — data-tour-writer already present */}
               <div className="twr-section" id="why" data-tour-writer="twr-why">
                 <div className="twr-section-accent">
                   <div className="twr-section-bar" />
-                  <div>
-                    <span className="twr-section-eyebrow">Why us</span>
-                    <h2 className="twr-section-title">Why publish on TTL</h2>
-                  </div>
+                  <div><span className="twr-section-eyebrow">Why us</span><h2 className="twr-section-title">Why publish on TTL</h2></div>
                 </div>
                 <div className="twr-divider" />
                 <div className="twr-why-grid">
@@ -1673,14 +1593,11 @@ export default function WritersRoomHome() {
                 </div>
               </div>
 
-              {/* HOW IT WORKS */}
+              {/* HOW IT WORKS — data-tour-writer already present */}
               <div className="twr-section" id="how" data-tour-writer="twr-how">
                 <div className="twr-section-accent">
                   <div className="twr-section-bar twr-section-bar-quill" />
-                  <div>
-                    <span className="twr-section-eyebrow">Simple process</span>
-                    <h2 className="twr-section-title">How it works</h2>
-                  </div>
+                  <div><span className="twr-section-eyebrow">Simple process</span><h2 className="twr-section-title">How it works</h2></div>
                 </div>
                 <div className="twr-divider" />
                 <div className="twr-steps">
@@ -1697,14 +1614,11 @@ export default function WritersRoomHome() {
                 </div>
               </div>
 
-              {/* FORMATS */}
+              {/* FORMATS — data-tour-writer already present */}
               <div className="twr-section" id="formats" data-tour-writer="twr-genres">
                 <div className="twr-section-accent">
                   <div className="twr-section-bar" />
-                  <div>
-                    <span className="twr-section-eyebrow">What we accept</span>
-                    <h2 className="twr-section-title">Formats & genres</h2>
-                  </div>
+                  <div><span className="twr-section-eyebrow">What we accept</span><h2 className="twr-section-title">Formats & genres</h2></div>
                 </div>
                 <div className="twr-divider" />
                 <div className="twr-formats-grid">
@@ -1718,31 +1632,20 @@ export default function WritersRoomHome() {
                 </div>
               </div>
 
-              {/* INK REVENUE */}
+              {/* INK REVENUE — data-tour-writer already present */}
               <div className="twr-section" id="ink" data-tour-writer="twr-ink">
                 <div className="twr-section-accent">
                   <div className="twr-section-bar" />
-                  <div>
-                    <span className="twr-section-eyebrow">How you earn</span>
-                    <h2 className="twr-section-title">The Ink economy</h2>
-                  </div>
+                  <div><span className="twr-section-eyebrow">How you earn</span><h2 className="twr-section-title">The Ink economy</h2></div>
                 </div>
                 <div className="twr-divider" />
                 <div className="twr-ink-grid">
                   <div className="twr-ink-panel twr-ink-panel-gold">
                     <div className="twr-ink-label">Reader Currency</div>
                     <div className="twr-ink-num">Ink</div>
-                    <p className="twr-ink-text">
-                      Ink is The Tiniest Library's reader currency. Readers purchase Ink packs
-                      starting at $1 and use it to unlock stories and tip writers they love.
-                      Every Ink transaction on your work sends revenue directly to you via Stripe.
-                    </p>
+                    <p className="twr-ink-text">Ink is The Tiniest Library's reader currency. Readers purchase Ink packs starting at $1 and use it to unlock stories and tip writers they love. Every Ink transaction on your work sends revenue directly to you via Stripe.</p>
                     <br />
-                    <p className="twr-ink-text">
-                      The more readers engage with your stories — unlocking chapters, tipping,
-                      returning for new content — the more you earn. No ads. No algorithm tax.
-                      Just readers supporting the writing they love.
-                    </p>
+                    <p className="twr-ink-text">The more readers engage with your stories — unlocking chapters, tipping, returning for new content — the more you earn. No ads. No algorithm tax. Just readers supporting the writing they love.</p>
                   </div>
                   <div className="twr-ink-panel">
                     <div className="twr-ink-label">How the flow works</div>
@@ -1764,65 +1667,48 @@ export default function WritersRoomHome() {
                 </div>
               </div>
 
-              {/* GUIDELINES */}
+              {/* RULES */}
               <div className="twr-section" id="rules">
                 <div className="twr-section-accent">
                   <div className="twr-section-bar twr-section-bar-quill" />
-                  <div>
-                    <span className="twr-section-eyebrow">Content guidelines</span>
-                    <h2 className="twr-section-title">Submission rules</h2>
-                  </div>
+                  <div><span className="twr-section-eyebrow">Content guidelines</span><h2 className="twr-section-title">Submission rules</h2></div>
                 </div>
                 <div className="twr-divider" />
                 <div className="twr-rules-grid">
                   {RULES.map(r => (
                     <div key={r.title} className="twr-rule-card">
                       <span className="twr-rule-icon">{r.icon}</span>
-                      <div>
-                        <div className="twr-rule-title">{r.title}</div>
-                        <div className="twr-rule-text">{r.text}</div>
-                      </div>
+                      <div><div className="twr-rule-title">{r.title}</div><div className="twr-rule-text">{r.text}</div></div>
                     </div>
                   ))}
                 </div>
                 <div style={{ marginTop: 24, display: 'flex', gap: 10 }}>
-                  <button className="twr-btn-ghost" style={{ fontSize: '10px', padding: '10px 22px' }} onClick={() => goPage('guidelines')}>
-                    Full Submission Guidelines →
-                  </button>
+                  <button className="twr-btn-ghost" style={{ fontSize: '10px', padding: '10px 22px' }} onClick={() => goPage('guidelines')}>Full Submission Guidelines →</button>
                 </div>
               </div>
 
-              {/* CTA */}
+              {/* CTA — data-tour-writer already present */}
               <div className="twr-cta" data-tour-writer="twr-submit">
                 <h2 className="twr-cta-title">Your stories deserve a home.</h2>
-                <p className="twr-cta-sub">
-                  100 founding writer spots. No gatekeepers. No algorithms.
-                  Just your work, your readers, and real revenue from the people who love what you create.
-                </p>
+                <p className="twr-cta-sub">100 founding writer spots. No gatekeepers. No algorithms. Just your work, your readers, and real revenue from the people who love what you create.</p>
                 <div className="twr-cta-actions">
-                  <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary" style={{ fontSize: '11px', padding: '16px 36px' }}>
-                    Apply to Join →
-                  </a>
-                  <a href={TTL_READING_ROOM_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-ghost" style={{ fontSize: '11px', padding: '16px 36px' }}>
-                    See the Reading Room
-                  </a>
+                  <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary" style={{ fontSize: '11px', padding: '16px 36px' }}>Apply to Join →</a>
+                  <a href={TTL_READING_ROOM_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-ghost" style={{ fontSize: '11px', padding: '16px 36px' }}>See the Reading Room</a>
                 </div>
               </div>
 
-              {/* FOOTER */}
               <Footer onNavigate={goPage} />
             </div>
           </>
         )}
 
-        {/* Footer on sub-pages */}
         {page !== 'home' && (
           <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 40px 60px' }}>
             <Footer onNavigate={goPage} />
           </div>
         )}
 
-        {/* Quill Tour — fires on first visit, replayable */}
+        {/* Quill Tour — fires on first visit only, replayable via 🪶 Tour button */}
         <WritersTour />
 
       </div>

@@ -2,20 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// =============================================================
-// QUILL — The TTL Writer's Guide
-// Rule-based chat for writers. Upgrade to Claude AI:
-//   1. Create /app/api/quill-chat/route.ts
-//   2. Set USE_AI = true
-//   3. Add ANTHROPIC_API_KEY to .env.local + Vercel
-// =============================================================
 const USE_AI = true;
 
 const TTL_SUBMIT_URL = "https://www.the-tiniest-library.com/new-page-1";
 
-// =========================
-// Writer Knowledge Base
-// =========================
 const QUILL_KB = {
   greeting_new: [
     "Welcome to The Writer's Room! 🪶 I'm Quill, your guide for everything about publishing on The Tiniest Library. Ask me about submitting your story, how Ink revenue works, what genres we accept, or the Founding 100 program. What can I help you with?",
@@ -70,7 +60,6 @@ function markWriterVisited() {
 
 function getRuleBasedResponse(input: string): string {
   const q = input.toLowerCase();
-
   if (/\b(hi|hello|hey|good morning|good evening|good afternoon|howdy)\b/.test(q)) return QUILL_KB.topics.hello;
   if (/\b(thank|thanks|thank you|ty|thx)\b/.test(q)) return QUILL_KB.topics.thanks;
   if (/\b(start|begin|get started|first step|how do i start)\b/.test(q)) return QUILL_KB.topics.start;
@@ -89,23 +78,31 @@ function getRuleBasedResponse(input: string): string {
   if (/\b(payment|paid out|payout|stripe|how do i get paid)\b/.test(q)) return QUILL_KB.topics.payment;
   if (/\b(substack|newsletter|both platforms)\b/.test(q)) return QUILL_KB.topics.substack;
   if (/\b(wattpad|royal road|kindle vella|compare|versus|vs)\b/.test(q)) return QUILL_KB.topics.wattpad;
-
   return QUILL_KB.fallback[Math.floor(Math.random() * QUILL_KB.fallback.length)];
 }
 
 async function getAIResponse(messages: Message[]): Promise<string> {
-  const res = await fetch("/api/quill-chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      messages: messages.map((m) => ({
-        role: m.role === "quill" ? "assistant" : "user",
-        content: m.text,
-      })),
-    }),
-  });
-  const data = await res.json();
-  return data.message || QUILL_KB.fallback[0];
+  try {
+    const res = await fetch("/api/quill-chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: messages
+          .filter(m => m.role === "user" || m.role === "quill")
+          .map((m) => ({
+            role: m.role === "quill" ? "assistant" : "user",
+            content: m.text,
+          })),
+      }),
+    });
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    return data.message || QUILL_KB.fallback[0];
+  } catch (err) {
+    console.error("Quill AI error:", err);
+    throw err;
+  }
 }
 
 // =========================
@@ -124,7 +121,6 @@ const WIDGET_STYLES = `
     --text-main: #f0ece2; --text-dim: rgba(232,228,218,0.45); --text-faint: rgba(232,228,218,0.25);
   }
 
-  /* FAB */
   .quill-fab {
     position: fixed; bottom: 28px; right: 28px; z-index: 999;
     display: flex; flex-direction: column; align-items: center; gap: 6px;
@@ -164,7 +160,6 @@ const WIDGET_STYLES = `
   }
 
   .quill-fab:hover { transform: translateY(-3px); }
-
   .quill-fab-hidden { opacity: 0; pointer-events: none; transform: scale(0.85); }
 
   .quill-fab canvas {
@@ -188,7 +183,6 @@ const WIDGET_STYLES = `
 
   @keyframes quillFabPulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
 
-  /* CHAT WINDOW */
   .quill-window {
     position: fixed; bottom: 28px; right: 28px; z-index: 1000;
     width: 420px; max-width: calc(100vw - 32px);
@@ -366,9 +360,6 @@ const WIDGET_STYLES = `
   }
 `;
 
-// =========================
-// Quill Book Canvas (purple variant)
-// =========================
 const PIXEL = 2;
 const QUILL_COLORS = {
   leatherDark: '#1e1230', leather: '#2d1b69', leatherLight: '#3d2483',
@@ -501,9 +492,6 @@ function QuillBook({ onClick }: { onClick: () => void }) {
   );
 }
 
-// =========================
-// Main Widget
-// =========================
 const SUGGESTIONS = ["How do I submit?", "Copyright?", "How does Ink work?", "Founding 100?"];
 
 export default function QuillChatWidget() {
@@ -547,19 +535,21 @@ export default function QuillChatWidget() {
     setInput("");
     setLoading(true);
 
-    await new Promise(r => setTimeout(r, 600 + Math.random() * 400));
-
-    let response: string;
-    if (USE_AI) {
-      response = await getAIResponse([...messages, userMsg]);
-    } else {
-      response = getRuleBasedResponse(text);
+    try {
+      let response: string;
+      if (USE_AI) {
+        response = await getAIResponse([...messages, userMsg]);
+      } else {
+        await new Promise(r => setTimeout(r, 600 + Math.random() * 400));
+        response = getRuleBasedResponse(text);
+      }
+      setMessages(prev => [...prev, { role: "quill", text: response, time: getTime() }]);
+    } catch {
+      setMessages(prev => [...prev, { role: "quill", text: "Something went wrong — please try again!", time: getTime() }]);
+    } finally {
+      setLoading(false);
+      if (!open) setUnread(u => u + 1);
     }
-
-    const quillMsg: Message = { role: "quill", text: response, time: getTime() };
-    setMessages(prev => [...prev, quillMsg]);
-    setLoading(false);
-    if (!open) setUnread(u => u + 1);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -570,7 +560,6 @@ export default function QuillChatWidget() {
     <>
       <style>{WIDGET_STYLES}</style>
 
-      {/* FAB */}
       <button
         type="button"
         onClick={handleOpen}
@@ -593,11 +582,9 @@ export default function QuillChatWidget() {
         )}
       </button>
 
-      {/* CHAT WINDOW */}
       <div className={`quill-window ${open ? "quill-window-open" : ""}`} role="dialog" aria-label="Quill writer guide">
         <div className="quill-window-accent" />
 
-        {/* Header */}
         <div className="quill-header">
           <div className="quill-header-left">
             <div className="quill-avatar">🪶</div>
@@ -612,7 +599,6 @@ export default function QuillChatWidget() {
           <button type="button" onClick={handleClose} className="quill-close">Close ✕</button>
         </div>
 
-        {/* Messages */}
         <div className="quill-messages">
           {messages.map((msg, i) => (
             <div key={i} className={`quill-msg quill-msg-${msg.role}`}>
@@ -632,7 +618,6 @@ export default function QuillChatWidget() {
           <div ref={bottomRef} />
         </div>
 
-        {/* Suggestions */}
         {messages.length <= 1 && !loading && (
           <div className="quill-suggestions">
             {SUGGESTIONS.map(s => (
@@ -643,7 +628,6 @@ export default function QuillChatWidget() {
           </div>
         )}
 
-        {/* Input */}
         <div className="quill-input-area">
           <input
             ref={inputRef}
