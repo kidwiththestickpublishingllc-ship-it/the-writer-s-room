@@ -2,33 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-// =============================================================
-// TWR WRITER'S TOUR — Guided by Quill
-// A two-phase onboarding experience for writers:
-//   Phase 1 — Welcome modal (6 slides introducing The Writer's Room)
-//   Phase 2 — Spotlight tour (highlights real page elements)
-//
-// HOW TO INSTALL:
-//   1. Save as: app/components/WritersTour.tsx
-//   2. In your Writer's Room page or layout, add:
-//      import WritersTour from "@/app/components/WritersTour";
-//      Then place <WritersTour /> just before </body>
-//
-// HOW TO ADD THE REPLAY BUTTON anywhere on the page:
-//   import { startWritersTour } from "@/app/components/WritersTour";
-//   <button onClick={startWritersTour}>Take the Tour</button>
-//
-// CUSTOMIZATION:
-//   - Edit MODAL_SLIDES to change the intro content
-//   - Edit SPOTLIGHT_STEPS to change what gets highlighted
-//   - Add data-tour-writer="step-id" to any element to spotlight it
-// =============================================================
-
 const TOUR_KEY = "twr_tour_completed";
 
-// =============================================================
-// Modal slides — 6 slides covering all writer features
-// =============================================================
 const MODAL_SLIDES = [
   {
     emoji: "🪶",
@@ -80,31 +55,27 @@ const MODAL_SLIDES = [
   },
 ];
 
-// =============================================================
-// Spotlight steps — highlights real Writer's Room elements
-// Add data-tour-writer="step-id" to elements in your pages
-// =============================================================
 const SPOTLIGHT_STEPS = [
   {
     id: "twr-founding",
     target: "[data-tour-writer='twr-founding']",
     title: "The Founding 100",
     body: "This banner tracks how many founding spots are left. Once 100 writers join, this program closes permanently. Claim your spot now.",
-    position: "top" as const,
+    position: "bottom" as const,
   },
   {
     id: "twr-why",
     target: "[data-tour-writer='twr-why']",
     title: "Why Publish on TTL",
     body: "Three reasons every writer should know — you keep your copyright, you earn through Ink, and you build a real fanbase. No gatekeepers. No algorithms.",
-    position: "top" as const,
+    position: "bottom" as const,
   },
   {
     id: "twr-how",
     target: "[data-tour-writer='twr-how']",
     title: "How It Works",
     body: "Four simple steps — submit your story, get published, earn Ink revenue, and grow your audience. The whole process is free and reviewed personally.",
-    position: "top" as const,
+    position: "bottom" as const,
   },
   {
     id: "twr-ink",
@@ -130,16 +101,10 @@ const SPOTLIGHT_STEPS = [
   },
 ];
 
-// =============================================================
-// Global trigger
-// =============================================================
 export function startWritersTour() {
   window.dispatchEvent(new CustomEvent("twr-start-tour"));
 }
 
-// =============================================================
-// Spotlight helpers
-// =============================================================
 type SpotlightRect = {
   top: number;
   left: number;
@@ -176,7 +141,7 @@ function TooltipBox({
   let top = 0;
   let left = rect.left + rect.width / 2 - TIP_W / 2;
 
-  if (step.position !== "top") {
+  if (step.position === "bottom") {
     top = rect.top + rect.height + PAD;
   } else {
     top = rect.top - TIP_H - PAD;
@@ -201,15 +166,12 @@ function TooltipBox({
         fontFamily: "'Syne', sans-serif",
       }}
     >
-      {/* quill purple top line */}
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, borderRadius: "14px 14px 0 0", background: "linear-gradient(90deg, transparent, #a78bfa, #C9A84C, transparent)" }} />
-
       <div style={{ fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(167,139,250,0.7)", marginBottom: 6 }}>
         🪶 Quill — Step {current} of {total}
       </div>
       <p style={{ fontSize: 15, fontWeight: 700, color: "#E2C97E", marginBottom: 6, lineHeight: 1.3 }}>{step.title}</p>
       <p style={{ fontSize: 12, color: "rgba(232,228,218,0.7)", lineHeight: 1.65, marginBottom: 14 }}>{step.body}</p>
-
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
         <button
           type="button"
@@ -225,7 +187,6 @@ function TooltipBox({
             fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 700,
             background: "linear-gradient(135deg, #a78bfa, #7c3aed)", color: "#fff",
             border: "none", borderRadius: 8, padding: "8px 18px", cursor: "pointer",
-            transition: "opacity 0.15s",
           }}
         >
           {step.isFinal ? "Done! 🪶" : "Next →"}
@@ -235,33 +196,11 @@ function TooltipBox({
   );
 }
 
-// =============================================================
-// Main component
-// =============================================================
 export default function WritersTour() {
   const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("idle");
   const [modalSlide, setModalSlide] = useState(0);
   const [spotStep, setSpotStep] = useState(0);
   const [spotRect, setSpotRect] = useState<SpotlightRect | null>(null);
-
-  // ── stable callbacks defined before any useEffect that references them ──
-
-  const completeTour = useCallback(() => {
-    localStorage.setItem(TOUR_KEY, "1");
-    setPhase("idle");
-    setSpotRect(null);
-  }, []);
-
-  const handleSpotNext = useCallback(() => {
-    setSpotStep((s) => {
-      if (s < SPOTLIGHT_STEPS.length - 1) return s + 1;
-      // last step — complete the tour
-      localStorage.setItem(TOUR_KEY, "1");
-      setPhase("idle");
-      setSpotRect(null);
-      return s;
-    });
-  }, []);
 
   // Auto-start on first visit
   useEffect(() => {
@@ -295,7 +234,6 @@ export default function WritersTour() {
         const el = document.querySelector(step.target);
         el?.scrollIntoView({ behavior: "smooth", block: "center" });
       } else {
-        // element not found — skip to next
         handleSpotNext();
       }
     };
@@ -306,7 +244,13 @@ export default function WritersTour() {
       clearTimeout(timer);
       window.removeEventListener("resize", update);
     };
-  }, [phase, spotStep, handleSpotNext]);
+  }, [phase, spotStep]);
+
+  const completeTour = useCallback(() => {
+    localStorage.setItem(TOUR_KEY, "1");
+    setPhase("idle");
+    setSpotRect(null);
+  }, []);
 
   const handleModalNext = () => {
     if (modalSlide < MODAL_SLIDES.length - 1) {
@@ -314,6 +258,14 @@ export default function WritersTour() {
     } else {
       setPhase("spotlight");
       setSpotStep(0);
+    }
+  };
+
+  const handleSpotNext = () => {
+    if (spotStep < SPOTLIGHT_STEPS.length - 1) {
+      setSpotStep((s) => s + 1);
+    } else {
+      completeTour();
     }
   };
 
@@ -325,32 +277,28 @@ export default function WritersTour() {
     <>
       <style>{TOUR_STYLES}</style>
 
-      {/* ── MODAL PHASE ── */}
       {phase === "modal" && (
         <div className="twr-tour-overlay">
           <div className="twr-tour-modal">
             <div className="twr-tour-modal-top-line" />
 
-            {/* Quill branding */}
             <div className="twr-tour-quill-header">
-              <span className="twr-tour-quill-icon">🪶</span>
+              <span>🪶</span>
               <span className="twr-tour-quill-label">Quill — The Writer's Guide</span>
             </div>
 
-            {/* Progress dots */}
             <div className="twr-tour-dots">
               {MODAL_SLIDES.map((_, i) => (
                 <div key={i} className={`twr-tour-dot ${i === modalSlide ? "twr-tour-dot-active" : ""}`} />
               ))}
             </div>
 
-            {/* Slide content */}
             <div className="twr-tour-slide">
               <div className="twr-tour-emoji">{MODAL_SLIDES[modalSlide].emoji}</div>
               <p className="twr-tour-eyebrow">{MODAL_SLIDES[modalSlide].subtitle}</p>
               <h2 className="twr-tour-title">{MODAL_SLIDES[modalSlide].title}</h2>
               <p className="twr-tour-body">{MODAL_SLIDES[modalSlide].body}</p>
-              {"highlight" in MODAL_SLIDES[modalSlide] && MODAL_SLIDES[modalSlide].highlight && (
+              {MODAL_SLIDES[modalSlide].highlight && (
                 <div className="twr-tour-highlight">
                   <span>✍️</span>
                   <span>{MODAL_SLIDES[modalSlide].highlight}</span>
@@ -358,7 +306,6 @@ export default function WritersTour() {
               )}
             </div>
 
-            {/* Actions */}
             <div className="twr-tour-modal-footer">
               <button type="button" onClick={handleSkip} className="twr-tour-skip">
                 Skip tour
@@ -371,7 +318,6 @@ export default function WritersTour() {
         </div>
       )}
 
-      {/* ── SPOTLIGHT PHASE ── */}
       {phase === "spotlight" && spotRect && (
         <>
           <div style={{ position: "fixed", inset: 0, zIndex: 10000, pointerEvents: "none" }}>
@@ -389,13 +335,7 @@ export default function WritersTour() {
                   />
                 </mask>
               </defs>
-              <rect
-                width="100%"
-                height="100%"
-                fill="rgba(0,0,0,0.78)"
-                mask="url(#twr-spotlight-mask)"
-              />
-              {/* Purple/gold border around spotlight */}
+              <rect width="100%" height="100%" fill="rgba(0,0,0,0.78)" mask="url(#twr-spotlight-mask)" />
               <rect
                 x={spotRect.left - 8}
                 y={spotRect.top - 8}
@@ -409,7 +349,6 @@ export default function WritersTour() {
               />
             </svg>
           </div>
-
           <TooltipBox
             step={SPOTLIGHT_STEPS[spotStep]}
             rect={spotRect}
@@ -421,7 +360,6 @@ export default function WritersTour() {
         </>
       )}
 
-      {/* Spotlight loading */}
       {phase === "spotlight" && !spotRect && (
         <div style={{ position: "fixed", inset: 0, zIndex: 10000, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ color: "rgba(167,139,250,0.7)", fontFamily: "'Syne', sans-serif", fontSize: 13, letterSpacing: "0.1em" }}>
@@ -433,9 +371,6 @@ export default function WritersTour() {
   );
 }
 
-// =============================================================
-// Styles — TWR purple/gold accent system
-// =============================================================
 const TOUR_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Syne:wght@400;500;600;700&display=swap');
 
@@ -447,8 +382,8 @@ const TOUR_STYLES = `
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(12px);
+    background: rgba(0,0,0,0.82);
+    backdrop-filter: blur(10px);
     animation: twr-tour-fadein 0.35s ease;
   }
 
@@ -461,11 +396,11 @@ const TOUR_STYLES = `
     position: relative;
     width: 100%;
     max-width: 480px;
-    background: #0f0f0f;
-    border: 1px solid rgba(167,139,250,0.3);
+    background: #111;
+    border: 1px solid rgba(167,139,250,0.35);
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 32px 80px rgba(0,0,0,0.9), 0 0 60px rgba(167,139,250,0.08);
+    box-shadow: 0 32px 80px rgba(0,0,0,0.9), 0 0 60px rgba(167,139,250,0.1);
     animation: twr-tour-slidein 0.35s cubic-bezier(0.34,1.56,0.64,1);
     font-family: 'Syne', sans-serif;
   }
@@ -485,15 +420,10 @@ const TOUR_STYLES = `
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 14px 24px 0;
-  }
-
-  .twr-tour-quill-icon {
-    font-size: 16px;
+    padding: 16px 24px 0;
   }
 
   .twr-tour-quill-label {
-    font-family: 'Syne', sans-serif;
     font-size: 9px;
     letter-spacing: 0.24em;
     text-transform: uppercase;
@@ -511,7 +441,7 @@ const TOUR_STYLES = `
     width: 6px;
     height: 6px;
     border-radius: 999px;
-    background: rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.15);
     transition: all 0.25s;
   }
 
@@ -521,9 +451,9 @@ const TOUR_STYLES = `
   }
 
   .twr-tour-slide {
-    padding: 24px 32px 8px;
+    padding: 28px 32px 8px;
     text-align: center;
-    min-height: 270px;
+    min-height: 280px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -531,7 +461,7 @@ const TOUR_STYLES = `
 
   .twr-tour-emoji {
     font-size: 52px;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
     animation: twr-tour-bounce 0.5s cubic-bezier(0.34,1.56,0.64,1);
   }
 
@@ -570,7 +500,7 @@ const TOUR_STYLES = `
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    background: rgba(167,139,250,0.07);
+    background: rgba(167,139,250,0.08);
     border: 1px solid rgba(167,139,250,0.2);
     border-radius: 10px;
     padding: 12px 16px;
@@ -630,26 +560,3 @@ const TOUR_STYLES = `
     .twr-tour-modal-footer { padding: 16px 24px 24px; }
   }
 `;
-
-// =============================================================
-// HOW TO ADD THE TOUR TRIGGER BUTTON
-// =============================================================
-// In any page or component, add this to replay the tour:
-//
-//   import { startWritersTour } from "@/app/components/WritersTour";
-//   <button onClick={startWritersTour}>Take the Tour</button>
-//
-// =============================================================
-// HOW TO ADD DATA-TOUR-WRITER ATTRIBUTES TO YOUR PAGES
-// =============================================================
-// The spotlight tour looks for elements with data-tour-writer attributes.
-// Add these to the matching elements in WritersRoomHome:
-//
-//   Founding 100 banner  → data-tour-writer="twr-founding"
-//   Why TTL section      → data-tour-writer="twr-why"
-//   How It Works section → data-tour-writer="twr-how"
-//   Ink Economy section  → data-tour-writer="twr-ink"
-//   Formats section      → data-tour-writer="twr-genres"
-//   CTA / Apply button   → data-tour-writer="twr-submit"
-//
-// =============================================================
