@@ -1,7 +1,219 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import WritersTour from "@/app/components/WritersTour";
+
+// =========================
+// Quill Tour Constants
+// =========================
+const TOUR_KEY = "twr_tour_completed";
+
+const MODAL_SLIDES = [
+  {
+    emoji: "🪶",
+    title: "Welcome to\nThe Writer's Room",
+    subtitle: "Guided by Quill",
+    body: "This is where independent writers publish, earn, and build their readership on The Tiniest Library. I'm Quill — your Writer's Guide. Let me show you around.",
+    cta: "Let's go →",
+  },
+  {
+    emoji: "🏆",
+    title: "The Founding\n100 Writers",
+    subtitle: "Limited Spots Remaining",
+    body: "The first 100 writers to join TTL earn Founding Writer status — a permanent badge on your author profile, priority placement in genre listings, and a piece of TTL history.",
+    highlight: "Spots are going fast. Apply before they're gone.",
+    cta: "Got it →",
+  },
+  {
+    emoji: "©️",
+    title: "You Keep Your\nCopyright",
+    subtitle: "Always. No Exceptions.",
+    body: "Publishing on TTL grants us a non-exclusive licence to display your work — nothing more. You can publish the same story anywhere else, pursue traditional publishing, or take it down at any time.",
+    highlight: "Your story belongs to you. TTL never claims ownership.",
+    cta: "That's huge →",
+  },
+  {
+    emoji: "💰",
+    title: "Earn Through\nInk",
+    subtitle: "Real Revenue, Real Readers",
+    body: "Readers buy Ink packs starting at $1 and spend it to unlock your chapters and tip you directly. Every Ink transaction on your work sends revenue straight to you via Stripe.",
+    highlight: "No ads. No algorithm tax. Just readers supporting writers they love.",
+    cta: "Nice →",
+  },
+  {
+    emoji: "🗂️",
+    title: "24 Genres,\nOne Home",
+    subtitle: "Your Genre Awaits",
+    body: "TTL publishes across all 24 genres — from Fantasy and Horror to Dark Academia, LGBTQ+ Fiction, Black Stories, Latin Voices, Fan Fiction, Cozy, and Adult 18+. Every story has a shelf.",
+    highlight: "Each genre has its own landing page with dedicated readers.",
+    cta: "Love it →",
+  },
+  {
+    emoji: "✍️",
+    title: "Your Author\nProfile",
+    subtitle: "Build Your Readership",
+    body: "Your author profile is your home on TTL. Readers follow you, tip you, and return for every new chapter. Fill it out in The Writer's Room — it displays live in The Reading Room.",
+    highlight: "Ready for a quick tour of The Writer's Room?",
+    cta: "Show me around →",
+    isFinal: true,
+  },
+];
+
+const SPOTLIGHT_STEPS = [
+  { id: "twr-founding", target: "[data-tour-writer='twr-founding']", title: "The Founding 100", body: "This banner tracks how many founding spots are left. Once 100 writers join, this program closes permanently. Claim your spot now.", position: "top" as const },
+  { id: "twr-why", target: "[data-tour-writer='twr-why']", title: "Why Publish on TTL", body: "Three reasons every writer should know — you keep your copyright, you earn through Ink, and you build a real fanbase. No gatekeepers. No algorithms.", position: "top" as const },
+  { id: "twr-how", target: "[data-tour-writer='twr-how']", title: "How It Works", body: "Four simple steps — submit your story, get published, earn Ink revenue, and grow your audience. The whole process is free and reviewed personally.", position: "top" as const },
+  { id: "twr-ink", target: "[data-tour-writer='twr-ink']", title: "The Ink Economy", body: "This section explains exactly how money flows to you. Readers buy Ink, spend it on your chapters, and tip you directly. Revenue goes through Stripe to your account.", position: "top" as const },
+  { id: "twr-genres", target: "[data-tour-writer='twr-genres']", title: "Formats & Genres", body: "See all the formats TTL accepts — short stories, serials, poems, fan fiction, early access chapters, and all 24 genres. If you write it, there's a home for it here.", position: "top" as const },
+  { id: "twr-submit", target: "[data-tour-writer='twr-submit']", title: "Apply to Join", body: "Click Apply to Join to submit your story. We review every submission personally and respond within 5–10 business days. It's completely free.", position: "top" as const, isFinal: true },
+];
+
+type SpotlightRect = { top: number; left: number; width: number; height: number };
+
+function getSpotRect(selector: string): SpotlightRect | null {
+  const el = document.querySelector(selector);
+  if (!el) return null;
+  const r = el.getBoundingClientRect();
+  return { top: r.top, left: r.left, width: r.width, height: r.height };
+}
+
+function QuillTooltip({ step, rect, current, total, onNext, onSkip }: {
+  step: typeof SPOTLIGHT_STEPS[0]; rect: SpotlightRect;
+  current: number; total: number; onNext: () => void; onSkip: () => void;
+}) {
+  const PAD = 16, TIP_W = 300, TIP_H = 160;
+  let top = (step.position as string) === "bottom" ? rect.top + rect.height + PAD : rect.top - TIP_H - PAD;
+  let left = Math.max(12, Math.min(rect.left + rect.width / 2 - TIP_W / 2, window.innerWidth - TIP_W - 12));
+  top = Math.max(12, top);
+  return (
+    <div style={{ position: "fixed", top, left, width: TIP_W, zIndex: 10002, background: "#111", border: "1px solid rgba(167,139,250,0.45)", borderRadius: 14, padding: "18px 20px", boxShadow: "0 16px 48px rgba(0,0,0,0.8), 0 0 24px rgba(167,139,250,0.15)", fontFamily: "'Syne', sans-serif" }}>
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, borderRadius: "14px 14px 0 0", background: "linear-gradient(90deg, transparent, #a78bfa, #C9A84C, transparent)" }} />
+      <div style={{ fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(167,139,250,0.7)", marginBottom: 6 }}>🪶 Quill — Step {current} of {total}</div>
+      <p style={{ fontSize: 15, fontWeight: 700, color: "#E2C97E", marginBottom: 6, lineHeight: 1.3 }}>{step.title}</p>
+      <p style={{ fontSize: 12, color: "rgba(232,228,218,0.7)", lineHeight: 1.65, marginBottom: 14 }}>{step.body}</p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+        <button type="button" onClick={onSkip} style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Skip tour</button>
+        <button type="button" onClick={onNext} style={{ fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 700, background: "linear-gradient(135deg, #a78bfa, #7c3aed)", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", cursor: "pointer" }}>
+          {step.isFinal ? "Done! 🪶" : "Next →"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function WritersTour() {
+  const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("idle");
+  const [modalSlide, setModalSlide] = useState(0);
+  const [spotStep, setSpotStep] = useState(0);
+  const [spotRect, setSpotRect] = useState<SpotlightRect | null>(null);
+
+  useEffect(() => {
+    if (!localStorage.getItem(TOUR_KEY)) setTimeout(() => setPhase("modal"), 1200);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => { setModalSlide(0); setSpotStep(0); setPhase("modal"); };
+    window.addEventListener("twr-start-tour", handler);
+    return () => window.removeEventListener("twr-start-tour", handler);
+  }, []);
+
+  useEffect(() => {
+    if (phase !== "spotlight") return;
+    const step = SPOTLIGHT_STEPS[spotStep];
+    if (!step) return;
+    const update = () => {
+      const rect = getSpotRect(step.target);
+      if (rect) { setSpotRect(rect); document.querySelector(step.target)?.scrollIntoView({ behavior: "smooth", block: "center" }); }
+      else handleSpotNext();
+    };
+    const timer = setTimeout(update, 350);
+    window.addEventListener("resize", update);
+    return () => { clearTimeout(timer); window.removeEventListener("resize", update); };
+  }, [phase, spotStep]);
+
+  const completeTour = useCallback(() => { localStorage.setItem(TOUR_KEY, "1"); setPhase("idle"); setSpotRect(null); }, []);
+  const handleModalNext = () => modalSlide < MODAL_SLIDES.length - 1 ? setModalSlide(s => s + 1) : (setPhase("spotlight"), setSpotStep(0));
+  const handleSpotNext = () => spotStep < SPOTLIGHT_STEPS.length - 1 ? setSpotStep(s => s + 1) : completeTour();
+  const handleSkip = () => completeTour();
+
+  if (phase === "idle") return null;
+
+  return (
+    <>
+      <style>{QUILL_TOUR_STYLES}</style>
+      {phase === "modal" && (
+        <div className="qt-overlay">
+          <div className="qt-modal">
+            <div className="qt-top-line" />
+            <div className="qt-quill-header"><span>🪶</span><span className="qt-quill-label">Quill — The Writer's Guide</span></div>
+            <div className="qt-dots">{MODAL_SLIDES.map((_, i) => <div key={i} className={`qt-dot${i === modalSlide ? " qt-dot-active" : ""}`} />)}</div>
+            <div className="qt-slide">
+              <div className="qt-emoji">{MODAL_SLIDES[modalSlide].emoji}</div>
+              <p className="qt-eyebrow">{MODAL_SLIDES[modalSlide].subtitle}</p>
+              <h2 className="qt-title">{MODAL_SLIDES[modalSlide].title}</h2>
+              <p className="qt-body">{MODAL_SLIDES[modalSlide].body}</p>
+              {"highlight" in MODAL_SLIDES[modalSlide] && MODAL_SLIDES[modalSlide].highlight && (
+                <div className="qt-highlight"><span>✍️</span><span>{MODAL_SLIDES[modalSlide].highlight}</span></div>
+              )}
+            </div>
+            <div className="qt-footer">
+              <button type="button" onClick={handleSkip} className="qt-skip">Skip tour</button>
+              <button type="button" onClick={handleModalNext} className="qt-cta">{MODAL_SLIDES[modalSlide].cta}</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {phase === "spotlight" && spotRect && (
+        <>
+          <div style={{ position: "fixed", inset: 0, zIndex: 10000, pointerEvents: "none" }}>
+            <svg width="100%" height="100%" style={{ position: "absolute", inset: 0 }}>
+              <defs>
+                <mask id="qt-mask">
+                  <rect width="100%" height="100%" fill="white" />
+                  <rect x={spotRect.left - 8} y={spotRect.top - 8} width={spotRect.width + 16} height={spotRect.height + 16} rx={12} fill="black" />
+                </mask>
+              </defs>
+              <rect width="100%" height="100%" fill="rgba(0,0,0,0.78)" mask="url(#qt-mask)" />
+              <rect x={spotRect.left - 8} y={spotRect.top - 8} width={spotRect.width + 16} height={spotRect.height + 16} rx={12} fill="none" stroke="#a78bfa" strokeWidth={2} opacity={0.85} />
+            </svg>
+          </div>
+          <QuillTooltip step={SPOTLIGHT_STEPS[spotStep]} rect={spotRect} current={spotStep + 1} total={SPOTLIGHT_STEPS.length} onNext={handleSpotNext} onSkip={handleSkip} />
+        </>
+      )}
+      {phase === "spotlight" && !spotRect && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 10000, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ color: "rgba(167,139,250,0.7)", fontFamily: "'Syne', sans-serif", fontSize: 13 }}>🪶 Loading tour…</div>
+        </div>
+      )}
+    </>
+  );
+}
+
+const QUILL_TOUR_STYLES = `
+  .qt-overlay { position: fixed; inset: 0; z-index: 10001; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); animation: qt-fadein 0.35s ease; }
+  @keyframes qt-fadein { from { opacity: 0; } to { opacity: 1; } }
+  .qt-modal { position: relative; width: 100%; max-width: 480px; background: #0f0f0f; border: 1px solid rgba(167,139,250,0.3); border-radius: 20px; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.9); animation: qt-slidein 0.35s cubic-bezier(0.34,1.56,0.64,1); font-family: 'Syne', sans-serif; }
+  @keyframes qt-slidein { from { transform: translateY(24px) scale(0.96); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+  .qt-top-line { height: 2px; background: linear-gradient(90deg, transparent, #a78bfa, #C9A84C, transparent); }
+  .qt-quill-header { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 24px 0; font-size: 16px; }
+  .qt-quill-label { font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(167,139,250,0.65); }
+  .qt-dots { display: flex; gap: 6px; justify-content: center; padding: 14px 24px 0; }
+  .qt-dot { width: 6px; height: 6px; border-radius: 999px; background: rgba(255,255,255,0.12); transition: all 0.25s; }
+  .qt-dot-active { width: 24px; background: linear-gradient(90deg, #a78bfa, #C9A84C); }
+  .qt-slide { padding: 24px 32px 8px; text-align: center; min-height: 270px; display: flex; flex-direction: column; align-items: center; }
+  .qt-emoji { font-size: 52px; margin-bottom: 14px; animation: qt-bounce 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes qt-bounce { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .qt-eyebrow { font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase; color: rgba(167,139,250,0.6); margin-bottom: 10px; }
+  .qt-title { font-family: 'Cormorant Garamond', serif; font-size: 34px; font-weight: 300; color: #f0ece2; line-height: 1.1; margin-bottom: 14px; white-space: pre-line; }
+  .qt-body { font-size: 13px; color: rgba(232,228,218,0.65); line-height: 1.75; max-width: 360px; margin-bottom: 16px; }
+  .qt-highlight { display: flex; align-items: flex-start; gap: 8px; background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.2); border-radius: 10px; padding: 12px 16px; font-size: 12px; color: rgba(232,228,218,0.7); line-height: 1.6; text-align: left; max-width: 360px; }
+  .qt-footer { display: flex; align-items: center; justify-content: space-between; padding: 20px 32px 28px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 8px; }
+  .qt-skip { font-family: 'Syne', sans-serif; font-size: 10px; color: rgba(255,255,255,0.28); background: none; border: none; cursor: pointer; padding: 0; }
+  .qt-skip:hover { color: rgba(255,255,255,0.55); }
+  .qt-cta { font-family: 'Syne', sans-serif; font-size: 11px; letter-spacing: 0.14em; font-weight: 700; background: linear-gradient(135deg, #a78bfa, #7c3aed); color: #fff; border: none; border-radius: 10px; padding: 12px 28px; cursor: pointer; transition: opacity 0.15s, transform 0.15s; }
+  .qt-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+  @media (max-width: 480px) { .qt-modal { border-radius: 16px; } .qt-slide { padding: 20px 24px 8px; min-height: 240px; } .qt-title { font-size: 28px; } .qt-footer { padding: 16px 24px 24px; } }
+`;
+
 // =========================
 // Constants
 // =========================
@@ -965,9 +1177,15 @@ const FAQS = [
 ];
 
 // =========================
+// Types
+// =========================
+interface BackProps { onBack: () => void; }
+interface NavigateProps { onNavigate: (page: string) => void; }
+
+// =========================
 // Sub-Page: Submission Guidelines
 // =========================
-function PageSubmissionGuidelines({ onBack }) {
+function PageSubmissionGuidelines({ onBack }: BackProps) {
   return (
     <div className="twr-subpage">
       <button className="twr-subpage-back" onClick={onBack}>← Back to The Writer's Room</button>
@@ -1050,8 +1268,8 @@ function PageSubmissionGuidelines({ onBack }) {
 // =========================
 // Sub-Page: Tiniest FAQs
 // =========================
-function PageFAQs({ onBack }) {
-  const [openIdx, setOpenIdx] = useState(null);
+function PageFAQs({ onBack }: BackProps) {
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
 
   return (
     <div className="twr-subpage">
@@ -1096,7 +1314,7 @@ function PageFAQs({ onBack }) {
 // =========================
 // Sub-Page: Keep Your Copyright
 // =========================
-function PageCopyright({ onBack }) {
+function PageCopyright({ onBack }: BackProps) {
   return (
     <div className="twr-subpage">
       <button className="twr-subpage-back" onClick={onBack}>← Back to The Writer's Room</button>
@@ -1173,11 +1391,11 @@ function PageCopyright({ onBack }) {
 // =========================
 // Sub-Page: Contact Us
 // =========================
-function PageContact({ onBack }) {
+function PageContact({ onBack }: BackProps) {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [sent, setSent] = useState(false);
 
-  const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleSubmit = () => {
     if (!form.name || !form.email || !form.message) return;
@@ -1266,7 +1484,7 @@ function PageContact({ onBack }) {
 // =========================
 // Shared Footer
 // =========================
-function Footer({ onNavigate }) {
+function Footer({ onNavigate }: NavigateProps) {
   return (
     <div className="twr-footer">
       <div className="twr-footer-top">
@@ -1310,7 +1528,7 @@ export default function WritersRoomHome() {
   const [page, setPage] = useState('home'); // 'home' | 'guidelines' | 'faqs' | 'copyright' | 'contact'
 
   const goHome = () => { setPage('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
-  const goPage = (p) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const goPage = (p: string) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   const NAV_PAGES = [
     { key: 'guidelines', label: 'Guidelines' },
@@ -1344,7 +1562,7 @@ export default function WritersRoomHome() {
                     <a href="#formats" className="twr-nav-link">Formats</a>
                     <a href="#ink" className="twr-nav-link">Ink Revenue</a>
                     <a href="#rules" className="twr-nav-link">Rules</a>
-                    {NAV_PAGES.map(p => (
+                    {NAV_PAGES.map((p: { key: string; label: string }) => (
                       <button key={p.key} className="twr-nav-link" onClick={() => goPage(p.key)}>{p.label}</button>
                     ))}
                     <a href={TTL_READING_ROOM_URL} className="twr-nav-link" target="_blank" rel="noopener noreferrer">Reading Room</a>
@@ -1352,7 +1570,7 @@ export default function WritersRoomHome() {
                 ) : (
                   <>
                     <button className="twr-nav-link" onClick={goHome}>Home</button>
-                    {NAV_PAGES.map(p2 => (
+                    {NAV_PAGES.map((p2: { key: string; label: string }) => (
                       <button key={p2.key} className={`twr-nav-link${page === p2.key ? ' active' : ''}`} onClick={() => goPage(p2.key)}>{p2.label}</button>
                     ))}
                     <a href={TTL_READING_ROOM_URL} className="twr-nav-link" target="_blank" rel="noopener noreferrer">Reading Room</a>
@@ -1365,6 +1583,13 @@ export default function WritersRoomHome() {
                 <span>🪶</span>
                 <span>{spotsLeft} Spots Left</span>
               </div>
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("twr-start-tour"))}
+                className="twr-btn-ghost"
+                style={{ fontSize: '9px', padding: '6px 14px', borderRadius: '999px' }}
+              >
+                🪶 Tour
+              </button>
               <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary" style={{ fontSize: '10px', padding: '8px 20px', borderRadius: '999px' }}>
                 Apply Now →
               </a>
@@ -1404,7 +1629,7 @@ export default function WritersRoomHome() {
 
               {/* FOUNDING 100 BANNER */}
               <div className="twr-section">
-                <div className="twr-founding-banner">
+                <div className="twr-founding-banner" data-tour-writer="twr-founding">
                   <div className="twr-founding-num">100</div>
                   <div className="twr-founding-content">
                     <span className="twr-founding-label">Limited — Founding Writer Program</span>
@@ -1427,7 +1652,7 @@ export default function WritersRoomHome() {
               </div>
 
               {/* WHY TTL */}
-              <div className="twr-section" id="why">
+              <div className="twr-section" id="why" data-tour-writer="twr-why">
                 <div className="twr-section-accent">
                   <div className="twr-section-bar" />
                   <div>
@@ -1448,7 +1673,7 @@ export default function WritersRoomHome() {
               </div>
 
               {/* HOW IT WORKS */}
-              <div className="twr-section" id="how">
+              <div className="twr-section" id="how" data-tour-writer="twr-how">
                 <div className="twr-section-accent">
                   <div className="twr-section-bar twr-section-bar-quill" />
                   <div>
@@ -1472,7 +1697,7 @@ export default function WritersRoomHome() {
               </div>
 
               {/* FORMATS */}
-              <div className="twr-section" id="formats">
+              <div className="twr-section" id="formats" data-tour-writer="twr-genres">
                 <div className="twr-section-accent">
                   <div className="twr-section-bar" />
                   <div>
@@ -1493,7 +1718,7 @@ export default function WritersRoomHome() {
               </div>
 
               {/* INK REVENUE */}
-              <div className="twr-section" id="ink">
+              <div className="twr-section" id="ink" data-tour-writer="twr-ink">
                 <div className="twr-section-accent">
                   <div className="twr-section-bar" />
                   <div>
@@ -1567,7 +1792,7 @@ export default function WritersRoomHome() {
               </div>
 
               {/* CTA */}
-              <div className="twr-cta">
+              <div className="twr-cta" data-tour-writer="twr-submit">
                 <h2 className="twr-cta-title">Your stories deserve a home.</h2>
                 <p className="twr-cta-sub">
                   100 founding writer spots. No gatekeepers. No algorithms.
@@ -1595,7 +1820,10 @@ export default function WritersRoomHome() {
             <Footer onNavigate={goPage} />
           </div>
         )}
+
+        {/* Quill Tour — fires on first visit, replayable */}
         <WritersTour />
+
       </div>
     </>
   );
