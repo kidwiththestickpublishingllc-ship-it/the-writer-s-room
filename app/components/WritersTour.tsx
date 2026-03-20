@@ -176,7 +176,7 @@ function TooltipBox({
   let top = 0;
   let left = rect.left + rect.width / 2 - TIP_W / 2;
 
-if (step.position === ("bottom" as const)) {
+  if (step.position !== "top") {
     top = rect.top + rect.height + PAD;
   } else {
     top = rect.top - TIP_H - PAD;
@@ -244,6 +244,25 @@ export default function WritersTour() {
   const [spotStep, setSpotStep] = useState(0);
   const [spotRect, setSpotRect] = useState<SpotlightRect | null>(null);
 
+  // ── stable callbacks defined before any useEffect that references them ──
+
+  const completeTour = useCallback(() => {
+    localStorage.setItem(TOUR_KEY, "1");
+    setPhase("idle");
+    setSpotRect(null);
+  }, []);
+
+  const handleSpotNext = useCallback(() => {
+    setSpotStep((s) => {
+      if (s < SPOTLIGHT_STEPS.length - 1) return s + 1;
+      // last step — complete the tour
+      localStorage.setItem(TOUR_KEY, "1");
+      setPhase("idle");
+      setSpotRect(null);
+      return s;
+    });
+  }, []);
+
   // Auto-start on first visit
   useEffect(() => {
     const completed = localStorage.getItem(TOUR_KEY);
@@ -276,6 +295,7 @@ export default function WritersTour() {
         const el = document.querySelector(step.target);
         el?.scrollIntoView({ behavior: "smooth", block: "center" });
       } else {
+        // element not found — skip to next
         handleSpotNext();
       }
     };
@@ -286,13 +306,7 @@ export default function WritersTour() {
       clearTimeout(timer);
       window.removeEventListener("resize", update);
     };
-  }, [phase, spotStep]);
-
-  const completeTour = useCallback(() => {
-    localStorage.setItem(TOUR_KEY, "1");
-    setPhase("idle");
-    setSpotRect(null);
-  }, []);
+  }, [phase, spotStep, handleSpotNext]);
 
   const handleModalNext = () => {
     if (modalSlide < MODAL_SLIDES.length - 1) {
@@ -300,14 +314,6 @@ export default function WritersTour() {
     } else {
       setPhase("spotlight");
       setSpotStep(0);
-    }
-  };
-
-  const handleSpotNext = () => {
-    if (spotStep < SPOTLIGHT_STEPS.length - 1) {
-      setSpotStep((s) => s + 1);
-    } else {
-      completeTour();
     }
   };
 
