@@ -101,7 +101,7 @@ function QuillTooltip({ step, rect, current, total, onNext, onSkip }: {
 }
 
 function WritersTour() {
-  const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("idle");
+const [phase, setPhase] = useState<"idle" | "modal" | "spotlight">("modal");
   const [modalSlide, setModalSlide] = useState(0);
   const [spotStep, setSpotStep] = useState(0);
   const [spotRect, setSpotRect] = useState<SpotlightRect | null>(null);
