@@ -372,8 +372,6 @@ export default function WritersTour() {
 }
 
 const TOUR_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Syne:wght@400;500;600;700&display=swap');
-
   .twr-tour-overlay {
     position: fixed;
     inset: 0;
@@ -421,6 +419,7 @@ const TOUR_STYLES = `
     justify-content: center;
     gap: 8px;
     padding: 16px 24px 0;
+    font-size: 16px;
   }
 
   .twr-tour-quill-label {
