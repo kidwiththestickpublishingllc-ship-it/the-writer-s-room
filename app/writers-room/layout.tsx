@@ -1,21 +1,16 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import QuillChatWidget from "./components/QuillChatWidget";
-import WritersTour from "./components/WritersTour";
+"use client";
 
-export const metadata: Metadata = {
-  title: "The Writer's Room — The Tiniest Library",
-  description: "A home for writers...",
-};
+import WritersTour from "@/app/components/WritersTour";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function WritersRoomLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en">
-      <body>
-        {children}
-        <QuillChatWidget />
-        <WritersTour />
-      </body>
-    </html>
+    <>
+      {children}
+      <WritersTour />
+    </>
   );
 }
