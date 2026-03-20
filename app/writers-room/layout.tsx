@@ -1,15 +1,21 @@
-"use client";
-import WritersTour from "@/app/components/WritersTour";
+import type { Metadata } from "next";
+import "./globals.css";
+import QuillChatWidget from "./components/QuillChatWidget";
+import WritersTour from "./components/WritersTour";
 
-export default function WritersRoomLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export const metadata: Metadata = {
+  title: "The Writer's Room — The Tiniest Library",
+  description: "A home for writers...",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      {children}
-      <WritersTour />
-    </>
+    <html lang="en">
+      <body>
+        {children}
+        <QuillChatWidget />
+        <WritersTour />
+      </body>
+    </html>
   );
 }

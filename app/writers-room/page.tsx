@@ -107,8 +107,9 @@ function WritersTour() {
   const [spotRect, setSpotRect] = useState<SpotlightRect | null>(null);
 
   useEffect(() => {
-    if (!localStorage.getItem(TOUR_KEY)) setTimeout(() => setPhase("modal"), 1200);
-  }, []);
+  // if (!localStorage.getItem(TOUR_KEY)) 
+  setTimeout(() => setPhase("modal"), 1200);
+}, []);
 
   useEffect(() => {
     const handler = () => { setModalSlide(0); setSpotStep(0); setPhase("modal"); };
