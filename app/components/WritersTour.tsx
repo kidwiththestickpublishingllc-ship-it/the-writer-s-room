@@ -204,11 +204,8 @@ export default function WritersTour() {
 
   // Auto-start on first visit
   useEffect(() => {
-    const completed = localStorage.getItem(TOUR_KEY);
-    if (!completed) {
-      setTimeout(() => setPhase("modal"), 1200);
-    }
-  }, []);
+  setTimeout(() => setPhase("modal"), 1200);
+}, []);
 
   // Listen for manual trigger
   useEffect(() => {
