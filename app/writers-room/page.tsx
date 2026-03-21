@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import WriterProfileForm from "../components/WriterProfileForm";
 
 // =========================
 // Quill Tour — FIXED
@@ -1467,7 +1468,7 @@ export default function WritersRoomHome() {
     { key: 'guidelines', label: 'Guidelines' },
     { key: 'faqs', label: 'FAQs' },
     { key: 'copyright', label: 'Your Copyright' },
-    { key: 'contact', label: 'Contact' },
+    { key: 'contact', label: 'Contact' },{ key: 'profile', label: 'My Profile' },
   ];
 
   return (
@@ -1534,7 +1535,7 @@ export default function WritersRoomHome() {
         {page === 'faqs' && <PageFAQs onBack={goHome} />}
         {page === 'copyright' && <PageCopyright onBack={goHome} />}
         {page === 'contact' && <PageContact onBack={goHome} />}
-
+        {page === 'profile' && <WriterProfileForm userId="temp-user-id" />}
         {page === 'home' && (
           <>
             {/* HERO */}
