@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import WriterProfileForm from "../components/WriterProfileForm";
+import ApprovalGate from "../components/ApprovalGate";
 
 // =========================
 // Quill Tour — FIXED
@@ -1535,7 +1535,7 @@ export default function WritersRoomHome() {
         {page === 'faqs' && <PageFAQs onBack={goHome} />}
         {page === 'copyright' && <PageCopyright onBack={goHome} />}
         {page === 'contact' && <PageContact onBack={goHome} />}
-        {page === 'profile' && <WriterProfileForm userId="temp-user-id" />}
+        {page === 'profile' && <ApprovalGate userId="temp-user-id" />}
         {page === 'home' && (
           <>
             {/* HERO */}
