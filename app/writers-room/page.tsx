@@ -1244,7 +1244,7 @@ function PageSubmissionGuidelines({ onBack }: BackProps) {
       </div>
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
-        <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
+        <a href="/apply" target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
         <button className="twr-btn-ghost" onClick={onBack}>Back to Writer's Room</button>
       </div>
     </div>
@@ -1278,7 +1278,7 @@ function PageFAQs({ onBack }: BackProps) {
         <p className="twr-info-panel-text">We read every message. Head to our <strong>Contact Us</strong> page and ask us directly. We aim to reply within 2 business days.</p>
       </div>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
-        <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
+        <a href="/apply" target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
         <button className="twr-btn-ghost" onClick={onBack}>Back to Writer's Room</button>
       </div>
     </div>
@@ -1343,7 +1343,7 @@ function PageCopyright({ onBack }: BackProps) {
       </div>
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
-        <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
+        <a href="/apply" target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
         <button className="twr-btn-ghost" onClick={onBack}>Back to Writer's Room</button>
       </div>
     </div>
@@ -1435,7 +1435,7 @@ function Footer({ onNavigate }: NavigateProps) {
         </div>
         <span className="twr-footer-copy">© {new Date().getFullYear()} The Tiniest Library. All rights reserved.</span>
         <div className="twr-footer-actions">
-          <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-ghost" style={{ fontSize: '9px', padding: '8px 18px', borderRadius: '8px' }}>Submit Your Story</a>
+          <a href="/apply" target="_blank" rel="noopener noreferrer" className="twr-btn-ghost" style={{ fontSize: '9px', padding: '8px 18px', borderRadius: '8px' }}>Submit Your Story</a>
           <a href={TTL_READING_ROOM_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary" style={{ fontSize: '9px', padding: '8px 18px', borderRadius: '8px' }}>Reading Room →</a>
         </div>
       </div>
@@ -1545,7 +1545,7 @@ export default function WritersRoomHome() {
                 <h1 className="twr-hero-title">The<br />Writer's<br />Room</h1>
                 <p className="twr-hero-sub">A home for independent writers. Publish your stories, earn through Ink, keep your copyright, and build the readership your work deserves.</p>
                 <div className="twr-hero-actions">
-                  <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
+                  <a href="/apply" target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
                   <a href="#how" className="twr-btn-ghost">How it works</a>
                   <a href={TTL_READING_ROOM_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-ghost">Visit the Reading Room</a>
                 </div>
@@ -1571,7 +1571,7 @@ export default function WritersRoomHome() {
                     <p style={{ fontFamily: "'Syne', sans-serif", fontSize: 12, color: 'var(--gold-light)', marginBottom: 24, letterSpacing: '0.08em' }}>
                       <strong>{spotsLeft}</strong> of 100 spots remaining
                     </p>
-                    <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Claim Your Spot →</a>
+                    <a href="/apply" target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Claim Your Spot →</a>
                   </div>
                 </div>
               </div>
@@ -1693,7 +1693,7 @@ export default function WritersRoomHome() {
                 <h2 className="twr-cta-title">Your stories deserve a home.</h2>
                 <p className="twr-cta-sub">100 founding writer spots. No gatekeepers. No algorithms. Just your work, your readers, and real revenue from the people who love what you create.</p>
                 <div className="twr-cta-actions">
-                  <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary" style={{ fontSize: '11px', padding: '16px 36px' }}>Apply to Join →</a>
+                  <a href="/apply" target="_blank" rel="noopener noreferrer" className="twr-btn-primary" style={{ fontSize: '11px', padding: '16px 36px' }}>Apply to Join →</a>
                   <a href={TTL_READING_ROOM_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-ghost" style={{ fontSize: '11px', padding: '16px 36px' }}>See the Reading Room</a>
                 </div>
               </div>
