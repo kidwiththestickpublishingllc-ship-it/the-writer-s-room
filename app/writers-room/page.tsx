@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import ApprovalGate from "../components/ApprovalGate";
-
+import WriterAgreements from "../components/WriterAgreements";
 // =========================
 // Quill Tour — FIXED
 // Bug 1: phase now starts as "idle" (not "modal")
@@ -1525,7 +1525,8 @@ export default function WritersRoomHome() {
                 Apply Now →
               </a>
             </div>
-          </div>
+            <WriterAgreements />
+          </div>          
         </nav>
 
         <div className="twr-nav-spacer" />
