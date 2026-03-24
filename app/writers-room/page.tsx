@@ -1521,11 +1521,10 @@ export default function WritersRoomHome() {
               >
                 🪶 Tour
               </button>
-              <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary" style={{ fontSize: '10px', padding: '8px 20px', borderRadius: '999px' }}>
+              <a href="/apply" className="twr-btn-primary" style={{ fontSize: '9px', padding: '6px 18px', borderRadius: '999px' }}>
                 Apply Now →
               </a>
-            </div>
-            <WriterAgreements />
+            </div>            
           </div>          
         </nav>
 
