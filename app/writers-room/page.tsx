@@ -334,14 +334,19 @@ const TWR_STYLES = `
   }
 
   .twr-nav-inner {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 40px;
-    height: 72px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
+    max-width: 1400px; margin: 0 auto; padding: 0 40px;
+    height: 72px; display: flex; align-items: center;
+    justify-content: space-between; gap: 24px;
+  }
+  .twr-nav-top {
+    max-width: 1400px; margin: 0 auto; padding: 0 40px;
+    height: 56px; display: flex; align-items: center;
+    justify-content: space-between; gap: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .twr-nav-bottom {
+    max-width: 1400px; margin: 0 auto; padding: 0 40px;
+    height: 38px; display: flex; align-items: center;
   }
 
   .twr-nav-brand {
@@ -455,7 +460,7 @@ const TWR_STYLES = `
 
   .twr-btn-quill:hover { opacity: 0.88; }
 
-  .twr-nav-spacer { height: 74px; }
+  .twr-nav-spacer { height: 94px; }
 
   /* HERO */
   .twr-hero {
@@ -1475,43 +1480,18 @@ export default function WritersRoomHome() {
     <>
       <style>{TWR_STYLES}</style>
       <div className="twr-root">
-
-        {/* NAV */}
+{/* NAV */}
         <nav className="twr-nav">
           <div className="twr-nav-gold-line" />
-          <div className="twr-nav-inner">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 40, minWidth: 0 }}>
-              <button onClick={goHome} className="twr-nav-brand">
-                <div className="twr-nav-logo-badge">TTL</div>
-                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
-                  <span className="twr-nav-brand-main">The Tiniest Library</span>
-                  <span className="twr-nav-brand-sub">The Writer's Room</span>
-                </div>
-              </button>
-              <div className="twr-nav-links">
-                {page === 'home' ? (
-                  <>
-                    <a href="#why" className="twr-nav-link">Why TTL</a>
-                    <a href="#how" className="twr-nav-link">How It Works</a>
-                    <a href="#formats" className="twr-nav-link">Formats</a>
-                    <a href="#ink" className="twr-nav-link">Ink Revenue</a>
-                    <a href="#rules" className="twr-nav-link">Rules</a>
-                    {NAV_PAGES.map(p => (
-                      <button key={p.key} className="twr-nav-link" onClick={() => goPage(p.key)}>{p.label}</button>
-                    ))}
-                    <a href={TTL_READING_ROOM_URL} className="twr-nav-link" target="_blank" rel="noopener noreferrer">Reading Room</a>
-                  </>
-                ) : (
-                  <>
-                    <button className="twr-nav-link" onClick={goHome}>Home</button>
-                    {NAV_PAGES.map(p2 => (
-                      <button key={p2.key} className={`twr-nav-link${page === p2.key ? ' active' : ''}`} onClick={() => goPage(p2.key)}>{p2.label}</button>
-                    ))}
-                    <a href={TTL_READING_ROOM_URL} className="twr-nav-link" target="_blank" rel="noopener noreferrer">Reading Room</a>
-                  </>
-                )}
+          {/* Top row — brand + right actions */}
+          <div className="twr-nav-top">
+            <button onClick={goHome} className="twr-nav-brand">
+              <div className="twr-nav-logo-badge">TTL</div>
+              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
+                <span className="twr-nav-brand-main">The Tiniest Library</span>
+                <span className="twr-nav-brand-sub">The Writer's Room</span>
               </div>
-            </div>
+            </button>
             <div className="twr-nav-right">
               <div className="twr-nav-badge"><span>🪶</span><span>{spotsLeft} Spots Left</span></div>
               <button
@@ -1524,8 +1504,34 @@ export default function WritersRoomHome() {
               <a href="/apply" className="twr-btn-primary" style={{ fontSize: '9px', padding: '6px 18px', borderRadius: '999px' }}>
                 Apply Now →
               </a>
-            </div>            
-          </div>          
+            </div>
+          </div>
+          {/* Bottom row — nav links */}
+          <div className="twr-nav-bottom">
+            <div className="twr-nav-links">
+              {page === 'home' ? (
+                <>
+                  <a href="#why" className="twr-nav-link">Why TTL</a>
+                  <a href="#how" className="twr-nav-link">How It Works</a>
+                  <a href="#formats" className="twr-nav-link">Formats</a>
+                  <a href="#ink" className="twr-nav-link">Ink Revenue</a>
+                  <a href="#rules" className="twr-nav-link">Rules</a>
+                  {NAV_PAGES.map(p => (
+                    <button key={p.key} className="twr-nav-link" onClick={() => goPage(p.key)}>{p.label}</button>
+                  ))}
+                  <a href={TTL_READING_ROOM_URL} className="twr-nav-link" target="_blank" rel="noopener noreferrer">Reading Room</a>
+                </>
+              ) : (
+                <>
+                  <button className="twr-nav-link" onClick={goHome}>Home</button>
+                  {NAV_PAGES.map(p2 => (
+                    <button key={p2.key} className={`twr-nav-link${page === p2.key ? ' active' : ''}`} onClick={() => goPage(p2.key)}>{p2.label}</button>
+                  ))}
+                  <a href={TTL_READING_ROOM_URL} className="twr-nav-link" target="_blank" rel="noopener noreferrer">Reading Room</a>
+                </>
+              )}
+            </div>
+          </div>
         </nav>
 
         <div className="twr-nav-spacer" />
