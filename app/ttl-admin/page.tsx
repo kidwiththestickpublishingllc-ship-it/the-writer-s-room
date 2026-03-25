@@ -4,6 +4,217 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 // =========================
+// AD MANAGEMENT TAB
+// Add this to app/ttl-admin/page.tsx
+// =========================
+
+// 1. Add "ads" to the Tab type:
+// type Tab = "applications" | "stories" | "writers" | "agreements" | "ink" | "ads";
+
+// 2. Add to NAV array:
+// { key: "ads" as Tab, label: "Ads", count: 0, countColor: "" },
+
+// 3. Add to TAB_TITLES:
+// ads: "Ad Manager",
+
+// 4. Add to main content area:
+// {tab === "ads" && <AdsTab />}
+
+// 5. Paste the AdsTab component below into your admin page file
+
+// =========================
+// PASTE THIS COMPONENT INTO app/ttl-admin/page.tsx
+// =========================
+
+/*
+
+type Ad = {
+  id: string;
+  created_at: string;
+  headline: string;
+  description: string | null;
+  image_url: string | null;
+  link_url: string;
+  cta_text: string;
+  advertiser_name: string;
+  advertiser_logo_url: string | null;
+  ink_reward: number;
+  daily_budget: number;
+  is_active: boolean;
+  view_count: number;
+  click_count: number;
+};
+
+function AdsTab() {
+  const [ads, setAds] = useState<Ad[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    headline: "",
+    description: "",
+    image_url: "",
+    link_url: "",
+    cta_text: "Learn More",
+    advertiser_name: "",
+    advertiser_logo_url: "",
+    ink_reward: 5,
+    daily_budget: 100,
+    is_active: false,
+  });
+
+  useEffect(() => { loadAds(); }, []);
+
+  async function loadAds() {
+    setLoading(true);
+    const { data } = await supabase.from("ads").select("*").order("created_at", { ascending: false });
+    setAds(data ?? []);
+    setLoading(false);
+  }
+
+  async function toggleActive(id: string, current: boolean) {
+    await supabase.from("ads").update({ is_active: !current }).eq("id", id);
+    loadAds();
+  }
+
+  async function deleteAd(id: string) {
+    if (!confirm("Delete this ad permanently?")) return;
+    await supabase.from("ads").delete().eq("id", id);
+    loadAds();
+  }
+
+  async function saveAd() {
+    setSaving(true);
+    await supabase.from("ads").insert({
+      ...form,
+      ink_reward: Number(form.ink_reward),
+      daily_budget: Number(form.daily_budget),
+    });
+    setForm({ headline: "", description: "", image_url: "", link_url: "", cta_text: "Learn More", advertiser_name: "", advertiser_logo_url: "", ink_reward: 5, daily_budget: 100, is_active: false });
+    setShowForm(false);
+    setSaving(false);
+    loadAds();
+  }
+
+  const totalViews = ads.reduce((s, a) => s + (a.view_count ?? 0), 0);
+  const totalClicks = ads.reduce((s, a) => s + (a.click_count ?? 0), 0);
+  const ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0.0";
+
+  return (
+    <div>
+      <div className="adm-stats" style={{ gridTemplateColumns: "repeat(4, 1fr)", marginBottom: 24 }}>
+        <div className="adm-stat-card"><div className="adm-stat-num">{ads.length}</div><div className="adm-stat-label">Total Ads</div></div>
+        <div className="adm-stat-card"><div className="adm-stat-num">{ads.filter(a => a.is_active).length}</div><div className="adm-stat-label">Active</div></div>
+        <div className="adm-stat-card"><div className="adm-stat-num">{totalViews.toLocaleString()}</div><div className="adm-stat-label">Total Views</div></div>
+        <div className="adm-stat-card"><div className="adm-stat-num">{ctr}%</div><div className="adm-stat-label">Click Rate</div></div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+        <button className="adm-btn adm-btn-approve" style={{ fontSize: 10, padding: "8px 20px" }} onClick={() => setShowForm(!showForm)}>
+          {showForm ? "Cancel" : "+ New Ad"}
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="adm-table-wrap" style={{ marginBottom: 20, padding: 24 }}>
+          <div className="adm-table-title" style={{ marginBottom: 20 }}>New Advertisement</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <div>
+              <div style={{ fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-faint)", marginBottom: 6 }}>Headline *</div>
+              <input style={{ width: "100%", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 5, padding: "9px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit" }} value={form.headline} onChange={e => setForm(f => ({ ...f, headline: e.target.value }))} placeholder="Ad headline" />
+            </div>
+            <div>
+              <div style={{ fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-faint)", marginBottom: 6 }}>Advertiser Name *</div>
+              <input style={{ width: "100%", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 5, padding: "9px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit" }} value={form.advertiser_name} onChange={e => setForm(f => ({ ...f, advertiser_name: e.target.value }))} placeholder="Company or brand name" />
+            </div>
+            <div>
+              <div style={{ fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-faint)", marginBottom: 6 }}>Link URL *</div>
+              <input style={{ width: "100%", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 5, padding: "9px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit" }} value={form.link_url} onChange={e => setForm(f => ({ ...f, link_url: e.target.value }))} placeholder="https://advertiser.com" />
+            </div>
+            <div>
+              <div style={{ fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-faint)", marginBottom: 6 }}>CTA Button Text</div>
+              <input style={{ width: "100%", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 5, padding: "9px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit" }} value={form.cta_text} onChange={e => setForm(f => ({ ...f, cta_text: e.target.value }))} placeholder="Learn More" />
+            </div>
+            <div>
+              <div style={{ fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-faint)", marginBottom: 6 }}>Image URL</div>
+              <input style={{ width: "100%", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 5, padding: "9px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit" }} value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} placeholder="https://..." />
+            </div>
+            <div>
+              <div style={{ fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-faint)", marginBottom: 6 }}>Advertiser Logo URL</div>
+              <input style={{ width: "100%", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 5, padding: "9px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit" }} value={form.advertiser_logo_url} onChange={e => setForm(f => ({ ...f, advertiser_logo_url: e.target.value }))} placeholder="https://..." />
+            </div>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <div style={{ fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-faint)", marginBottom: 6 }}>Description</div>
+              <textarea style={{ width: "100%", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 5, padding: "9px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit", resize: "vertical", minHeight: 80 }} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Short description of the ad..." />
+            </div>
+            <div>
+              <div style={{ fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-faint)", marginBottom: 6 }}>Ink Reward Per View</div>
+              <input type="number" style={{ width: "100%", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 5, padding: "9px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit" }} value={form.ink_reward} onChange={e => setForm(f => ({ ...f, ink_reward: Number(e.target.value) }))} min={1} max={50} />
+            </div>
+            <div>
+              <div style={{ fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-faint)", marginBottom: 6 }}>Daily View Budget</div>
+              <input type="number" style={{ width: "100%", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 5, padding: "9px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit" }} value={form.daily_budget} onChange={e => setForm(f => ({ ...f, daily_budget: Number(e.target.value) }))} min={1} />
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 10, marginTop: 20, alignItems: "center" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-dim)", cursor: "pointer" }}>
+              <input type="checkbox" checked={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))} />
+              Activate immediately
+            </label>
+            <button className="adm-btn adm-btn-approve" style={{ marginLeft: "auto" }} disabled={saving || !form.headline || !form.advertiser_name || !form.link_url} onClick={saveAd}>
+              {saving ? "Saving…" : "Save Ad"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="adm-table-wrap">
+        <div className="adm-table-header">
+          <span className="adm-table-title">All Ads</span>
+          <span className="adm-table-count">{ads.length} ads</span>
+        </div>
+        {loading ? <div className="adm-loading">Loading…</div> : ads.length === 0 ? (
+          <div className="adm-empty"><div className="adm-empty-title">No ads yet.</div><p className="adm-empty-sub">Create your first ad above.</p></div>
+        ) : (
+          <table>
+            <thead><tr><th>Ad</th><th>Advertiser</th><th>Ink Reward</th><th>Views</th><th>Clicks</th><th>CTR</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              {ads.map(ad => {
+                const adCtr = ad.view_count > 0 ? ((ad.click_count / ad.view_count) * 100).toFixed(1) : "0.0";
+                return (
+                  <tr key={ad.id}>
+                    <td>
+                      <div className="adm-cell-name">{ad.headline}</div>
+                      <div className="adm-cell-sub">{ad.link_url.slice(0, 30)}…</div>
+                    </td>
+                    <td>{ad.advertiser_name}</td>
+                    <td><span style={{ color: "var(--gold)", fontFamily: "'Cormorant Garamond', serif", fontSize: 18 }}>{ad.ink_reward}</span></td>
+                    <td>{ad.view_count.toLocaleString()}</td>
+                    <td>{ad.click_count.toLocaleString()}</td>
+                    <td style={{ color: Number(adCtr) > 2 ? "var(--green)" : "var(--text-faint)" }}>{adCtr}%</td>
+                    <td><span className={`adm-status ${ad.is_active ? "adm-status-approved" : "adm-status-draft"}`}>{ad.is_active ? "Active" : "Paused"}</span></td>
+                    <td>
+                      <div className="adm-actions">
+                        <button className={`adm-btn ${ad.is_active ? "adm-btn-reject" : "adm-btn-approve"}`} onClick={() => toggleActive(ad.id, ad.is_active)}>
+                          {ad.is_active ? "Pause" : "Activate"}
+                        </button>
+                        <button className="adm-btn adm-btn-reject" onClick={() => deleteAd(ad.id)}>Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+*/
+
+// =========================
 // Route: app/admin/page.tsx
 // TTL Admin Dashboard — /admin
 // Protected by Supabase auth
