@@ -815,7 +815,7 @@ export default function WriterDashboard() {
           <div className="wd-topbar">
             <div>
               <div className="wd-topbar-title">{TAB_TITLES[tab]}</div>
-              <div className="wd-topbar-sub">{session.user.email}</div>
+              <div className="wd-topbar-sub">Your email: {session.user.email}</div>
             </div>
             {!profile?.is_approved && (
               <div style={{ fontSize: 11, color: "var(--amber)", background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.25)", padding: "8px 16px", borderRadius: 6 }}>
