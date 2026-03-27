@@ -50,7 +50,7 @@ const STYLES = `
     --gold: #C9A84C; --gold-light: #E2C97E; --gold-dim: rgba(201,168,76,0.35);
     --gold-glow: rgba(201,168,76,0.10); --quill: #9b6dff;
     --blue: #6495ED; --blue-dim: rgba(100,149,237,0.22);
-    --ink-bg: #080808; --ink-surface: #0f0f0f; --ink-surface2: #161616;
+    --ink-bg: #6495ED; --ink-surface: #0f0f0f; --ink-surface2: #161616;
     --ink-border: rgba(255,255,255,0.07); --ink-border-gold: rgba(201,168,76,0.22);
     --text-main: #f0ece2; --text-dim: rgba(232,228,218,0.5);
     --text-faint: rgba(232,228,218,0.25);
