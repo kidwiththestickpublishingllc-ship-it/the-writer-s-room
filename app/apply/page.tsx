@@ -482,6 +482,18 @@ export default function ApplyPage() {
           status: "pending",
         });
       if (dbError) throw new Error(dbError.message);
+
+      // Send confirmation email
+      await fetch("/api/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "application-submitted",
+          to: form.email.trim(),
+          name: form.full_name.trim(),
+        }),
+      });
+
       setSubmitted(true);
     } catch (err: any) {
       setError(err.message ?? "Something went wrong. Please try again.");

@@ -519,13 +519,23 @@ function ApplicationsTab() {
     setLoading(false);
   }
 
-  async function updateStatus(id: string, status: string, email: string, name: string) {
+    async function updateStatus(id: string, status: string, email: string, name: string) {
     await supabase.from("applications").update({ status }).eq("id", id);
     if (status === "approved") {
-      // Create writer entry
       await supabase.from("writers").upsert({
         name, is_approved: true, is_founding_author: false,
         slug: name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
+      });
+      await fetch("/api/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "application-approved", to: email, name }),
+      });
+    } else if (status === "rejected") {
+      await fetch("/api/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "application-rejected", to: email, name }),
       });
     }
     load();
