@@ -38,7 +38,7 @@ const TWR_STYLES = `
 
   .twr-root {
     min-height: 100vh;
-    background: var(--ink-bg);
+    background: radial-gradient(ellipse at 60% 20%, #1a0a2e 0%, #0d0618 40%, #060310 70%, #000000 100%);
     font-family: 'Syne', sans-serif;
     color: var(--text-main);
     position: relative;
@@ -62,7 +62,8 @@ const TWR_STYLES = `
     z-index: 40;
     background: rgba(8,8,8,0.96);
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--ink-border-gold);
+    border-bottom: 1px solid rgba(167,139,250,0.3);
+box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
     box-shadow: 0 2px 40px rgba(0,0,0,0.7);
   }
 
@@ -665,7 +666,8 @@ const TWR_STYLES = `
     font-size: 14px; color: var(--text-dim);
     max-width: 600px; line-height: 1.8; margin-bottom: 48px;
     padding-bottom: 40px;
-    border-bottom: 1px solid var(--ink-border-gold);
+    border-bottom: 1px solid rgba(167,139,250,0.3);
+box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
   }
 
   /* Content blocks */
@@ -1392,7 +1394,13 @@ export default function WritersRoomHome() {
             <div className="twr-hero">
               <div className="twr-hero-inner">
                 <span className="twr-hero-eyebrow">The Tiniest Library — For Writers</span>
-                <h1 className="twr-hero-title">The<br />Writer's<br />Room</h1>
+                <h1 className="twr-hero-title">
+  The<br />
+  <span style={{ paddingLeft: "2.5rem" }}>
+    <span style={{ color: "#a78bfa" }}>Writer</span><span style={{ color: "#C9A84C" }}>'</span><span style={{ color: "#a78bfa" }}>s</span>
+  </span><br />
+  <span style={{ paddingLeft: "5rem" }}>Room</span>
+</h1>
                 <p className="twr-hero-sub">
                   A home for independent writers. Publish your stories, earn through Ink,
                   keep your copyright, and build the readership your work deserves.
