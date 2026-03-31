@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 // TTL Writer Application — /apply
 // =========================
 
-const TTL_SUBMIT_URL = "https://www.the-tiniest-library.com/new-page-1";
+const TTL_SUBMIT_URL = "https://the-writer-s-room.vercel.app/apply";
 const TTL_WRITERS_ROOM = "https://the-writer-s-room.vercel.app";
 
 const ALL_GENRES = [
