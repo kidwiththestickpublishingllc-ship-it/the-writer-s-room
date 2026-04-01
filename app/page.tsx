@@ -5,7 +5,7 @@ import React, { useState } from "react";
 // =========================
 // Constants
 // =========================
-const TTL_SUBMIT_URL = "https://www.the-tiniest-library.com/new-page-1";
+const TTL_SUBMIT_URL = "https://the-writer-s-room.vercel.app/apply";
 const TTL_MAIN_URL = "https://www.the-tiniest-library.com";
 const TTL_READING_ROOM_URL = "https://the-reading-room-three.vercel.app/reading-room";
 
