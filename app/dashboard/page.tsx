@@ -1,842 +1,1131 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/lib/supabase";
+import { useEffect, useState } from "react";
+import { createBrowserClient } from "@supabase/ssr";
+
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 // =========================
 // Route: app/dashboard/page.tsx
-// Writer Dashboard — /dashboard
-// Protected by Supabase auth
+// The Writer's Room — Full Writer HQ
 // =========================
 
-const ALL_GENRES = [
-  "Fantasy", "Sci-Fi", "Horror Mystery", "Crime & Thrillers",
-  "Romance", "Young Adult", "New Adult", "Children's Literature",
-  "Cozy", "Poems & Memoirs", "Adventure", "Contemporary Fiction",
-  "Historical Fiction", "Serialized Fiction", "Fan Fiction",
-  "Slice Of Life", "Dark Academia", "Multi-Cultural", "Black Stories",
-  "Latin Stories", "AAPI Authors", "Indigenous Stories",
-  "LGBTQ+ Fiction", "Adult 18+",
-];
+const STYLES = `
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;500;600;700&display=swap');
 
-type Tab = "profile" | "stories" | "ink" | "settings";
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-type WriterProfile = {
-  id: string;
-  name: string;
-  slug: string | null;
-  bio: string | null;
-  tagline: string | null;
-  greeting: string | null;
-  genres: string[] | null;
-  photo_url: string | null;
-  twitter_url: string | null;
-  instagram_url: string | null;
-  website_url: string | null;
-  is_founding_author: boolean;
-  is_approved: boolean;
-  user_id: string | null;
-};
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E2C97E;
+    --gold-dim: rgba(201,168,76,0.3);
+    --gold-glow: rgba(201,168,76,0.08);
+    --quill: #9b6dff;
+    --quill-dim: rgba(155,109,255,0.2);
+    --ink: #0a0a0f;
+    --ink2: #111118;
+    --ink3: #18181f;
+    --ink4: #22222c;
+    --border: rgba(255,255,255,0.06);
+    --border-gold: rgba(201,168,76,0.18);
+    --text: #f0ece2;
+    --text-muted: rgba(240,236,226,0.5);
+    --text-dim: rgba(240,236,226,0.25);
+    --green: #4ade80;
+    --green-dim: rgba(74,222,128,0.15);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.12);
+    --font-display: 'Cormorant Garamond', serif;
+    --font-ui: 'Syne', sans-serif;
+  }
+
+  body { background: var(--ink); color: var(--text); font-family: var(--font-ui); }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  .fade-up { animation: fadeUp 0.5s ease forwards; }
+
+  /* ── LAYOUT ── */
+  .hq-root { min-height:100vh; display:flex; flex-direction:column; }
+
+  /* ── TOP NAV ── */
+  .hq-nav {
+    position:sticky; top:0; z-index:40;
+    background:rgba(10,10,15,0.97);
+    backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--border-gold);
+  }
+  .hq-nav-line { height:2px; background:linear-gradient(90deg,transparent,var(--gold),var(--quill),var(--gold),transparent); }
+  .hq-nav-inner {
+    max-width:1400px; margin:0 auto; padding:0 40px; height:64px;
+    display:flex; align-items:center; justify-content:space-between; gap:24px;
+  }
+  .hq-nav-brand { display:flex; align-items:center; gap:12px; text-decoration:none; }
+  .hq-nav-logo {
+    width:34px; height:34px; border-radius:8px;
+    background:linear-gradient(135deg,var(--gold),#7a5510);
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700; color:#000;
+  }
+  .hq-nav-title { font-family:var(--font-display); font-size:17px; font-weight:400; color:var(--gold-light); }
+  .hq-nav-sub { font-size:9px; color:var(--text-dim); letter-spacing:0.14em; text-transform:uppercase; }
+  .hq-nav-right { display:flex; align-items:center; gap:10px; }
+  .hq-nav-writer {
+    font-size:12px; color:var(--text-muted);
+    padding:6px 14px; border-radius:999px;
+    border:1px solid var(--border); background:var(--ink2);
+  }
+  .hq-nav-logout {
+    font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--text-dim); border:1px solid var(--border);
+    background:transparent; padding:6px 14px; border-radius:6px;
+    cursor:pointer; transition:all 0.2s;
+  }
+  .hq-nav-logout:hover { color:var(--red); border-color:var(--red-dim); }
+
+  /* ── SIDEBAR + MAIN ── */
+  .hq-body { display:flex; flex:1; max-width:1400px; margin:0 auto; width:100%; }
+
+  .hq-sidebar {
+    width:220px; flex-shrink:0;
+    border-right:1px solid var(--border);
+    padding:32px 0;
+    position:sticky; top:64px; height:calc(100vh - 64px); overflow-y:auto;
+  }
+
+  .hq-nav-section {
+    font-size:9px; letter-spacing:0.24em; text-transform:uppercase;
+    color:var(--text-dim); padding:0 24px; margin-bottom:8px; margin-top:24px;
+  }
+  .hq-nav-section:first-child { margin-top:0; }
+
+  .hq-nav-item {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 24px; cursor:pointer; border:none;
+    background:transparent; width:100%; text-align:left;
+    font-family:var(--font-ui); font-size:13px; color:var(--text-muted);
+    transition:all 0.15s; border-left:2px solid transparent;
+  }
+  .hq-nav-item:hover { color:var(--text); background:var(--ink2); }
+  .hq-nav-item.active {
+    color:var(--gold-light); background:var(--gold-glow);
+    border-left-color:var(--gold);
+  }
+  .hq-nav-icon { font-size:15px; width:18px; text-align:center; flex-shrink:0; }
+
+  /* ── CONTENT ── */
+  .hq-content { flex:1; padding:40px; min-width:0; }
+
+  /* ── PAGE HEADER ── */
+  .hq-page-header { margin-bottom:36px; }
+  .hq-page-eyebrow {
+    font-size:9px; letter-spacing:0.3em; text-transform:uppercase;
+    color:var(--gold); opacity:0.75; display:block; margin-bottom:8px;
+  }
+  .hq-page-title {
+    font-family:var(--font-display); font-size:38px; font-weight:300;
+    color:var(--text); line-height:1; margin-bottom:6px;
+  }
+  .hq-page-sub { font-size:13px; color:var(--text-muted); }
+
+  /* ── STAT CARDS ── */
+  .hq-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:36px; }
+  .hq-stat {
+    background:var(--ink2); border:1px solid var(--border);
+    border-radius:12px; padding:24px; position:relative; overflow:hidden;
+    transition:border-color 0.2s;
+  }
+  .hq-stat:hover { border-color:var(--border-gold); }
+  .hq-stat::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+    opacity:0;  transition:opacity 0.2s;
+  }
+  .hq-stat:hover::before { opacity:1; }
+  .hq-stat-label {
+    font-size:9px; letter-spacing:0.2em; text-transform:uppercase;
+    color:var(--text-dim); margin-bottom:12px; display:block;
+  }
+  .hq-stat-value {
+    font-family:var(--font-display); font-size:36px; font-weight:300;
+    color:var(--gold-light); line-height:1; margin-bottom:4px;
+  }
+  .hq-stat-sub { font-size:11px; color:var(--text-dim); }
+
+  /* ── SECTION ── */
+  .hq-section { margin-bottom:40px; }
+  .hq-section-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:20px;
+  }
+  .hq-section-title {
+    font-family:var(--font-display); font-size:24px; font-weight:300; color:var(--text);
+  }
+
+  /* ── TABLE ── */
+  .hq-table-wrap { border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .hq-table { width:100%; border-collapse:collapse; }
+  .hq-table th {
+    font-size:9px; letter-spacing:0.2em; text-transform:uppercase;
+    color:var(--text-dim); padding:14px 20px; text-align:left;
+    background:var(--ink2); border-bottom:1px solid var(--border);
+    font-weight:500;
+  }
+  .hq-table td {
+    padding:14px 20px; font-size:13px; color:var(--text-muted);
+    border-bottom:1px solid var(--border); transition:background 0.15s;
+  }
+  .hq-table tr:last-child td { border-bottom:none; }
+  .hq-table tr:hover td { background:var(--ink2); }
+  .hq-table td.primary { color:var(--text); font-weight:500; }
+  .hq-table td.gold { color:var(--gold-light); font-family:var(--font-display); font-size:15px; }
+  .hq-table td.green { color:var(--green); }
+  .hq-table td.dim { color:var(--text-dim); font-size:12px; }
+
+  /* ── BADGE ── */
+  .badge {
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:9px; letter-spacing:0.12em; text-transform:uppercase;
+    padding:3px 10px; border-radius:999px;
+  }
+  .badge-free { color:var(--green); border:1px solid rgba(74,222,128,0.3); background:var(--green-dim); }
+  .badge-locked { color:var(--text-dim); border:1px solid var(--border); background:transparent; }
+  .badge-pending { color:#fbbf24; border:1px solid rgba(251,191,36,0.3); background:rgba(251,191,36,0.08); }
+  .badge-paid { color:var(--green); border:1px solid rgba(74,222,128,0.3); background:var(--green-dim); }
+
+  /* ── CHAPTER EDITOR ── */
+  .editor-grid { display:grid; grid-template-columns:280px 1fr; gap:20px; align-items:start; }
+  .chapter-list-panel {
+    border:1px solid var(--border); border-radius:12px; overflow:hidden;
+    position:sticky; top:104px;
+  }
+  .chapter-list-header {
+    padding:14px 20px; background:var(--ink2);
+    border-bottom:1px solid var(--border);
+    font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--text-dim);
+  }
+  .chapter-list-item {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 20px; cursor:pointer; border:none;
+    background:transparent; width:100%; text-align:left;
+    font-family:var(--font-ui); font-size:12px; color:var(--text-muted);
+    border-bottom:1px solid var(--border); transition:all 0.15s;
+  }
+  .chapter-list-item:last-child { border-bottom:none; }
+  .chapter-list-item:hover { background:var(--ink2); color:var(--text); }
+  .chapter-list-item.active { background:var(--gold-glow); color:var(--gold-light); }
+  .chapter-num { font-size:10px; color:var(--text-dim); min-width:20px; }
+
+  .editor-panel {
+    border:1px solid var(--border); border-radius:12px; overflow:hidden;
+  }
+  .editor-header {
+    padding:20px 24px; background:var(--ink2);
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .editor-chapter-title {
+    font-family:var(--font-display); font-size:18px; font-weight:300; color:var(--text);
+  }
+  .editor-body { padding:24px; }
+  .editor-field { margin-bottom:20px; }
+  .editor-label {
+    font-size:9px; letter-spacing:0.2em; text-transform:uppercase;
+    color:var(--text-dim); display:block; margin-bottom:8px;
+  }
+  .editor-input {
+    width:100%; background:var(--ink3); border:1px solid var(--border);
+    border-radius:8px; padding:12px 16px;
+    font-family:var(--font-ui); font-size:13px; color:var(--text);
+    outline:none; transition:border-color 0.2s;
+  }
+  .editor-input:focus { border-color:var(--gold-dim); }
+  .editor-textarea {
+    width:100%; background:var(--ink3); border:1px solid var(--border);
+    border-radius:8px; padding:16px;
+    font-family:'Lora', Georgia, serif; font-size:15px; color:rgba(240,236,226,0.8);
+    outline:none; resize:vertical; line-height:1.85; min-height:400px;
+    transition:border-color 0.2s;
+  }
+  .editor-textarea:focus { border-color:var(--gold-dim); }
+  .editor-footer {
+    padding:16px 24px; border-top:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--ink2);
+  }
+  .editor-char-count { font-size:11px; color:var(--text-dim); }
+
+  /* ── PAYOUT ── */
+  .payout-grid { display:grid; grid-template-columns:1fr 360px; gap:24px; align-items:start; }
+  .payout-card {
+    background:var(--ink2); border:1px solid var(--border-gold);
+    border-radius:16px; padding:32px; position:relative; overflow:hidden;
+  }
+  .payout-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  }
+  .payout-balance {
+    font-family:var(--font-display); font-size:56px; font-weight:300;
+    color:var(--gold-light); line-height:1; margin-bottom:4px;
+  }
+  .payout-balance-label { font-size:11px; color:var(--text-dim); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:28px; }
+  .payout-method-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
+  .payout-method-btn {
+    padding:14px; border-radius:8px; cursor:pointer;
+    border:1px solid var(--border); background:var(--ink3);
+    font-family:var(--font-ui); font-size:12px; color:var(--text-muted);
+    transition:all 0.2s; text-align:center;
+  }
+  .payout-method-btn:hover { border-color:var(--gold-dim); color:var(--gold-light); }
+  .payout-method-btn.selected { border-color:var(--gold); color:var(--gold-light); background:var(--gold-glow); }
+  .payout-input {
+    width:100%; background:var(--ink3); border:1px solid var(--border);
+    border-radius:8px; padding:12px 16px;
+    font-family:var(--font-ui); font-size:13px; color:var(--text);
+    outline:none; transition:border-color 0.2s; margin-bottom:16px;
+  }
+  .payout-input:focus { border-color:var(--gold-dim); }
+  .payout-info-card {
+    background:var(--ink3); border:1px solid var(--border);
+    border-radius:12px; padding:24px;
+  }
+  .payout-info-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 0; border-bottom:1px solid var(--border);
+    font-size:13px;
+  }
+  .payout-info-row:last-child { border-bottom:none; }
+  .payout-info-label { color:var(--text-dim); }
+  .payout-info-val { color:var(--text); font-weight:500; }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    font-family:var(--font-ui); font-size:11px; font-weight:600;
+    letter-spacing:0.16em; text-transform:uppercase;
+    padding:12px 28px; border-radius:8px; border:none; cursor:pointer;
+    background:linear-gradient(135deg,var(--gold),#8a6510); color:#000;
+    transition:opacity 0.2s; display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn-primary:hover:not(:disabled) { opacity:0.85; }
+  .btn-primary:disabled { opacity:0.35; cursor:not-allowed; }
+  .btn-ghost {
+    font-family:var(--font-ui); font-size:11px; font-weight:500;
+    letter-spacing:0.14em; text-transform:uppercase;
+    padding:12px 24px; border-radius:8px;
+    border:1px solid var(--border-gold); background:transparent;
+    color:var(--gold); cursor:pointer; transition:all 0.2s;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn-ghost:hover { background:var(--gold-glow); }
+  .btn-danger {
+    font-family:var(--font-ui); font-size:11px;
+    letter-spacing:0.14em; text-transform:uppercase;
+    padding:12px 24px; border-radius:8px;
+    border:1px solid var(--red-dim); background:transparent;
+    color:var(--red); cursor:pointer; transition:all 0.2s;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align:center; padding:64px 32px;
+    border:1px dashed var(--border); border-radius:12px;
+  }
+  .empty-icon { font-size:40px; display:block; margin-bottom:16px; }
+  .empty-title { font-family:var(--font-display); font-size:24px; font-weight:300; color:var(--text); margin-bottom:8px; }
+  .empty-sub { font-size:13px; color:var(--text-muted); line-height:1.7; }
+
+  /* ── LOADING ── */
+  .spinner { width:28px; height:28px; border:2px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.8s linear infinite; }
+  .loading-wrap { display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px; min-height:300px; }
+  .loading-text { font-size:13px; color:var(--text-muted); letter-spacing:0.1em; }
+
+  /* ── TOAST ── */
+  .toast {
+    position:fixed; bottom:32px; right:32px; z-index:100;
+    padding:14px 24px; border-radius:10px;
+    font-family:var(--font-ui); font-size:13px; font-weight:500;
+    box-shadow:0 8px 32px rgba(0,0,0,0.6);
+    animation:fadeUp 0.3s ease;
+  }
+  .toast-success { background:#1a2e1a; border:1px solid rgba(74,222,128,0.4); color:var(--green); }
+  .toast-error { background:#2e1a1a; border:1px solid rgba(248,113,113,0.4); color:var(--red); }
+
+  /* ── DIVIDER ── */
+  .hq-divider { height:1px; background:linear-gradient(to right,var(--gold-dim),transparent); margin:32px 0; }
+
+  @media (max-width:1100px) {
+    .hq-stats { grid-template-columns:repeat(2,1fr); }
+    .editor-grid { grid-template-columns:1fr; }
+    .payout-grid { grid-template-columns:1fr; }
+  }
+  @media (max-width:768px) {
+    .hq-sidebar { display:none; }
+    .hq-nav-inner { padding:0 20px; }
+    .hq-content { padding:24px 20px; }
+    .hq-stats { grid-template-columns:1fr 1fr; }
+  }
+`;
+
+// =========================
+// Types
+// =========================
+type Tab = 'overview' | 'chapters' | 'earnings' | 'payout' | 'profile';
 
 type Story = {
   id: string;
   title: string;
   slug: string;
   description: string | null;
-  badge: string | null;
-  is_published: boolean;
-  created_at: string;
+  cover_url: string | null;
 };
 
-const STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;500;600;700&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --gold: #C9A84C; --gold-light: #E2C97E; --gold-dim: rgba(201,168,76,0.35);
-    --gold-glow: rgba(201,168,76,0.10); --blue: #6495ED; --blue-dim: rgba(100,149,237,0.22);
-    --blue-bright: #84b0f5; --green: #4ade80; --green-dim: rgba(74,222,128,0.15);
-    --red: #f87171; --red-dim: rgba(248,113,113,0.15);
-    --quill: #9b6dff; --quill-dim: rgba(155,109,255,0.15);
-    --ink-bg: #080808; --ink-surface: #0f0f0f; --ink-surface2: #161616;
-    --ink-border: rgba(255,255,255,0.07); --ink-border-gold: rgba(201,168,76,0.22);
-    --text-main: #f0ece2; --text-dim: rgba(232,228,218,0.5); --text-faint: rgba(232,228,218,0.25);
-  }
+type Chapter = {
+  id: string;
+  chapter_number: number;
+  title: string;
+  content: string | null;
+  is_free: boolean;
+  ink_cost: number;
+};
 
-  .wd-root { min-height: 100vh; background: var(--ink-bg); font-family: 'Syne', sans-serif; color: var(--text-main); display: flex; }
+type Earning = {
+  id: string;
+  chapter_id: string;
+  ink_spent: number;
+  gross_usd: number;
+  writer_usd: number;
+  platform_usd: number;
+  created_at: string;
+  payout_id: string | null;
+};
 
-  /* SIDEBAR */
-  .wd-sidebar {
-    width: 240px; flex-shrink: 0; background: var(--ink-surface);
-    border-right: 1px solid var(--ink-border-gold);
-    display: flex; flex-direction: column;
-    position: fixed; top: 0; left: 0; bottom: 0; z-index: 10;
-  }
-  .wd-sidebar-top { height: 3px; background: linear-gradient(90deg, transparent, var(--quill), var(--gold), transparent); }
-  .wd-sidebar-header { padding: 28px 20px 20px; border-bottom: 1px solid var(--ink-border); }
-  .wd-sidebar-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-  .wd-brand-logo {
-    width: 32px; height: 32px; border-radius: 6px;
-    background: linear-gradient(135deg, var(--gold), #8a6510);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 700; color: #000;
-  }
-  .wd-brand-name { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 400; color: var(--gold-light); }
-  .wd-brand-sub { font-size: 9px; color: var(--text-faint); letter-spacing: 0.12em; text-transform: uppercase; }
+type Writer = {
+  id: string;
+  name: string;
+  bio: string | null;
+  photo_url: string | null;
+  twitter_url: string | null;
+  instagram_url: string | null;
+  website_url: string | null;
+};
 
-  /* Author card in sidebar */
-  .wd-author-card {
-    background: rgba(155,109,255,0.06); border: 1px solid var(--quill-dim);
-    border-radius: 8px; padding: 14px;
-  }
-  .wd-author-avatar {
-    width: 48px; height: 48px; border-radius: 8px;
-    background: linear-gradient(135deg, #1a1a24, #252535);
-    border: 1px solid var(--quill-dim);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300;
-    color: var(--quill); overflow: hidden; margin-bottom: 10px;
-  }
-  .wd-author-avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .wd-author-name { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 400; color: var(--text-main); margin-bottom: 3px; }
-  .wd-author-role { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); opacity: 0.75; }
-  .wd-founding-badge {
-    display: inline-block; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--gold); border: 1px solid var(--gold-dim); background: var(--gold-glow);
-    padding: 2px 8px; border-radius: 999px; margin-top: 6px;
-  }
-
-  /* NAV */
-  .wd-nav { flex: 1; padding: 16px 12px; }
-  .wd-nav-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px; border-radius: 6px; cursor: pointer;
-    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--text-faint); border: 1px solid transparent;
-    transition: all 0.2s; margin-bottom: 4px; width: 100%;
-    background: none; text-align: left;
-  }
-  .wd-nav-item:hover { color: var(--text-dim); background: rgba(255,255,255,0.03); }
-  .wd-nav-item.active { color: var(--gold-light); background: var(--gold-glow); border-color: var(--gold-dim); }
-  .wd-nav-icon { font-size: 14px; width: 18px; text-align: center; }
-
-  .wd-sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--ink-border); display: flex; flex-direction: column; gap: 8px; }
-  .wd-profile-link {
-    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--blue-bright); background: rgba(100,149,237,0.08);
-    border: 1px solid var(--blue-dim); border-radius: 6px;
-    padding: 8px; text-align: center; text-decoration: none; transition: all 0.2s;
-    display: block;
-  }
-  .wd-profile-link:hover { background: rgba(100,149,237,0.15); }
-  .wd-logout-btn {
-    width: 100%; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--text-faint); background: transparent;
-    border: 1px solid var(--ink-border); border-radius: 6px;
-    padding: 8px; cursor: pointer; transition: all 0.2s;
-  }
-  .wd-logout-btn:hover { color: var(--red); border-color: rgba(248,113,113,0.3); }
-
-  /* MAIN */
-  .wd-main { margin-left: 240px; flex: 1; min-height: 100vh; }
-  .wd-topbar {
-    padding: 20px 36px; border-bottom: 1px solid var(--ink-border);
-    display: flex; align-items: center; justify-content: space-between;
-    background: rgba(8,8,8,0.9); backdrop-filter: blur(10px);
-    position: sticky; top: 0; z-index: 5;
-  }
-  .wd-topbar-title { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 300; color: var(--text-main); }
-  .wd-topbar-sub { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
-  .wd-content { padding: 36px; max-width: 900px; }
-
-  /* FORM SECTIONS */
-  .wd-section { margin-bottom: 40px; }
-  .wd-section-title {
-    font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 300;
-    color: var(--text-main); margin-bottom: 4px;
-  }
-  .wd-section-sub { font-size: 12px; color: var(--text-faint); margin-bottom: 24px; line-height: 1.6; }
-  .wd-divider { height: 1px; background: linear-gradient(to right, var(--gold-dim), transparent); margin-bottom: 28px; }
-
-  /* FIELDS */
-  .wd-field { margin-bottom: 20px; }
-  .wd-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-  .wd-label {
-    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--text-faint); display: block; margin-bottom: 7px;
-  }
-  .wd-input {
-    width: 100%; background: var(--ink-surface);
-    border: 1px solid var(--ink-border); border-radius: 6px;
-    padding: 11px 14px; font-family: 'Syne', sans-serif;
-    font-size: 13px; color: var(--text-main); outline: none;
-    transition: border-color 0.2s, background 0.2s;
-  }
-  .wd-input::placeholder { color: var(--text-faint); }
-  .wd-input:focus { border-color: var(--gold-dim); background: rgba(201,168,76,0.03); }
-  .wd-textarea {
-    width: 100%; background: var(--ink-surface);
-    border: 1px solid var(--ink-border); border-radius: 6px;
-    padding: 14px; font-family: 'Syne', sans-serif;
-    font-size: 13px; color: var(--text-main); outline: none;
-    resize: vertical; line-height: 1.7; min-height: 120px;
-    transition: border-color 0.2s;
-  }
-  .wd-textarea::placeholder { color: var(--text-faint); }
-  .wd-textarea:focus { border-color: var(--gold-dim); }
-  .wd-field-hint { font-size: 10px; color: var(--text-faint); margin-top: 6px; line-height: 1.5; }
-
-  /* PHOTO UPLOAD */
-  .wd-photo-wrap { display: flex; align-items: flex-start; gap: 24px; margin-bottom: 24px; }
-  .wd-photo-preview {
-    width: 100px; height: 100px; border-radius: 12px; flex-shrink: 0;
-    background: linear-gradient(135deg, #1a1a24, #252535);
-    border: 2px solid var(--gold-dim);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Cormorant Garamond', serif; font-size: 40px;
-    font-weight: 300; color: var(--gold); overflow: hidden;
-    box-shadow: 0 0 30px var(--gold-glow);
-  }
-  .wd-photo-preview img { width: 100%; height: 100%; object-fit: cover; }
-  .wd-photo-controls { flex: 1; }
-  .wd-photo-btn {
-    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--text-dim); border: 1px solid var(--ink-border);
-    background: transparent; padding: 9px 18px; border-radius: 6px;
-    cursor: pointer; transition: all 0.2s; display: inline-block;
-  }
-  .wd-photo-btn:hover { color: var(--gold-light); border-color: var(--gold-dim); background: var(--gold-glow); }
-  .wd-photo-uploading { font-size: 11px; color: var(--text-faint); margin-top: 8px; }
-
-  /* GENRE GRID */
-  .wd-genre-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
-  .wd-genre-btn {
-    font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
-    padding: 8px 10px; border-radius: 4px; cursor: pointer;
-    border: 1px solid var(--ink-border); color: var(--text-faint);
-    background: transparent; transition: all 0.18s; text-align: left;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .wd-genre-btn:hover { border-color: var(--gold-dim); color: var(--text-dim); }
-  .wd-genre-btn.selected { border-color: var(--gold-dim); color: var(--gold-light); background: var(--gold-glow); }
-  .wd-genre-check { width: 12px; height: 12px; border-radius: 2px; border: 1px solid currentColor; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; }
-
-  /* SAVE BUTTON */
-  .wd-save-row { display: flex; align-items: center; gap: 16px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--ink-border); }
-  .wd-btn-save {
-    font-family: 'Syne', sans-serif; font-size: 10px; letter-spacing: 0.2em;
-    text-transform: uppercase; font-weight: 700; color: #000;
-    background: linear-gradient(135deg, var(--gold), #8a6510);
-    border: none; padding: 13px 32px; border-radius: 6px;
-    cursor: pointer; transition: opacity 0.2s;
-  }
-  .wd-btn-save:hover:not(:disabled) { opacity: 0.88; }
-  .wd-btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
-  .wd-save-status { font-size: 12px; color: var(--green); display: flex; align-items: center; gap: 6px; }
-  .wd-save-error { font-size: 12px; color: var(--red); }
-
-  /* STORIES */
-  .wd-stories-grid { display: flex; flex-direction: column; gap: 12px; }
-  .wd-story-card {
-    background: var(--ink-surface); border: 1px solid var(--ink-border);
-    border-radius: 8px; padding: 18px 20px;
-    display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  }
-  .wd-story-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; color: var(--text-main); margin-bottom: 4px; }
-  .wd-story-meta { font-size: 11px; color: var(--text-faint); }
-  .wd-badge { font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; }
-  .wd-badge-serial { border: 1px solid var(--blue-dim); color: var(--blue-bright); background: rgba(100,149,237,0.08); }
-  .wd-badge-exclusive { border: 1px solid var(--gold-dim); color: var(--gold-light); background: var(--gold-glow); }
-  .wd-badge-early { border: 1px solid rgba(232,228,218,0.2); color: var(--text-dim); background: rgba(232,228,218,0.05); }
-  .wd-published { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); }
-  .wd-draft { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-faint); }
-
-  /* INK */
-  .wd-ink-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
-  .wd-ink-card {
-    background: var(--ink-surface); border: 1px solid var(--ink-border);
-    border-radius: 8px; padding: 20px; position: relative; overflow: hidden;
-  }
-  .wd-ink-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
-  .wd-ink-num { font-family: 'Cormorant Garamond', serif; font-size: 40px; font-weight: 300; color: var(--gold); line-height: 1; margin-bottom: 6px; }
-  .wd-ink-label { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-faint); }
-  .wd-ink-sub { font-size: 10px; color: var(--text-faint); margin-top: 4px; }
-
-  /* SETTINGS */
-  .wd-settings-card {
-    background: var(--ink-surface); border: 1px solid var(--ink-border);
-    border-radius: 8px; padding: 24px; margin-bottom: 16px;
-  }
-  .wd-settings-title { font-size: 14px; color: var(--text-main); font-weight: 500; margin-bottom: 6px; }
-  .wd-settings-sub { font-size: 12px; color: var(--text-faint); line-height: 1.6; margin-bottom: 16px; }
-  .wd-btn-ghost {
-    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--text-dim); background: transparent;
-    border: 1px solid var(--ink-border); padding: 9px 20px; border-radius: 6px;
-    cursor: pointer; transition: all 0.2s;
-  }
-  .wd-btn-ghost:hover { color: var(--gold-light); border-color: var(--gold-dim); }
-  .wd-btn-danger {
-    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--red); background: var(--red-dim);
-    border: 1px solid rgba(248,113,113,0.3); padding: 9px 20px; border-radius: 6px;
-    cursor: pointer; transition: all 0.2s;
-  }
-  .wd-btn-danger:hover { background: rgba(248,113,113,0.25); }
-
-  /* EMPTY STATE */
-  .wd-empty { padding: 48px; text-align: center; }
-  .wd-empty-title { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 300; color: var(--text-dim); margin-bottom: 8px; }
-  .wd-empty-sub { font-size: 12px; color: var(--text-faint); line-height: 1.7; }
-
-  /* NOT APPROVED */
-  .wd-pending-wrap { max-width: 580px; margin: 80px auto; padding: 0 40px; text-align: center; }
-  .wd-pending-icon { font-size: 48px; margin-bottom: 20px; display: block; }
-  .wd-pending-title { font-family: 'Cormorant Garamond', serif; font-size: 40px; font-weight: 300; color: var(--text-main); margin-bottom: 14px; }
-  .wd-pending-sub { font-size: 13px; color: var(--text-dim); line-height: 1.8; margin-bottom: 28px; }
-
-  /* LOGIN */
-  .wd-login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--ink-bg); }
-  .wd-login-card { width: 100%; max-width: 420px; background: var(--ink-surface); border: 1px solid var(--ink-border-gold); border-radius: 8px; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.6); }
-  .wd-login-top { height: 3px; background: linear-gradient(90deg, transparent, var(--quill), var(--gold), transparent); }
-  .wd-login-body { padding: 40px; }
-  .wd-login-eyebrow { font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--quill); opacity: 0.8; display: block; margin-bottom: 10px; }
-  .wd-login-title { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 300; color: var(--text-main); margin-bottom: 6px; }
-  .wd-login-sub { font-size: 12px; color: var(--text-faint); margin-bottom: 28px; line-height: 1.6; }
-  .wd-login-field { margin-bottom: 16px; }
-  .wd-login-label { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-faint); display: block; margin-bottom: 7px; }
-  .wd-login-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--ink-border); border-radius: 5px; padding: 11px 14px; font-family: 'Syne', sans-serif; font-size: 13px; color: var(--text-main); outline: none; transition: border-color 0.2s; }
-  .wd-login-input:focus { border-color: var(--quill-dim); }
-  .wd-login-btn { width: 100%; font-family: 'Syne', sans-serif; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; color: #000; background: linear-gradient(135deg, var(--gold), #8a6510); border: none; padding: 13px; border-radius: 5px; cursor: pointer; transition: opacity 0.2s; margin-top: 8px; }
-  .wd-login-btn:hover:not(:disabled) { opacity: 0.88; }
-  .wd-login-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .wd-login-error { font-size: 11px; color: var(--red); margin-top: 12px; padding: 9px 12px; background: var(--red-dim); border-radius: 5px; border: 1px solid rgba(248,113,113,0.25); }
-  .wd-login-register { font-size: 11px; color: var(--text-faint); text-align: center; margin-top: 16px; }
-  .wd-login-register a { color: var(--gold-light); text-decoration: none; }
-
-  @media (max-width: 900px) {
-    .wd-sidebar { display: none; }
-    .wd-main { margin-left: 0; }
-    .wd-genre-grid { grid-template-columns: repeat(2, 1fr); }
-    .wd-field-row { grid-template-columns: 1fr; }
-    .wd-ink-stats { grid-template-columns: repeat(2, 1fr); }
-    .wd-content { padding: 24px; }
-  }
-`;
-
-// ── Login ─────────────────────────────────────────────────────
-function LoginScreen({ onLogin }: { onLogin: () => void }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [mode, setMode] = useState<"login" | "register">("login");
-  const [registered, setRegistered] = useState(false);
-
-  const handle = async () => {
-    setLoading(true); setError("");
-    if (mode === "login") {
-      const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-      if (err) { setError(err.message); setLoading(false); return; }
-      onLogin();
-    } else {
-      const { error: err } = await supabase.auth.signUp({ email, password });
-      if (err) { setError(err.message); setLoading(false); return; }
-      setRegistered(true);
-    }
-    setLoading(false);
-  };
-
-  return (
-    <>
-      <style>{STYLES}</style>
-      <div className="wd-login-wrap">
-        <div className="wd-login-card">
-          <div className="wd-login-top" />
-          <div className="wd-login-body">
-            <span className="wd-login-eyebrow">The Tiniest Library</span>
-            <div className="wd-login-title">{mode === "login" ? "Writer Login" : "Create Account"}</div>
-            <p className="wd-login-sub">
-              {mode === "login"
-                ? "Sign in to manage your profile, stories, and ink earnings."
-                : "Create your writer account. You'll need to be approved before your profile goes live."
-              }
-            </p>
-            {registered ? (
-              <div style={{ padding: "16px", background: "var(--green-dim)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 6, fontSize: 12, color: "var(--green)", lineHeight: 1.7 }}>
-                Account created! Check your email to confirm, then come back to sign in.
-              </div>
-            ) : (
-              <>
-                <div className="wd-login-field">
-                  <label className="wd-login-label">Email</label>
-                  <input className="wd-login-input" type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && handle()} />
-                </div>
-                <div className="wd-login-field">
-                  <label className="wd-login-label">Password</label>
-                  <input className="wd-login-input" type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handle()} />
-                </div>
-                {error && <div className="wd-login-error">{error}</div>}
-                <button className="wd-login-btn" disabled={loading || !email || !password} onClick={handle}>
-                  {loading ? "Please wait…" : mode === "login" ? "Sign In →" : "Create Account →"}
-                </button>
-                <div className="wd-login-register">
-                  {mode === "login"
-                    ? <>Don't have an account? <a href="#" onClick={e => { e.preventDefault(); setMode("register"); }}>Register</a></>
-                    : <>Already have an account? <a href="#" onClick={e => { e.preventDefault(); setMode("login"); }}>Sign in</a></>
-                  }
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-// ── Profile Tab ───────────────────────────────────────────────
-function ProfileTab({ profile, onSave }: { profile: WriterProfile; onSave: (p: Partial<WriterProfile>) => Promise<void> }) {
-  const [form, setForm] = useState({
-    name: profile.name ?? "",
-    tagline: profile.tagline ?? "",
-    bio: profile.bio ?? "",
-    greeting: profile.greeting ?? "",
-    genres: profile.genres ?? [],
-    twitter_url: profile.twitter_url ?? "",
-    instagram_url: profile.instagram_url ?? "",
-    website_url: profile.website_url ?? "",
-    photo_url: profile.photo_url ?? "",
-  });
-  const [saving, setSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const update = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
-  const toggleGenre = (g: string) => {
-    const next = form.genres.includes(g) ? form.genres.filter(x => x !== g) : [...form.genres, g];
-    update("genres", next);
-  };
-
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    const ext = file.name.split(".").pop();
-    const path = `${profile.id}/avatar.${ext}`;
-    const { error } = await supabase.storage.from("writer-photos").upload(path, file, { upsert: true });
-    if (!error) {
-      const { data } = supabase.storage.from("writer-photos").getPublicUrl(path);
-      update("photo_url", data.publicUrl);
-    }
-    setUploading(false);
-  };
-
-  const handleSave = async () => {
-    setSaving(true); setSaveStatus("idle");
-    try {
-      await onSave(form);
-      setSaveStatus("saved");
-      setTimeout(() => setSaveStatus("idle"), 3000);
-    } catch {
-      setSaveStatus("error");
-    }
-    setSaving(false);
-  };
-
-  const initial = form.name.split(" ").pop()?.[0]?.toUpperCase() ?? "W";
-
-  return (
-    <div className="wd-content">
-      {/* Photo */}
-      <div className="wd-section">
-        <div className="wd-section-title">Profile Photo</div>
-        <p className="wd-section-sub">Your photo appears on your author card and profile page in The Reading Room.</p>
-        <div className="wd-photo-wrap">
-          <div className="wd-photo-preview">
-            {form.photo_url ? <img src={form.photo_url} alt="Profile" /> : initial}
-          </div>
-          <div className="wd-photo-controls">
-            <button className="wd-photo-btn" onClick={() => fileRef.current?.click()} disabled={uploading}>
-              {uploading ? "Uploading…" : "Upload Photo"}
-            </button>
-            <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handlePhotoUpload} />
-            {uploading && <div className="wd-photo-uploading">Uploading to Supabase Storage…</div>}
-            <p className="wd-field-hint" style={{ marginTop: 10 }}>JPG or PNG, max 5MB. Square images work best.</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="wd-divider" />
-
-      {/* Identity */}
-      <div className="wd-section">
-        <div className="wd-section-title">Identity</div>
-        <p className="wd-section-sub">How you appear to readers across TTL.</p>
-        <div className="wd-field-row">
-          <div className="wd-field">
-            <label className="wd-label">Display Name *</label>
-            <input className="wd-input" type="text" value={form.name} onChange={e => update("name", e.target.value)} placeholder="Your name or pen name" />
-          </div>
-          <div className="wd-field">
-            <label className="wd-label">Tagline</label>
-            <input className="wd-input" type="text" value={form.tagline} onChange={e => update("tagline", e.target.value)} placeholder="One sentence that captures your voice" maxLength={100} />
-          </div>
-        </div>
-        <div className="wd-field">
-          <label className="wd-label">Author Bio</label>
-          <textarea className="wd-textarea" rows={5} value={form.bio} onChange={e => update("bio", e.target.value)} placeholder="Tell readers about yourself — your background, your influences, what drives your writing…" />
-          <p className="wd-field-hint">This appears on your public profile page in The Reading Room.</p>
-        </div>
-        <div className="wd-field">
-          <label className="wd-label">Achievements & Notable Works</label>
-          <textarea className="wd-textarea" rows={3} value={form.greeting} onChange={e => update("greeting", e.target.value)} placeholder="Awards, milestones, publications, reader milestones — anything worth celebrating…" />
-        </div>
-      </div>
-
-      <div className="wd-divider" />
-
-      {/* Genres */}
-      <div className="wd-section">
-        <div className="wd-section-title">Your Genres</div>
-        <p className="wd-section-sub">Select all genres you write in. Your profile will appear on each genre page in The Reading Room.</p>
-        <div className="wd-genre-grid">
-          {ALL_GENRES.map(g => (
-            <button key={g} type="button" className={`wd-genre-btn${form.genres.includes(g) ? " selected" : ""}`} onClick={() => toggleGenre(g)}>
-              <span className="wd-genre-check">{form.genres.includes(g) ? "✓" : ""}</span>
-              {g}
-            </button>
-          ))}
-        </div>
-        {form.genres.length > 0 && (
-          <p className="wd-field-hint" style={{ marginTop: 10 }}>Selected: {form.genres.join(", ")}</p>
-        )}
-      </div>
-
-      <div className="wd-divider" />
-
-      {/* Social */}
-      <div className="wd-section">
-        <div className="wd-section-title">Social Links</div>
-        <p className="wd-section-sub">These appear as buttons on your public profile.</p>
-        <div className="wd-field">
-          <label className="wd-label">Website</label>
-          <input className="wd-input" type="url" value={form.website_url} onChange={e => update("website_url", e.target.value)} placeholder="https://yoursite.com" />
-        </div>
-        <div className="wd-field-row">
-          <div className="wd-field">
-            <label className="wd-label">Twitter / X</label>
-            <input className="wd-input" type="url" value={form.twitter_url} onChange={e => update("twitter_url", e.target.value)} placeholder="https://twitter.com/you" />
-          </div>
-          <div className="wd-field">
-            <label className="wd-label">Instagram</label>
-            <input className="wd-input" type="url" value={form.instagram_url} onChange={e => update("instagram_url", e.target.value)} placeholder="https://instagram.com/you" />
-          </div>
-        </div>
-      </div>
-
-      {/* Save */}
-      <div className="wd-save-row">
-        <button className="wd-btn-save" disabled={saving || !form.name.trim()} onClick={handleSave}>
-          {saving ? "Saving…" : "Save Profile"}
-        </button>
-        {saveStatus === "saved" && <span className="wd-save-status">✓ Profile saved — live in The Reading Room</span>}
-        {saveStatus === "error" && <span className="wd-save-error">Something went wrong. Try again.</span>}
-      </div>
-    </div>
-  );
-}
-
-// ── Stories Tab ───────────────────────────────────────────────
-function StoriesTab({ writerId }: { writerId: string }) {
-  const [stories, setStories] = useState<Story[]>([]);
-  const [loading, setLoading] = useState(true);
-
+// =========================
+// Toast
+// =========================
+function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error'; onClose: () => void }) {
   useEffect(() => {
-    supabase.from("stories").select("*")
-      .eq("author_id", writerId)
-      .order("created_at", { ascending: false })
-      .then(({ data }) => { setStories(data ?? []); setLoading(false); });
-  }, [writerId]);
-
-  const badgeClass = (badge: string | null) => {
-    if (badge === "Exclusive") return "wd-badge wd-badge-exclusive";
-    if (badge === "Early Access") return "wd-badge wd-badge-early";
-    return "wd-badge wd-badge-serial";
-  };
-
-  return (
-    <div className="wd-content">
-      <div className="wd-section-title" style={{ marginBottom: 6 }}>Your Stories</div>
-      <p className="wd-section-sub" style={{ marginBottom: 24 }}>Stories submitted to TTL. Contact us to add or update stories.</p>
-      {loading ? (
-        <div className="wd-empty"><div className="wd-empty-title">Loading…</div></div>
-      ) : stories.length === 0 ? (
-        <div className="wd-empty">
-          <div className="wd-empty-title">No stories yet.</div>
-          <p className="wd-empty-sub">Once you submit a story and it's approved, it will appear here and go live in The Reading Room.</p>
-        </div>
-      ) : (
-        <div className="wd-stories-grid">
-          {stories.map(s => (
-            <div key={s.id} className="wd-story-card">
-              <div>
-                <div className="wd-story-title">{s.title}</div>
-                <div className="wd-story-meta">{s.slug} · Added {new Date(s.created_at).toLocaleDateString()}</div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-                {s.badge && <span className={badgeClass(s.badge)}>{s.badge}</span>}
-                <span className={s.is_published ? "wd-published" : "wd-draft"}>{s.is_published ? "Live" : "Draft"}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+    const t = setTimeout(onClose, 3000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+  return <div className={`toast toast-${type}`}>{type === 'success' ? '✓ ' : '✕ '}{msg}</div>;
 }
 
-// ── Ink Tab ───────────────────────────────────────────────────
-function InkTab({ profile }: { profile: WriterProfile }) {
-  const jarTotal = 0; // Will connect to real jar data later
-  return (
-    <div className="wd-content">
-      <div className="wd-section-title" style={{ marginBottom: 6 }}>Ink & Earnings</div>
-      <p className="wd-section-sub" style={{ marginBottom: 24 }}>Track your reader tips and story unlock revenue.</p>
-      <div className="wd-ink-stats">
-        <div className="wd-ink-card">
-          <div className="wd-ink-num">{jarTotal}</div>
-          <div className="wd-ink-label">Ink Jar Total</div>
-          <div className="wd-ink-sub">Tips from readers</div>
-        </div>
-        <div className="wd-ink-card">
-          <div className="wd-ink-num">0</div>
-          <div className="wd-ink-label">Story Unlocks</div>
-          <div className="wd-ink-sub">Readers who unlocked your work</div>
-        </div>
-        <div className="wd-ink-card">
-          <div className="wd-ink-num">$0</div>
-          <div className="wd-ink-label">Est. Payout</div>
-          <div className="wd-ink-sub">Next distribution</div>
-        </div>
-      </div>
-      <div style={{ padding: "20px 24px", background: "var(--ink-surface)", border: "1px solid var(--ink-border-gold)", borderRadius: 8 }}>
-        <p style={{ fontSize: 12, color: "var(--text-dim)", lineHeight: 1.8 }}>
-          Ink revenue distributions happen monthly. Tips go directly to you with no platform fee. Story unlock revenue is distributed at the rate disclosed in your approval email. Payouts require a minimum accumulated balance — details coming to your email once your first story goes live.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// ── Settings Tab ──────────────────────────────────────────────
-function SettingsTab({ email }: { email: string }) {
-  const [newPassword, setNewPassword] = useState("");
-  const [updating, setUpdating] = useState(false);
-  const [pwStatus, setPwStatus] = useState("");
-
-  const updatePassword = async () => {
-    setUpdating(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    setPwStatus(error ? error.message : "Password updated successfully.");
-    setUpdating(false);
-    setNewPassword("");
-  };
-
-  return (
-    <div className="wd-content">
-      <div className="wd-section-title" style={{ marginBottom: 6 }}>Settings</div>
-      <p className="wd-section-sub" style={{ marginBottom: 24 }}>Manage your account.</p>
-
-      <div className="wd-settings-card">
-        <div className="wd-settings-title">Account Email</div>
-        <p className="wd-settings-sub">Your login email. Contact TTL to change it.</p>
-        <div style={{ fontFamily: "monospace", fontSize: 13, color: "var(--text-dim)", padding: "9px 14px", background: "rgba(255,255,255,0.03)", border: "1px solid var(--ink-border)", borderRadius: 6 }}>{email}</div>
-      </div>
-
-      <div className="wd-settings-card">
-        <div className="wd-settings-title">Change Password</div>
-        <p className="wd-settings-sub">Set a new password for your writer account.</p>
-        <div style={{ display: "flex", gap: 12, alignItems: "flex-end" }}>
-          <div style={{ flex: 1 }}>
-            <label className="wd-label">New Password</label>
-            <input className="wd-input" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Min 6 characters" />
-          </div>
-          <button className="wd-btn-ghost" disabled={updating || newPassword.length < 6} onClick={updatePassword} style={{ flexShrink: 0 }}>
-            {updating ? "Updating…" : "Update"}
-          </button>
-        </div>
-        {pwStatus && <p style={{ fontSize: 11, color: pwStatus.includes("success") ? "var(--green)" : "var(--red)", marginTop: 10 }}>{pwStatus}</p>}
-      </div>
-
-      <div className="wd-settings-card" style={{ borderColor: "rgba(248,113,113,0.2)" }}>
-        <div className="wd-settings-title">Contact TTL</div>
-        <p className="wd-settings-sub">Need to remove a story, update your email, or have a question about your account?</p>
-        <a href="https://www.the-tiniest-library.com" target="_blank" rel="noopener noreferrer" className="wd-btn-ghost" style={{ display: "inline-block", textDecoration: "none" }}>
-          Contact The Tiniest Library →
-        </a>
-      </div>
-    </div>
-  );
-}
-
-// ── Main Dashboard ────────────────────────────────────────────
+// =========================
+// Main Dashboard
+// =========================
 export default function WriterDashboard() {
-  const [session, setSession] = useState<any>(null);
-  const [checking, setChecking] = useState(true);
-  const [profile, setProfile] = useState<WriterProfile | null>(null);
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [tab, setTab] = useState<Tab>("profile");
+  const [tab, setTab] = useState<Tab>('overview');
+  const [loading, setLoading] = useState(true);
+  const [writer, setWriter] = useState<Writer | null>(null);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [earnings, setEarnings] = useState<Earning[]>([]);
+  const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [payoutMethod, setPayoutMethod] = useState('');
+  const [payoutHandle, setPayoutHandle] = useState('');
+  const [requesting, setRequesting] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
+  // Profile edit state
+  const [editName, setEditName] = useState('');
+  const [editBio, setEditBio] = useState('');
+  const [editTwitter, setEditTwitter] = useState('');
+  const [editInstagram, setEditInstagram] = useState('');
+  const [editWebsite, setEditWebsite] = useState('');
+
+  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+    setToast({ msg, type });
+  };
+
+  // Load all data
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setChecking(false);
-    });
-    supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    async function load() {
+      try {
+        setLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) { window.location.href = '/login'; return; }
+
+        // Get writer profile
+        const { data: writerData } = await supabase
+          .from('writers')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (!writerData) {
+          // Check if writer exists by auth user id
+          window.location.href = '/apply';
+          return;
+        }
+
+        setWriter(writerData);
+        setEditName(writerData.name ?? '');
+        setEditBio(writerData.bio ?? '');
+        setEditTwitter(writerData.twitter_url ?? '');
+        setEditInstagram(writerData.instagram_url ?? '');
+        setEditWebsite(writerData.website_url ?? '');
+
+        // Get stories by this writer
+        const { data: storiesData } = await supabase
+          .from('stories')
+          .select('*')
+          .eq('author_id', writerData.id)
+          .order('created_at', { ascending: false });
+
+        if (storiesData && storiesData.length > 0) {
+          setStories(storiesData);
+
+          // Get chapters for first story
+          const { data: chaptersData } = await supabase
+            .from('chapters')
+            .select('*')
+            .eq('story_id', storiesData[0].id)
+            .order('chapter_number');
+
+          if (chaptersData) {
+            setChapters(chaptersData);
+            if (chaptersData.length > 0) {
+              setSelectedChapter(chaptersData[0]);
+              setEditTitle(chaptersData[0].title);
+              setEditContent(chaptersData[0].content ?? '');
+            }
+          }
+        }
+
+        // Get earnings
+        const { data: earningsData } = await supabase
+          .from('writer_earnings')
+          .select('*')
+          .eq('writer_id', writerData.id)
+          .order('created_at', { ascending: false });
+
+        if (earningsData) setEarnings(earningsData);
+
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, []);
 
-  useEffect(() => {
-    if (!session) return;
-    loadProfile();
-  }, [session]);
-
-  async function loadProfile() {
-    setProfileLoading(true);
-    const { data } = await supabase
-      .from("writers")
-      .select("*")
-      .eq("user_id", session.user.id)
-      .single();
-
-    if (!data) {
-      // Try matching by email if user_id not set yet
-      const { data: byEmail } = await supabase
-        .from("writers")
-        .select("*")
-        .eq("name", session.user.email)
-        .single();
-
-      if (byEmail) {
-        // Link user_id to writer record
-        await supabase.from("writers").update({ user_id: session.user.id }).eq("id", byEmail.id);
-        setProfile({ ...byEmail, user_id: session.user.id });
-      } else {
-        // Create a new writer record
-        const { data: created } = await supabase.from("writers").insert({
-          name: session.user.email?.split("@")[0] ?? "New Writer",
-          user_id: session.user.id,
-          is_approved: false,
-          is_founding_author: false,
-        }).select().single();
-        setProfile(created);
-      }
-    } else {
-      setProfile(data);
-    }
-    setProfileLoading(false);
-  }
-
-  async function saveProfile(updates: Partial<WriterProfile>) {
-    if (!profile) return;
-    // Auto-generate slug from name if not set
-    if (!profile.slug && updates.name) {
-      updates.slug = (updates.name as string).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-    }
-    const { error } = await supabase.from("writers").update(updates).eq("id", profile.id);
-    if (error) throw error;
-    setProfile(p => p ? { ...p, ...updates } : p);
-  }
-
-  if (checking || profileLoading) return <><style>{STYLES}</style><div style={{ minHeight: "100vh", background: "#080808" }} /></>;
-  if (!session) return <LoginScreen onLogin={() => supabase.auth.getSession().then(({ data }) => setSession(data.session))} />;
-
-  const initial = profile?.name?.split(" ").pop()?.[0]?.toUpperCase() ?? "W";
-  const slug = profile?.slug;
-
-  const NAV = [
-    { key: "profile" as Tab, label: "My Profile", icon: "🪶" },
-    { key: "stories" as Tab, label: "My Stories", icon: "📖" },
-    { key: "ink" as Tab, label: "Ink & Earnings", icon: "✒️" },
-    { key: "settings" as Tab, label: "Settings", icon: "⚙️" },
-  ];
-
-  const TAB_TITLES: Record<Tab, string> = {
-    profile: "My Profile",
-    stories: "My Stories",
-    ink: "Ink & Earnings",
-    settings: "Settings",
+  // Select chapter for editing
+  const selectChapter = (ch: Chapter) => {
+    setSelectedChapter(ch);
+    setEditTitle(ch.title);
+    setEditContent(ch.content ?? '');
   };
+
+  // Save chapter
+  const saveChapter = async () => {
+    if (!selectedChapter) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('chapters')
+        .update({ title: editTitle, content: editContent })
+        .eq('id', selectedChapter.id);
+
+      if (error) throw error;
+
+      setChapters(prev => prev.map(c =>
+        c.id === selectedChapter.id
+          ? { ...c, title: editTitle, content: editContent }
+          : c
+      ));
+      setSelectedChapter(prev => prev ? { ...prev, title: editTitle, content: editContent } : null);
+      showToast('Chapter saved successfully!');
+    } catch {
+      showToast('Failed to save chapter.', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Save profile
+  const saveProfile = async () => {
+    if (!writer) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('writers')
+        .update({
+          name: editName,
+          bio: editBio,
+          twitter_url: editTwitter || null,
+          instagram_url: editInstagram || null,
+          website_url: editWebsite || null,
+        })
+        .eq('id', writer.id);
+
+      if (error) throw error;
+      setWriter(prev => prev ? { ...prev, name: editName, bio: editBio } : null);
+      showToast('Profile updated!');
+    } catch {
+      showToast('Failed to update profile.', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Request payout
+  const requestPayout = async () => {
+    if (!payoutMethod || !payoutHandle) {
+      showToast('Please select a method and enter your handle.', 'error');
+      return;
+    }
+    setRequesting(true);
+    try {
+      // Insert payout request — you'd wire this to Stripe/PayPal etc.
+      const { error } = await supabase
+        .from('payouts')
+        .insert({
+          writer_id: writer?.id,
+          amount_usd: unpaidTotal,
+          method: payoutMethod,
+          handle: payoutHandle,
+          status: 'pending',
+        });
+
+      if (error) throw error;
+      showToast('Payout requested! We\'ll process it within 2-3 business days.');
+      setPayoutHandle('');
+      setPayoutMethod('');
+    } catch {
+      showToast('Payout request failed. Please try again.', 'error');
+    } finally {
+      setRequesting(false);
+    }
+  };
+
+  // Stats
+  const totalEarnings = earnings.reduce((s, e) => s + Number(e.writer_usd), 0);
+  const unpaidTotal = earnings.filter(e => !e.payout_id).reduce((s, e) => s + Number(e.writer_usd), 0);
+  const totalUnlocks = earnings.length;
+  const totalInkEarned = earnings.reduce((s, e) => s + e.ink_spent, 0);
+
+  if (loading) {
+    return (
+      <>
+        <style>{STYLES}</style>
+        <div className="hq-root">
+          <div className="loading-wrap" style={{ minHeight: '100vh' }}>
+            <div className="spinner" />
+            <p className="loading-text">Loading your Writer HQ…</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!writer) return null;
 
   return (
     <>
       <style>{STYLES}</style>
-      <div className="wd-root">
-        <aside className="wd-sidebar">
-          <div className="wd-sidebar-top" />
-          <div className="wd-sidebar-header">
-            <div className="wd-sidebar-brand">
-              <div className="wd-brand-logo">TTL</div>
-              <div>
-                <div className="wd-brand-name">The Tiniest Library</div>
-                <div className="wd-brand-sub">Writer Dashboard</div>
-              </div>
-            </div>
-            <div className="wd-author-card">
-              <div className="wd-author-avatar">
-                {profile?.photo_url ? <img src={profile.photo_url} alt={profile.name} /> : initial}
-              </div>
-              <div className="wd-author-name">{profile?.name ?? "Writer"}</div>
-              <div className="wd-author-role">{profile?.is_approved ? "Approved Writer" : "Pending Approval"}</div>
-              {profile?.is_founding_author && <div className="wd-founding-badge">Founding Author</div>}
-            </div>
-          </div>
+      <div className="hq-root">
 
-          <nav className="wd-nav">
-            {NAV.map(n => (
-              <button key={n.key} className={`wd-nav-item${tab === n.key ? " active" : ""}`} onClick={() => setTab(n.key)}>
-                <span className="wd-nav-icon">{n.icon}</span>
-                {n.label}
+        {/* Toast */}
+        {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+
+        {/* Nav */}
+        <nav className="hq-nav">
+          <div className="hq-nav-line" />
+          <div className="hq-nav-inner">
+            <a href="https://the-writer-s-room.vercel.app" className="hq-nav-brand">
+              <div className="hq-nav-logo">TWR</div>
+              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3 }}>
+                <span className="hq-nav-title">The Writer's Room</span>
+                <span className="hq-nav-sub">Writer HQ</span>
+              </div>
+            </a>
+            <div className="hq-nav-right">
+              <div className="hq-nav-writer">✍️ {writer.name}</div>
+              <button className="hq-nav-logout" onClick={() => supabase.auth.signOut().then(() => window.location.href = '/')}>
+                Sign Out
               </button>
-            ))}
-          </nav>
-
-          <div className="wd-sidebar-footer">
-            {profile?.is_approved && slug && (
-              <a href={`https://the-reading-room-three.vercel.app/reading-room/authors/${slug}`} target="_blank" rel="noopener noreferrer" className="wd-profile-link">
-                View Public Profile →
-              </a>
-            )}
-            <button className="wd-logout-btn" onClick={() => supabase.auth.signOut()}>Sign Out</button>
-          </div>
-        </aside>
-
-        <main className="wd-main">
-          <div className="wd-topbar">
-            <div>
-              <div className="wd-topbar-title">{TAB_TITLES[tab]}</div>
-              <div className="wd-topbar-sub">Your email: {session.user.email}</div>
             </div>
-            {!profile?.is_approved && (
-              <div style={{ fontSize: 11, color: "var(--amber)", background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.25)", padding: "8px 16px", borderRadius: 6 }}>
-                Application under review — profile won't go public until approved
+          </div>
+        </nav>
+
+        <div className="hq-body">
+
+          {/* Sidebar */}
+          <aside className="hq-sidebar">
+            <div className="hq-nav-section">Overview</div>
+            <button className={`hq-nav-item${tab === 'overview' ? ' active' : ''}`} onClick={() => setTab('overview')}>
+              <span className="hq-nav-icon">📊</span> Dashboard
+            </button>
+
+            <div className="hq-nav-section">Content</div>
+            <button className={`hq-nav-item${tab === 'chapters' ? ' active' : ''}`} onClick={() => setTab('chapters')}>
+              <span className="hq-nav-icon">📖</span> My Chapters
+            </button>
+
+            <div className="hq-nav-section">Money</div>
+            <button className={`hq-nav-item${tab === 'earnings' ? ' active' : ''}`} onClick={() => setTab('earnings')}>
+              <span className="hq-nav-icon">✒️</span> Earnings
+            </button>
+            <button className={`hq-nav-item${tab === 'payout' ? ' active' : ''}`} onClick={() => setTab('payout')}>
+              <span className="hq-nav-icon">💸</span> Request Payout
+            </button>
+
+            <div className="hq-nav-section">Account</div>
+            <button className={`hq-nav-item${tab === 'profile' ? ' active' : ''}`} onClick={() => setTab('profile')}>
+              <span className="hq-nav-icon">👤</span> My Profile
+            </button>
+          </aside>
+
+          {/* Main content */}
+          <main className="hq-content">
+
+            {/* ── OVERVIEW ── */}
+            {tab === 'overview' && (
+              <div className="fade-up">
+                <div className="hq-page-header">
+                  <span className="hq-page-eyebrow">The Writer's Room</span>
+                  <h1 className="hq-page-title">Good to see you, {writer.name.split(' ')[0]}.</h1>
+                  <p className="hq-page-sub">Here's how your work is performing.</p>
+                </div>
+
+                <div className="hq-stats">
+                  <div className="hq-stat">
+                    <span className="hq-stat-label">Total Earned</span>
+                    <div className="hq-stat-value">${totalEarnings.toFixed(2)}</div>
+                    <div className="hq-stat-sub">Lifetime writer earnings</div>
+                  </div>
+                  <div className="hq-stat">
+                    <span className="hq-stat-label">Unpaid Balance</span>
+                    <div className="hq-stat-value" style={{ color: unpaidTotal > 0 ? 'var(--green)' : 'var(--gold-light)' }}>
+                      ${unpaidTotal.toFixed(2)}
+                    </div>
+                    <div className="hq-stat-sub">Ready to withdraw</div>
+                  </div>
+                  <div className="hq-stat">
+                    <span className="hq-stat-label">Chapter Unlocks</span>
+                    <div className="hq-stat-value">{totalUnlocks}</div>
+                    <div className="hq-stat-sub">Readers paying for your work</div>
+                  </div>
+                  <div className="hq-stat">
+                    <span className="hq-stat-label">Ink Earned</span>
+                    <div className="hq-stat-value">{totalInkEarned}</div>
+                    <div className="hq-stat-sub">Total Ink from unlocks</div>
+                  </div>
+                </div>
+
+                {/* Stories */}
+                <div className="hq-section">
+                  <div className="hq-section-header">
+                    <h2 className="hq-section-title">Your Stories</h2>
+                  </div>
+                  {stories.length > 0 ? (
+                    <div className="hq-table-wrap">
+                      <table className="hq-table">
+                        <thead>
+                          <tr>
+                            <th>Title</th>
+                            <th>Chapters</th>
+                            <th>Status</th>
+                            <th>Unlocks</th>
+                            <th>Earned</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stories.map(s => {
+                            const storyEarnings = earnings.filter(e =>
+                              chapters.find(c => c.id === e.chapter_id)
+                            );
+                            return (
+                              <tr key={s.id}>
+                                <td className="primary">{s.title}</td>
+                                <td>{chapters.length}</td>
+                                <td><span className="badge badge-free">Published</span></td>
+                                <td>{storyEarnings.length}</td>
+                                <td className="gold">${storyEarnings.reduce((sum, e) => sum + Number(e.writer_usd), 0).toFixed(2)}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="empty-state">
+                      <span className="empty-icon">📖</span>
+                      <div className="empty-title">No stories yet</div>
+                      <p className="empty-sub">Your published stories will appear here.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Recent earnings */}
+                {earnings.length > 0 && (
+                  <div className="hq-section">
+                    <div className="hq-section-header">
+                      <h2 className="hq-section-title">Recent Earnings</h2>
+                      <button className="btn-ghost" onClick={() => setTab('earnings')}>View All →</button>
+                    </div>
+                    <div className="hq-table-wrap">
+                      <table className="hq-table">
+                        <thead>
+                          <tr><th>Date</th><th>Chapter</th><th>Ink</th><th>You Earned</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                          {earnings.slice(0, 5).map(e => {
+                            const ch = chapters.find(c => c.id === e.chapter_id);
+                            return (
+                              <tr key={e.id}>
+                                <td className="dim">{new Date(e.created_at).toLocaleDateString()}</td>
+                                <td>{ch ? `Ch. ${ch.chapter_number}` : '—'}</td>
+                                <td>{e.ink_spent} Ink</td>
+                                <td className="gold">${Number(e.writer_usd).toFixed(3)}</td>
+                                <td><span className={`badge ${e.payout_id ? 'badge-paid' : 'badge-pending'}`}>{e.payout_id ? 'Paid' : 'Pending'}</span></td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
-          </div>
 
-          {tab === "profile" && profile && (
-            <ProfileTab profile={profile} onSave={saveProfile} />
-          )}
-          {tab === "stories" && profile && (
-            <StoriesTab writerId={profile.id} />
-          )}
-          {tab === "ink" && profile && (
-            <InkTab profile={profile} />
-          )}
-          {tab === "settings" && (
-            <SettingsTab email={session.user.email} />
-          )}
-        </main>
+            {/* ── CHAPTERS ── */}
+            {tab === 'chapters' && (
+              <div className="fade-up">
+                <div className="hq-page-header">
+                  <span className="hq-page-eyebrow">Content</span>
+                  <h1 className="hq-page-title">My Chapters</h1>
+                  <p className="hq-page-sub">Click any chapter to edit its content.</p>
+                </div>
+
+                {chapters.length > 0 ? (
+                  <div className="editor-grid">
+                    {/* Chapter list */}
+                    <div className="chapter-list-panel">
+                      <div className="chapter-list-header">Chapters — {chapters.length} total</div>
+                      {chapters.map(ch => (
+                        <button
+                          key={ch.id}
+                          className={`chapter-list-item${selectedChapter?.id === ch.id ? ' active' : ''}`}
+                          onClick={() => selectChapter(ch)}
+                        >
+                          <span className="chapter-num">{ch.chapter_number}</span>
+                          <span style={{ flex: 1, textAlign: 'left', fontSize: 11, lineHeight: 1.4 }}>
+                            {ch.title.length > 40 ? ch.title.slice(0, 40) + '…' : ch.title}
+                          </span>
+                          <span className={`badge ${ch.is_free ? 'badge-free' : 'badge-locked'}`} style={{ fontSize: 8 }}>
+                            {ch.is_free ? 'Free' : `${ch.ink_cost}✒`}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Editor */}
+                    {selectedChapter && (
+                      <div className="editor-panel">
+                        <div className="editor-header">
+                          <div>
+                            <div style={{ fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 4 }}>
+                              Chapter {selectedChapter.chapter_number}
+                            </div>
+                            <div className="editor-chapter-title">{selectedChapter.title}</div>
+                          </div>
+                          <span className={`badge ${selectedChapter.is_free ? 'badge-free' : 'badge-locked'}`}>
+                            {selectedChapter.is_free ? 'Free' : `${selectedChapter.ink_cost} Ink to unlock`}
+                          </span>
+                        </div>
+                        <div className="editor-body">
+                          <div className="editor-field">
+                            <label className="editor-label">Chapter Title</label>
+                            <input
+                              className="editor-input"
+                              value={editTitle}
+                              onChange={e => setEditTitle(e.target.value)}
+                            />
+                          </div>
+                          <div className="editor-field">
+                            <label className="editor-label">Content</label>
+                            <textarea
+                              className="editor-textarea"
+                              value={editContent}
+                              onChange={e => setEditContent(e.target.value)}
+                              placeholder="Paste or write your chapter content here…"
+                            />
+                          </div>
+                        </div>
+                        <div className="editor-footer">
+                          <span className="editor-char-count">
+                            {editContent.length.toLocaleString()} characters
+                          </span>
+                          <button className="btn-primary" disabled={saving} onClick={saveChapter}>
+                            {saving ? 'Saving…' : 'Save Chapter ✓'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <span className="empty-icon">📖</span>
+                    <div className="empty-title">No chapters yet</div>
+                    <p className="empty-sub">Your chapters will appear here once your story is set up.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── EARNINGS ── */}
+            {tab === 'earnings' && (
+              <div className="fade-up">
+                <div className="hq-page-header">
+                  <span className="hq-page-eyebrow">Money</span>
+                  <h1 className="hq-page-title">Earnings</h1>
+                  <p className="hq-page-sub">Every time a reader unlocks your chapter, you earn 70%.</p>
+                </div>
+
+                <div className="hq-stats" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
+                  <div className="hq-stat">
+                    <span className="hq-stat-label">Total Earned</span>
+                    <div className="hq-stat-value">${totalEarnings.toFixed(2)}</div>
+                    <div className="hq-stat-sub">All time</div>
+                  </div>
+                  <div className="hq-stat">
+                    <span className="hq-stat-label">Unpaid</span>
+                    <div className="hq-stat-value" style={{ color: 'var(--green)' }}>${unpaidTotal.toFixed(2)}</div>
+                    <div className="hq-stat-sub">Ready to withdraw</div>
+                  </div>
+                  <div className="hq-stat">
+                    <span className="hq-stat-label">Total Unlocks</span>
+                    <div className="hq-stat-value">{totalUnlocks}</div>
+                    <div className="hq-stat-sub">Readers paid for your work</div>
+                  </div>
+                </div>
+
+                <div className="hq-section">
+                  <div className="hq-section-header">
+                    <h2 className="hq-section-title">Transaction History</h2>
+                    {unpaidTotal > 0 && (
+                      <button className="btn-primary" onClick={() => setTab('payout')}>
+                        Withdraw ${unpaidTotal.toFixed(2)} →
+                      </button>
+                    )}
+                  </div>
+
+                  {earnings.length > 0 ? (
+                    <div className="hq-table-wrap">
+                      <table className="hq-table">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Chapter</th>
+                            <th>Ink Spent</th>
+                            <th>Gross</th>
+                            <th>Your Cut (70%)</th>
+                            <th>TTL (30%)</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {earnings.map(e => {
+                            const ch = chapters.find(c => c.id === e.chapter_id);
+                            return (
+                              <tr key={e.id}>
+                                <td className="dim">{new Date(e.created_at).toLocaleDateString()}</td>
+                                <td className="primary">{ch ? `Ch. ${ch.chapter_number}: ${ch.title.slice(0, 30)}…` : '—'}</td>
+                                <td>{e.ink_spent} ✒️</td>
+                                <td>${Number(e.gross_usd).toFixed(3)}</td>
+                                <td className="gold">${Number(e.writer_usd).toFixed(3)}</td>
+                                <td className="dim">${Number(e.platform_usd).toFixed(3)}</td>
+                                <td><span className={`badge ${e.payout_id ? 'badge-paid' : 'badge-pending'}`}>{e.payout_id ? 'Paid' : 'Pending'}</span></td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="empty-state">
+                      <span className="empty-icon">✒️</span>
+                      <div className="empty-title">No earnings yet</div>
+                      <p className="empty-sub">When readers unlock your chapters, your earnings will appear here.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── PAYOUT ── */}
+            {tab === 'payout' && (
+              <div className="fade-up">
+                <div className="hq-page-header">
+                  <span className="hq-page-eyebrow">Money</span>
+                  <h1 className="hq-page-title">Request Payout</h1>
+                  <p className="hq-page-sub">No minimum. Withdraw whenever you want.</p>
+                </div>
+
+                <div className="payout-grid">
+                  <div className="payout-card">
+                    <div className="payout-balance">${unpaidTotal.toFixed(2)}</div>
+                    <div className="payout-balance-label">Available to withdraw</div>
+
+                    <div style={{ marginBottom: 12 }}>
+                      <label className="editor-label">Payout Method</label>
+                      <div className="payout-method-grid">
+                        {['Stripe', 'PayPal', 'Venmo', 'Zelle'].map(m => (
+                          <button
+                            key={m}
+                            className={`payout-method-btn${payoutMethod === m ? ' selected' : ''}`}
+                            onClick={() => setPayoutMethod(m)}
+                          >
+                            {m}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <label className="editor-label">
+                      {payoutMethod === 'Stripe' ? 'Email or Account ID' :
+                       payoutMethod === 'PayPal' ? 'PayPal Email' :
+                       payoutMethod === 'Venmo' ? '@Venmo Handle' :
+                       payoutMethod === 'Zelle' ? 'Phone or Email' : 'Your Handle'}
+                    </label>
+                    <input
+                      className="payout-input"
+                      placeholder={payoutMethod ? `Enter your ${payoutMethod} details` : 'Select a method first'}
+                      value={payoutHandle}
+                      onChange={e => setPayoutHandle(e.target.value)}
+                      disabled={!payoutMethod}
+                    />
+
+                    <button
+                      className="btn-primary"
+                      style={{ width: '100%', justifyContent: 'center' }}
+                      disabled={requesting || unpaidTotal === 0 || !payoutMethod || !payoutHandle}
+                      onClick={requestPayout}
+                    >
+                      {requesting ? 'Requesting…' : `Request $${unpaidTotal.toFixed(2)} Payout →`}
+                    </button>
+
+                    {unpaidTotal === 0 && (
+                      <p style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 12, textAlign: 'center' }}>
+                        No unpaid balance — keep writing to earn more!
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="payout-info-card">
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 300, color: 'var(--text)', marginBottom: 20 }}>
+                      How payouts work
+                    </div>
+                    <div className="payout-info-row">
+                      <span className="payout-info-label">Your cut</span>
+                      <span className="payout-info-val" style={{ color: 'var(--green)' }}>70% of every unlock</span>
+                    </div>
+                    <div className="payout-info-row">
+                      <span className="payout-info-label">TTL platform fee</span>
+                      <span className="payout-info-val">30%</span>
+                    </div>
+                    <div className="payout-info-row">
+                      <span className="payout-info-label">Tip jar</span>
+                      <span className="payout-info-val" style={{ color: 'var(--green)' }}>100% yours</span>
+                    </div>
+                    <div className="payout-info-row">
+                      <span className="payout-info-label">Minimum payout</span>
+                      <span className="payout-info-val">None</span>
+                    </div>
+                    <div className="payout-info-row">
+                      <span className="payout-info-label">Processing time</span>
+                      <span className="payout-info-val">2-3 business days</span>
+                    </div>
+                    <div className="payout-info-row">
+                      <span className="payout-info-label">Your copyright</span>
+                      <span className="payout-info-val" style={{ color: 'var(--green)' }}>Always yours ✓</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── PROFILE ── */}
+            {tab === 'profile' && (
+              <div className="fade-up">
+                <div className="hq-page-header">
+                  <span className="hq-page-eyebrow">Account</span>
+                  <h1 className="hq-page-title">My Profile</h1>
+                  <p className="hq-page-sub">This is your public author profile on TTL.</p>
+                </div>
+
+                <div style={{ maxWidth: 640 }}>
+                  <div className="editor-field">
+                    <label className="editor-label">Display Name</label>
+                    <input className="editor-input" value={editName} onChange={e => setEditName(e.target.value)} />
+                  </div>
+                  <div className="editor-field">
+                    <label className="editor-label">Bio</label>
+                    <textarea
+                      className="editor-textarea"
+                      style={{ minHeight: 120 }}
+                      value={editBio}
+                      onChange={e => setEditBio(e.target.value)}
+                      placeholder="Tell readers about yourself…"
+                    />
+                  </div>
+
+                  <div className="hq-divider" />
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 300, color: 'var(--text)', marginBottom: 20 }}>
+                    Social Links
+                  </div>
+
+                  <div className="editor-field">
+                    <label className="editor-label">Website</label>
+                    <input className="editor-input" value={editWebsite} onChange={e => setEditWebsite(e.target.value)} placeholder="https://yoursite.com" />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                    <div className="editor-field">
+                      <label className="editor-label">Twitter / X</label>
+                      <input className="editor-input" value={editTwitter} onChange={e => setEditTwitter(e.target.value)} placeholder="https://twitter.com/you" />
+                    </div>
+                    <div className="editor-field">
+                      <label className="editor-label">Instagram</label>
+                      <input className="editor-input" value={editInstagram} onChange={e => setEditInstagram(e.target.value)} placeholder="https://instagram.com/you" />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                    <button className="btn-primary" disabled={saving} onClick={saveProfile}>
+                      {saving ? 'Saving…' : 'Save Profile ✓'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </main>
+        </div>
       </div>
     </>
   );
