@@ -469,10 +469,10 @@ export default function WriterDashboard() {
 
         // Get writer profile
         const { data: writerData } = await supabase
-          .from('writers')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+        .from('writers')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
 
         if (!writerData) {
           // Check if writer exists by auth user id
