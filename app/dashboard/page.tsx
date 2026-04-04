@@ -655,7 +655,7 @@ export default function WriterDashboard() {
         <nav className="hq-nav">
           <div className="hq-nav-line" />
           <div className="hq-nav-inner">
-            <a href="https://the-writer-s-room.vercel.app" className="hq-nav-brand">
+            <a href="https://write.the-tiniest-library.com" className="hq-nav-brand">
               <div className="hq-nav-logo">TWR</div>
               <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3 }}>
                 <span className="hq-nav-title">The Writer's Room</span>

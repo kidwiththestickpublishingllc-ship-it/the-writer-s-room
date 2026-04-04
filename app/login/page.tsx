@@ -272,7 +272,7 @@ export default function WritersRoomLogin() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: 'https://the-writer-s-room.vercel.app/dashboard' }
+        options: { emailRedirectTo: 'https://write.the-tiniest-library.com/dashboard' }
       });
       if (error) throw error;
       setSuccess('Check your email to confirm your account, then come back to sign in.');
@@ -288,7 +288,7 @@ export default function WritersRoomLogin() {
     setLoading(true); setError(''); setSuccess('');
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://the-writer-s-room.vercel.app/dashboard',
+        redirectTo: 'https://write.the-tiniest-library.com/dashboard',
       });
       if (error) throw error;
       setSuccess('Password reset email sent! Check your inbox.');

@@ -10,9 +10,9 @@ import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = "The Tiniest Library <onboarding@resend.dev>";
 const ADMIN_EMAIL = "kidwiththestickpublishingllc@gmail.com";
-const DASHBOARD_URL = "https://the-writer-s-room.vercel.app/dashboard";
-const APPLY_URL = "https://the-writer-s-room.vercel.app/apply";
-const READING_ROOM_URL = "https://the-reading-room-three.vercel.app/reading-room";
+const DASHBOARD_URL = "https://write.the-tiniest-library.com/dashboard";
+const APPLY_URL = "https://write.the-tiniest-library.com/apply";
+const READING_ROOM_URL = "https://the-reading-room-three.write.the-tiniest-library.com/reading-room";
 
 export async function POST(req: NextRequest) {
   try {
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
                     <p style="font-size:13px;color:rgba(240,236,226,0.6);margin:0 0 8px;"><strong style="color:#f0ece2;">Email:</strong> ${to}</p>
                     ${data?.genres ? `<p style="font-size:13px;color:rgba(240,236,226,0.6);margin:0;"><strong style="color:#f0ece2;">Genres:</strong> ${data.genres.join(", ")}</p>` : ""}
                   </div>
-                  <a href="https://the-writer-s-room.vercel.app/ttl-admin" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;padding:12px 24px;border-radius:6px;text-decoration:none;">
+                  <a href="https://write.the-tiniest-library.com/ttl-admin" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;padding:12px 24px;border-radius:6px;text-decoration:none;">
                     Review in Admin →
                   </a>
                 </div>

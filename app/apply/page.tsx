@@ -8,8 +8,8 @@ import { supabase } from "@/lib/supabase";
 // TTL Writer Application — /apply
 // =========================
 
-const TTL_SUBMIT_URL = "https://the-writer-s-room.vercel.app/apply";
-const TTL_WRITERS_ROOM = "https://the-writer-s-room.vercel.app";
+const TTL_SUBMIT_URL = "https://write.the-tiniest-library.com/apply";
+const TTL_WRITERS_ROOM = "https://write.the-tiniest-library.com";
 
 const ALL_GENRES = [
   "Fantasy", "Sci-Fi", "Horror Mystery", "Crime & Thrillers",
@@ -549,7 +549,7 @@ export default function ApplyPage() {
               <a href={TTL_WRITERS_ROOM} style={{ fontFamily: "'Syne',sans-serif", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(232,228,218,0.6)", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", padding: "13px 24px", borderRadius: 6, textDecoration: "none", transition: "all 0.2s" }}>
                 ← Back to Writer's Room
               </a>
-              <a href="https://the-reading-room-three.vercel.app/reading-room" style={{ fontFamily: "'Syne',sans-serif", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 700, color: "#000", background: "linear-gradient(135deg, #C9A84C, #8a6510)", border: "none", padding: "13px 28px", borderRadius: 6, textDecoration: "none" }}>
+              <a href="https://the-reading-room-three.write.the-tiniest-library.com/reading-room" style={{ fontFamily: "'Syne',sans-serif", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 700, color: "#000", background: "linear-gradient(135deg, #C9A84C, #8a6510)", border: "none", padding: "13px 28px", borderRadius: 6, textDecoration: "none" }}>
                 Browse the Reading Room →
               </a>
             </div>

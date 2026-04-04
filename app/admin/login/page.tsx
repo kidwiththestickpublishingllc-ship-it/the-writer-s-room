@@ -133,7 +133,7 @@ export default function WritersRoomLogin() {
     setLoading(true); setError(''); setSuccess('');
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://the-writer-s-room.vercel.app/dashboard',
+        redirectTo: 'https://write.the-tiniest-library.com/dashboard',
       });
       if (error) throw error;
       setSuccess('Reset link sent! Check your inbox.');

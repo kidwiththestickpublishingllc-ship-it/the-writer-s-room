@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 const USE_AI = true;
 
-const TTL_SUBMIT_URL = "https://www.the-tiniest-library.com/new-page-1";
+const TTL_SUBMIT_URL = "https://www.write.the-tiniest-library.com";
 
 const QUILL_KB = {
   greeting_new: [
