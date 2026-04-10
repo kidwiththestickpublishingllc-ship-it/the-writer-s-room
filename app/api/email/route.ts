@@ -8,7 +8,7 @@ import { Resend } from "resend";
 // =========================
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = "The Tiniest Library <onboarding@resend.dev>";
+const FROM = "The Tiniest Library <hello@the-tiniest-library.com>";
 const ADMIN_EMAIL = "kidwiththestickpublishingllc@gmail.com";
 const DASHBOARD_URL = "https://write.the-tiniest-library.com/dashboard";
 const APPLY_URL = "https://write.the-tiniest-library.com/apply";
