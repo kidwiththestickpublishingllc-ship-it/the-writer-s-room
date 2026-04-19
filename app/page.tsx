@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import WritersRoomAdPanel from './components/WritersRoomAdPanel'
 
 // =========================
 // Constants
@@ -229,6 +230,21 @@ box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
   }
 
   .twr-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .twr-hero-with-ad {
+    display: grid;
+    grid-template-columns: 1.6fr 0.8fr;
+    gap: 0;
+    align-items: stretch;
+  }
+  .twr-hero-ad {
+    padding: 24px 24px 24px 0;
+    display: flex;
+    flex-direction: column;
+  }
+  @media (max-width: 1023px) {
+    .twr-hero-with-ad { grid-template-columns: 1fr; }
+    .twr-hero-ad { display: none; }
+  }
 
   /* FOUNDING 100 BANNER */
   .twr-founding-banner {
@@ -1391,25 +1407,30 @@ export default function WritersRoomHome() {
         {page === 'home' && (
           <>
             {/* HERO */}
-            <div className="twr-hero">
-              <div className="twr-hero-inner">
-                <span className="twr-hero-eyebrow">The Tiniest Library — For Writers</span>
-                <h1 className="twr-hero-title">
-  The<br />
-  <span style={{ paddingLeft: "2.5rem" }}>
-    <span style={{ color: "#a78bfa" }}>Writer</span><span style={{ color: "#C9A84C" }}>'</span><span style={{ color: "#a78bfa" }}>s</span>
-  </span><br />
-  <span style={{ paddingLeft: "5rem" }}>Room</span>
-</h1>
-                <p className="twr-hero-sub">
-                  A home for independent writers. Publish your stories, earn through Ink,
-                  keep your copyright, and build the readership your work deserves.
-                </p>
-                <div className="twr-hero-actions">
-                  <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
-                  <a href="#how" className="twr-btn-ghost">How it works</a>
-                  <a href={TTL_READING_ROOM_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-ghost">Visit the Reading Room</a>
+            <div className="twr-hero-with-ad">
+              <div className="twr-hero">
+                <div className="twr-hero-inner">
+                  <span className="twr-hero-eyebrow">The Tiniest Library — For Writers</span>
+                  <h1 className="twr-hero-title">
+                    The<br />
+                    <span style={{ paddingLeft: "2.5rem" }}>
+                      <span style={{ color: "#a78bfa" }}>Writer</span><span style={{ color: "#C9A84C" }}>'</span><span style={{ color: "#a78bfa" }}>s</span>
+                    </span><br />
+                    <span style={{ paddingLeft: "5rem" }}>Room</span>
+                  </h1>
+                  <p className="twr-hero-sub">
+                    A home for independent writers. Publish your stories, earn through Ink,
+                    keep your copyright, and build the readership your work deserves.
+                  </p>
+                  <div className="twr-hero-actions">
+                    <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
+                    <a href="#how" className="twr-btn-ghost">How it works</a>
+                    <a href={TTL_READING_ROOM_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-ghost">Visit the Reading Room</a>
+                  </div>
                 </div>
+              </div>
+              <div className="twr-hero-ad">
+                <WritersRoomAdPanel />
               </div>
             </div>
 
