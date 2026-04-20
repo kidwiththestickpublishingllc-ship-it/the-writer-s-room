@@ -224,7 +224,43 @@ export async function POST(req: NextRequest) {
         });
         break;
       }
-
+// ── 5. Writer Reminder ──
+case "writer-reminder": {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: "Your TTL writer dashboard is waiting for you 🕯️",
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Georgia',serif;">
+        <div style="max-width:600px;margin:0 auto;background:#0f0f0f;border:1px solid rgba(201,168,76,0.2);border-radius:8px;overflow:hidden;">
+          <div style="height:3px;background:linear-gradient(90deg,transparent,#C9A84C,transparent);"></div>
+          <div style="padding:48px 40px;">
+            <p style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 16px;">The Tiniest Library</p>
+            <h1 style="font-family:'Georgia',serif;font-size:32px;font-weight:400;color:#f0ece2;margin:0 0 24px;">Your shelf is still empty, ${name}.</h1>
+            <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 20px;">
+              You were approved to write for The Tiniest Library but your profile hasn't been set up yet. Readers are waiting — it only takes a few minutes to go live.
+            </p>
+            <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:24px;margin-bottom:32px;">
+              <p style="font-size:13px;color:rgba(240,236,226,0.6);line-height:1.8;margin:0;">
+                1. Log into your dashboard<br>
+                2. Add your photo, bio and genres<br>
+                3. Submit your first story<br>
+                4. Start earning Ink
+              </p>
+            </div>
+            <a href="${DASHBOARD_URL}" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;">
+              Complete Your Profile →
+            </a>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  });
+  break;
+}
       default:
         return NextResponse.json({ error: "Unknown email type" }, { status: 400 });      
     }

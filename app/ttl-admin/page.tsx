@@ -242,6 +242,7 @@ type Writer = {
   id: string;
   created_at: string;
   name: string;
+  email: string | null;
   slug: string | null;
   bio: string | null;
   tagline: string | null;
@@ -523,7 +524,7 @@ function ApplicationsTab() {
     await supabase.from("applications").update({ status }).eq("id", id);
     if (status === "approved") {
       await supabase.from("writers").upsert({
-        name, is_approved: true, is_founding_author: false,
+        name, email, is_approved: true, is_founding_author: false,
         slug: name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
       }); // Phase 1 — You're approved
     await fetch("/api/email", {
@@ -715,6 +716,7 @@ function StoriesTab() {
 function WritersTab() {
   const [items, setItems] = useState<Writer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reminding, setReminding] = useState<string | null>(null);
 
   useEffect(() => { load(); }, []);
 
@@ -724,7 +726,8 @@ function WritersTab() {
     setItems(data ?? []);
     setLoading(false);
   }
-async function resendOnboarding(name: string) {
+
+  async function resendOnboarding(name: string) {
     const email = prompt(`Send onboarding email to what address for ${name}?`);
     if (!email) return;
     await fetch("/api/email", {
@@ -739,6 +742,26 @@ async function resendOnboarding(name: string) {
     });
     alert(`Onboarding email sent to ${email}!`);
   }
+
+  async function sendReminder(writer: Writer) {
+    if (!writer.email) {
+      alert("No email on file for this writer.");
+      return;
+    }
+    setReminding(writer.id);
+    await fetch("/api/email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "writer-reminder",
+        to: writer.email,
+        name: writer.name,
+      }),
+    });
+    setReminding(null);
+    alert(`Reminder sent to ${writer.name}!`);
+  }
+
   async function toggleApproved(id: string, current: boolean) {
     await supabase.from("writers").update({ is_approved: !current }).eq("id", id);
     load();
@@ -747,6 +770,14 @@ async function resendOnboarding(name: string) {
   async function toggleFounding(id: string, current: boolean) {
     await supabase.from("writers").update({ is_founding_author: !current }).eq("id", id);
     load();
+  }
+
+  function profileStatus(w: Writer) {
+    const fields = [w.bio, w.photo_url, w.genres?.length];
+    const filled = fields.filter(Boolean).length;
+    if (filled === 3) return { label: "Complete", cls: "adm-status-approved" };
+    if (filled > 0) return { label: "Partial", cls: "adm-status-pending" };
+    return { label: "Empty", cls: "adm-status-rejected" };
   }
 
   return (
@@ -759,34 +790,51 @@ async function resendOnboarding(name: string) {
         <div className="adm-empty"><div className="adm-empty-title">No writers yet.</div></div>
       ) : (
         <table>
-          <thead><tr><th>Writer</th><th>Slug</th><th>Genres</th><th>Approved</th><th>Founding</th><th>Actions</th></tr></thead>
+          <thead><tr>
+            <th>Writer</th>
+            <th>Email</th>
+            <th>Profile</th>
+            <th>Approved</th>
+            <th>Founding</th>
+            <th>Actions</th>
+          </tr></thead>
           <tbody>
-            {items.map(w => (
-              <tr key={w.id}>
-                <td><div className="adm-cell-name">{w.name}</div></td>
-                <td><span style={{ fontSize: 11, color: "var(--text-faint)", fontFamily: "monospace" }}>{w.slug ?? "—"}</span></td>
-                <td>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                    {(w.genres ?? []).slice(0, 2).map(g => <span key={g} className="adm-genre-tag">{g}</span>)}
-                  </div>
-                </td>
-                <td><span className={`adm-status ${w.is_approved ? "adm-status-approved" : "adm-status-pending"}`}>{w.is_approved ? "Yes" : "No"}</span></td>
-                <td><span className={`adm-status ${w.is_founding_author ? "adm-status-approved" : "adm-status-draft"}`}>{w.is_founding_author ? "Yes" : "No"}</span></td>
-                <td>
-                  <div className="adm-actions">
-                    <button className={`adm-btn ${w.is_approved ? "adm-btn-reject" : "adm-btn-approve"}`} onClick={() => toggleApproved(w.id, w.is_approved)}>
-                      {w.is_approved ? "Revoke" : "Approve"}
-                    </button>
-                    <button className="adm-btn adm-btn-founding" onClick={() => toggleFounding(w.id, w.is_founding_author)}>
-                      {w.is_founding_author ? "Remove Founding" : "Make Founding"}
-                    </button>
-                    <button className="adm-btn adm-btn-publish" onClick={() => resendOnboarding(w.name)}>
-  Send Onboarding
-</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {items.map(w => {
+              const ps = profileStatus(w);
+              return (
+                <tr key={w.id}>
+                  <td>
+                    <div className="adm-cell-name">{w.name}</div>
+                    <div className="adm-cell-sub">{w.slug ?? "—"}</div>
+                  </td>
+                  <td>
+                    <div className="adm-cell-sub">{w.email ?? "—"}</div>
+                  </td>
+                  <td>
+                    <span className={`adm-status ${ps.cls}`}>{ps.label}</span>
+                  </td>
+                  <td><span className={`adm-status ${w.is_approved ? "adm-status-approved" : "adm-status-pending"}`}>{w.is_approved ? "Yes" : "No"}</span></td>
+                  <td><span className={`adm-status ${w.is_founding_author ? "adm-status-approved" : "adm-status-draft"}`}>{w.is_founding_author ? "Yes" : "No"}</span></td>
+                  <td>
+                    <div className="adm-actions">
+                      <button className={`adm-btn ${w.is_approved ? "adm-btn-reject" : "adm-btn-approve"}`} onClick={() => toggleApproved(w.id, w.is_approved)}>
+                        {w.is_approved ? "Revoke" : "Approve"}
+                      </button>
+                      <button className="adm-btn adm-btn-founding" onClick={() => toggleFounding(w.id, w.is_founding_author)}>
+                        {w.is_founding_author ? "Remove Founding" : "Make Founding"}
+                      </button>
+                      <button className="adm-btn adm-btn-publish" onClick={() => resendOnboarding(w.name)}>
+                        Onboarding
+                      </button>
+                      <button className="adm-btn adm-btn-approve" disabled={reminding === w.id} onClick={() => sendReminder(w)}
+                        style={{ color: "var(--amber)", borderColor: "rgba(251,191,36,0.3)", background: "var(--amber-dim)" }}>
+                        {reminding === w.id ? "Sending…" : "Remind"}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}
