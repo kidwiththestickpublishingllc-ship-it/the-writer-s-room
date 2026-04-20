@@ -203,9 +203,30 @@ export async function POST(req: NextRequest) {
         });
         break;
       }
+// ── 4. Writer Onboarding Phase 2 ──
+      case "writer-onboarding-phase-2": {
+        const firstName = name.split(" ")[0];
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: FROM,
+            to,
+            subject: "Your writer dashboard is waiting — here's everything you need 🕯️",
+            template_id: "2abae03a-5233-404a-a506-4d73b3583382",
+            variables: {
+              writer_first_name: firstName,
+            },
+          }),
+        });
+        break;
+      }
 
       default:
-        return NextResponse.json({ error: "Unknown email type" }, { status: 400 });
+        return NextResponse.json({ error: "Unknown email type" }, { status: 400 });      
     }
 
     return NextResponse.json({ success: true });

@@ -525,12 +525,23 @@ function ApplicationsTab() {
       await supabase.from("writers").upsert({
         name, is_approved: true, is_founding_author: false,
         slug: name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
-      });
-      await fetch("/api/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "application-approved", to: email, name }),
-      });
+      }); // Phase 1 — You're approved
+    await fetch("/api/email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "application-approved", to: email, name }),
+    });
+    // Phase 2 — Welcome + rules + ink guide
+    await fetch("/api/email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "writer-onboarding-phase-2",
+        to: email,
+        name,
+        templateId: "2abae03a-5233-404a-a506-4d73b3583382",
+      }),
+    });
     } else if (status === "rejected") {
       await fetch("/api/email", {
         method: "POST",
