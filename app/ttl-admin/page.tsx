@@ -724,7 +724,21 @@ function WritersTab() {
     setItems(data ?? []);
     setLoading(false);
   }
-
+async function resendOnboarding(name: string) {
+    const email = prompt(`Send onboarding email to what address for ${name}?`);
+    if (!email) return;
+    await fetch("/api/email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "writer-onboarding-phase-2",
+        to: email,
+        name,
+        templateId: "2abae03a-5233-404a-a506-4d73b3583382",
+      }),
+    });
+    alert(`Onboarding email sent to ${email}!`);
+  }
   async function toggleApproved(id: string, current: boolean) {
     await supabase.from("writers").update({ is_approved: !current }).eq("id", id);
     load();
@@ -766,6 +780,9 @@ function WritersTab() {
                     <button className="adm-btn adm-btn-founding" onClick={() => toggleFounding(w.id, w.is_founding_author)}>
                       {w.is_founding_author ? "Remove Founding" : "Make Founding"}
                     </button>
+                    <button className="adm-btn adm-btn-publish" onClick={() => resendOnboarding(w.name)}>
+  Send Onboarding
+</button>
                   </div>
                 </td>
               </tr>
