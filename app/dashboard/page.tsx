@@ -378,7 +378,7 @@ const STYLES = `
 // =========================
 // Types
 // =========================
-type Tab = 'overview' | 'chapters' | 'earnings' | 'payout' | 'profile';
+type Tab = 'overview' | 'chapters' | 'earnings' | 'payout' | 'profile' | 'submit';
 
 type Story = {
   id: string;
@@ -454,11 +454,86 @@ export default function WriterDashboard() {
   const [editTwitter, setEditTwitter] = useState('');
   const [editInstagram, setEditInstagram] = useState('');
   const [editWebsite, setEditWebsite] = useState('');
-
+// Story submission state
+  const [storyTitle, setStoryTitle] = useState('');
+  const [storyRoom, setStoryRoom] = useState<'reading-room' | 'red-room'>('reading-room');
+  const [storyGenre, setStoryGenre] = useState('');
+  const [storyDescription, setStoryDescription] = useState('');
+  const [storyCover, setStoryCover] = useState('');
+  const [storyFormat, setStoryFormat] = useState<'serial' | 'standalone'>('serial');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type });
   };
+const READING_ROOM_GENRES = [
+    'Literary Fiction', 'Dark Academia', 'Mystery', 'Thriller', 'Horror',
+    'Sci-Fi', 'Fantasy', 'Romance', 'Historical Fiction', 'Crime',
+    'Adventure', 'Drama', 'Supernatural', 'Slice of Life', 'Comedy',
+    'Psychological', 'Political', 'War', 'Western', 'Biography/Memoir',
+    'Short Stories', 'Poetry', 'Novella', 'Experimental'
+  ];
 
+  const RED_ROOM_GENRES = [
+    'Dark Romance', 'Erotica', 'BDSM', 'Paranormal Romance', 'Taboo',
+    'Age Gap', 'Forbidden', 'Reverse Harem', 'Monster Romance', 'Vampire',
+    'Werewolf', 'Mafia Romance', 'Stepdad/Stepmom', 'Office Romance',
+    'Friends to Lovers', 'Enemies to Lovers', 'Slow Burn', 'Second Chance',
+    'Serialized Adult', 'Fan Fiction', 'Explicit Horror', 'Fetish',
+    'Lesbian', 'Gay', 'Bisexual', 'Trans', 'Polyamory', 'Cuckold',
+    'Exhibitionism', 'Voyeurism'
+  ];
+
+  const submitStory = async () => {
+    if (!storyTitle || !storyGenre || !storyDescription) {
+      showToast('Please fill in all required fields.', 'error');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const slug = storyTitle.toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+
+      const { error } = await supabase.from('stories').insert({
+        title: storyTitle,
+        slug: `${slug}-${Date.now()}`,
+        author_name: writer?.name,
+        author_id: writer?.id,
+        description: storyDescription,
+        cover_url: storyCover || null,
+        badge: storyFormat === 'serial' ? 'Serial' : null,
+        is_published: false,
+        room: storyRoom,
+        genre: storyGenre,
+      });
+
+      if (error) throw error;
+
+      // Notify admin
+      await fetch('/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'story-submitted',
+          to: 'kidwiththestickpublishingllc@gmail.com',
+          name: writer?.name,
+          data: { title: storyTitle, genre: storyGenre, room: storyRoom }
+        }),
+      });
+
+      setSubmitSuccess(true);
+      setStoryTitle('');
+      setStoryGenre('');
+      setStoryDescription('');
+      setStoryCover('');
+      showToast('Story submitted! We\'ll review it shortly.');
+    } catch {
+      showToast('Submission failed. Please try again.', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
   // Load all data
   useEffect(() => {
     async function load() {
@@ -694,9 +769,13 @@ export default function WriterDashboard() {
             </button>
 
             <div className="hq-nav-section">Account</div>
-            <button className={`hq-nav-item${tab === 'profile' ? ' active' : ''}`} onClick={() => setTab('profile')}>
-              <span className="hq-nav-icon">👤</span> My Profile
-            </button>
+<button className={`hq-nav-item${tab === 'profile' ? ' active' : ''}`} onClick={() => setTab('profile')}>
+  <span className="hq-nav-icon">👤</span> My Profile
+</button>
+<div className="hq-nav-section">Publish</div>
+<button className={`hq-nav-item${tab === 'submit' ? ' active' : ''}`} onClick={() => setTab('submit')}>
+  <span className="hq-nav-icon">📝</span> Submit Story
+</button>
           </aside>
 
           {/* Main content */}
@@ -1115,7 +1194,7 @@ export default function WriterDashboard() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                 <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
                     <button className="btn-primary" disabled={saving} onClick={saveProfile}>
                       {saving ? 'Saving…' : 'Save Profile ✓'}
                     </button>
@@ -1124,7 +1203,164 @@ export default function WriterDashboard() {
               </div>
             )}
 
-          </main>
+            {/* ── SUBMIT STORY ── */}
+            {tab === 'submit' && (
+              <div className="fade-up">
+                <div className="hq-page-header">
+                  <span className="hq-page-eyebrow">Publish</span>
+
+                {submitSuccess ? (
+                  <div className="empty-state">
+                    <span className="empty-icon">✅</span>
+                    <div className="empty-title">Story submitted!</div>
+                    <p className="empty-sub">We'll review your submission and get back to you shortly. You'll receive an email once it's approved.</p>
+                    <button className="btn-ghost" style={{ marginTop: 24 }} onClick={() => setSubmitSuccess(false)}>
+                      Submit Another Story →
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ maxWidth: 680 }}>
+
+                    {/* Room selector */}
+                    <div className="editor-field">
+                      <label className="editor-label">Which Room? *</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <button
+                          onClick={() => { setStoryRoom('reading-room'); setStoryGenre(''); }}
+                          style={{
+                            padding: '16px', borderRadius: 10, cursor: 'pointer',
+                            border: storyRoom === 'reading-room' ? '1px solid var(--gold)' : '1px solid var(--border)',
+                            background: storyRoom === 'reading-room' ? 'var(--gold-glow)' : 'var(--ink2)',
+                            color: storyRoom === 'reading-room' ? 'var(--gold-light)' : 'var(--text-muted)',
+                            fontFamily: 'var(--font-ui)', fontSize: 13, transition: 'all 0.2s',
+                          }}
+                        >
+                          📚 The Reading Room
+                          <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>General fiction — all genres</div>
+                        </button>
+                        <button
+                          onClick={() => { setStoryRoom('red-room'); setStoryGenre(''); }}
+                          style={{
+                            padding: '16px', borderRadius: 10, cursor: 'pointer',
+                            border: storyRoom === 'red-room' ? '1px solid #e05555' : '1px solid var(--border)',
+                            background: storyRoom === 'red-room' ? 'rgba(200,68,68,0.08)' : 'var(--ink2)',
+                            color: storyRoom === 'red-room' ? '#e05555' : 'var(--text-muted)',
+                            fontFamily: 'var(--font-ui)', fontSize: 13, transition: 'all 0.2s',
+                          }}
+                        >
+                          🔴 The Red Room
+                          <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>18+ adult fiction only</div>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Title */}
+                    <div className="editor-field">
+                      <label className="editor-label">Story Title *</label>
+                      <input
+                        className="editor-input"
+                        placeholder="Enter your story title…"
+                        value={storyTitle}
+                        onChange={e => setStoryTitle(e.target.value)}
+                      />
+                    </div>
+
+                    {/* Genre */}
+                    <div className="editor-field">
+                      <label className="editor-label">Genre *</label>
+                      <select
+                        className="editor-input"
+                        value={storyGenre}
+                        onChange={e => setStoryGenre(e.target.value)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <option value="">Select a genre…</option>
+                        {(storyRoom === 'reading-room' ? READING_ROOM_GENRES : RED_ROOM_GENRES).map(g => (
+                          <option key={g} value={g}>{g}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Format */}
+                    <div className="editor-field">
+                      <label className="editor-label">Format</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        {(['serial', 'standalone'] as const).map(f => (
+                          <button
+                            key={f}
+                            onClick={() => setStoryFormat(f)}
+                            style={{
+                              padding: '12px', borderRadius: 8, cursor: 'pointer',
+                              border: storyFormat === f ? '1px solid var(--gold)' : '1px solid var(--border)',
+                              background: storyFormat === f ? 'var(--gold-glow)' : 'var(--ink2)',
+                              color: storyFormat === f ? 'var(--gold-light)' : 'var(--text-muted)',
+                              fontFamily: 'var(--font-ui)', fontSize: 12, transition: 'all 0.2s',
+                              textTransform: 'capitalize',
+                            }}
+                          >
+                            {f === 'serial' ? '📖 Serial' : '📄 Standalone'}
+                            <div style={{ fontSize: 10, opacity: 0.6, marginTop: 4 }}>
+                              {f === 'serial' ? 'Multiple chapters, ongoing' : 'Single complete story'}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <div className="editor-field">
+                      <label className="editor-label">Description / Blurb *</label>
+                      <textarea
+                        className="editor-textarea"
+                        style={{ minHeight: 140 }}
+                        placeholder="Write a compelling blurb that makes readers want to unlock your story…"
+                        value={storyDescription}
+                        onChange={e => setStoryDescription(e.target.value)}
+                      />
+                      <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 6 }}>
+                        {storyDescription.length}/500 characters
+                      </div>
+                    </div>
+
+                    {/* Cover URL */}
+                    <div className="editor-field">
+                      <label className="editor-label">Cover Image URL <span style={{ color: 'var(--text-dim)', fontSize: 10 }}>(optional)</span></label>
+                      <input
+                        className="editor-input"
+                        placeholder="https://your-cover-image.jpg"
+                        value={storyCover}
+                        onChange={e => setStoryCover(e.target.value)}
+                      />
+                      {storyCover && (
+                        <img
+                          src={storyCover}
+                          alt="Cover preview"
+                          style={{ marginTop: 12, width: 120, height: 160, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--border)' }}
+                          onError={e => (e.currentTarget.style.display = 'none')}
+                        />
+                      )}
+                    </div>
+
+                    <div className="hq-divider" />
+
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <button
+                        className="btn-primary"
+                        disabled={submitting || !storyTitle || !storyGenre || !storyDescription}
+                        onClick={submitStory}
+                      >
+                        {submitting ? 'Submitting…' : 'Submit Story for Review →'}
+                      </button>
+                      <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>
+                        We review all submissions within 5–7 business days.
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+             </div>
+            )}
+</main>
         </div>
       </div>
     </>

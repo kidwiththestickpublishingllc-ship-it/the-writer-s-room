@@ -261,6 +261,37 @@ case "writer-reminder": {
   });
   break;
 }
+// ── 6. Story Submitted ──
+      case "story-submitted": {
+        await resend.emails.send({
+          from: FROM,
+          to,
+          subject: `New story submission: ${data?.title} — The Tiniest Library`,
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Georgia',serif;">
+              <div style="max-width:600px;margin:0 auto;background:#0f0f0f;border:1px solid rgba(201,168,76,0.2);border-radius:8px;overflow:hidden;">
+                <div style="height:3px;background:linear-gradient(90deg,transparent,#C9A84C,transparent);"></div>
+                <div style="padding:40px;">
+                  <h2 style="font-family:'Georgia',serif;font-size:24px;font-weight:400;color:#f0ece2;margin:0 0 20px;">New Story Submission</h2>
+                  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:20px;margin-bottom:24px;">
+                    <p style="font-size:13px;color:rgba(240,236,226,0.6);margin:0 0 8px;"><strong style="color:#f0ece2;">Writer:</strong> ${name}</p>
+                    <p style="font-size:13px;color:rgba(240,236,226,0.6);margin:0 0 8px;"><strong style="color:#f0ece2;">Title:</strong> ${data?.title}</p>
+                    <p style="font-size:13px;color:rgba(240,236,226,0.6);margin:0 0 8px;"><strong style="color:#f0ece2;">Room:</strong> ${data?.room}</p>
+                    <p style="font-size:13px;color:rgba(240,236,226,0.6);margin:0;"><strong style="color:#f0ece2;">Genre:</strong> ${data?.genre}</p>
+                  </div>
+                  <a href="https://write.the-tiniest-library.com/ttl-admin" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;padding:12px 24px;border-radius:6px;text-decoration:none;">
+                    Review in Admin →
+                  </a>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+        });
+        break;
+      }
       default:
         return NextResponse.json({ error: "Unknown email type" }, { status: 400 });      
     }
