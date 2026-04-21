@@ -51,7 +51,15 @@ export default function WritersRoomAdPanel() {
 
   useEffect(() => {
     const t = setInterval(() => setIdx(i => (i + 1) % ADS.length), 5000)
-    return () => clearInterval(t)
+    const script = document.createElement('script');
+    script.src = 'https://a.magsrv.com/ad-provider.js';
+    script.async = true;
+    script.type = 'application/javascript';
+    document.head.appendChild(script);
+    return () => {
+      clearInterval(t);
+      document.head.removeChild(script);
+    }
   }, [])
 
   const ad = ADS[idx]
@@ -161,6 +169,13 @@ export default function WritersRoomAdPanel() {
           alignSelf: 'flex-start',
           transition: 'all 0.3s ease',
         }}>{ad.cta}</a>
+{/* ExoClick Ad */}
+      <div style={{ textAlign: 'center', margin: '8px 0' }}>
+        <ins className="eas6a97888e2" data-zoneid="5907002"></ins>
+        <script dangerouslySetInnerHTML={{
+          __html: `(AdProvider = window.AdProvider || []).push({"serve": {}});`
+        }} />
+      </div>
 
       {/* Dot indicators */}
       <div style={{ display: 'flex', gap: 5 }}>
