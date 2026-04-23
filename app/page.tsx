@@ -8,7 +8,7 @@ import WritersRoomAdPanel from './components/WritersRoomAdPanel'
 // =========================
 const TTL_SUBMIT_URL = "https://write.the-tiniest-library.com/apply";
 const TTL_MAIN_URL = "https://www.the-tiniest-library.com";
-const TTL_READING_ROOM_URL = "https://the-reading-room-three.write.the-tiniest-library.com/reading-room";
+const TTL_READING_ROOM_URL = "https://read.the-tiniest-library.com";
 
 // =========================
 // Styles
@@ -195,7 +195,70 @@ box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
 
   .twr-btn-quill:hover { opacity: 0.88; }
 
-  .twr-nav-spacer { height: 74px; }
+  .twr-nav-spacer { height: 94px; }
+
+  @media (max-width: 768px) {
+    .twr-nav-inner { padding: 0 16px; }
+    .twr-nav-bottom { display: none; }
+    .twr-nav-right { gap: 6px; }
+    .twr-nav-badge { font-size: 8px; padding: 3px 8px; }
+    .twr-nav-brand-main { font-size: 14px; }
+    .twr-nav-brand-sub { display: none; }
+    .twr-nav-spacer { height: 64px; }
+    .twr-bottom-nav { display: flex !important; }
+  }
+  .twr-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(8, 6, 14, 0.97);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(201, 168, 76, 0.2);
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    height: calc(60px + env(safe-area-inset-bottom));
+  }
+  .twr-bottom-nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 0 8px;
+  }
+  .twr-bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+  }
+  .twr-bottom-nav-item:hover { background: rgba(201, 168, 76, 0.08); }
+  .twr-bottom-nav-icon { font-size: 20px; line-height: 1; }
+  .twr-bottom-nav-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(240, 236, 226, 0.5);
+    transition: color 0.2s;
+  }
+  .twr-bottom-nav-item:hover .twr-bottom-nav-label { color: #C9A84C; }
+  .twr-bottom-nav-spacer {
+    display: none;
+    height: calc(60px + env(safe-area-inset-bottom));
+  }
+  @media (max-width: 768px) {
+    .twr-bottom-nav-spacer { display: block; }
+  }
 
   /* HERO */
   .twr-hero {
@@ -1397,6 +1460,33 @@ export default function WritersRoomHome() {
         </nav>
 
         <div className="twr-nav-spacer" />
+
+        {/* ── Mobile Bottom Nav ── */}
+        <nav className="twr-bottom-nav">
+          <div className="twr-bottom-nav-inner">
+            <button className="twr-bottom-nav-item" onClick={goHome}>
+              <span className="twr-bottom-nav-icon">🏠</span>
+              <span className="twr-bottom-nav-label">Home</span>
+            </button>
+            <button className="twr-bottom-nav-item" onClick={() => goPage('guidelines')}>
+              <span className="twr-bottom-nav-icon">📋</span>
+              <span className="twr-bottom-nav-label">Rules</span>
+            </button>
+            <button className="twr-bottom-nav-item" onClick={() => goPage('faqs')}>
+              <span className="twr-bottom-nav-icon">❓</span>
+              <span className="twr-bottom-nav-label">FAQs</span>
+            </button>
+            <button className="twr-bottom-nav-item" onClick={() => goPage('contact')}>
+              <span className="twr-bottom-nav-icon">✉️</span>
+              <span className="twr-bottom-nav-label">Contact</span>
+            </button>
+            <a href="https://write.the-tiniest-library.com/apply" className="twr-bottom-nav-item">
+              <span className="twr-bottom-nav-icon">🪶</span>
+              <span className="twr-bottom-nav-label">Apply</span>
+            </a>
+          </div>
+        </nav>
+        <div className="twr-bottom-nav-spacer" />
 
         {/* PAGE ROUTING */}
         {page === 'guidelines' && <PageSubmissionGuidelines onBack={goHome} />}
