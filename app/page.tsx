@@ -201,7 +201,7 @@ box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
     .twr-nav-inner { padding: 0 16px; }
     .twr-nav-bottom { display: none; }
     .twr-nav-right { gap: 6px; }
-    .twr-nav-badge { font-size: 8px; padding: 3px 8px; }
+    .twr-nav-badge { display: none; }
     .twr-nav-brand-main { font-size: 14px; }
     .twr-nav-brand-sub { display: none; }
     .twr-nav-spacer { height: 64px; }
@@ -958,6 +958,17 @@ box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
     .twr-rules-grid { grid-template-columns: 1fr; }
     .twr-subpage { padding: 48px 24px 72px; }
     .twr-contact-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 768px) {
+    .twr-nav-inner { padding: 0 16px; height: 60px; }
+    .twr-nav-badge { display: none; }
+    .twr-nav-right { gap: 6px; }
+    .twr-nav-brand-main { font-size: 14px; }
+    .twr-nav-brand-sub { display: none; }
+    .twr-nav-logo-badge { width: 28px; height: 28px; font-size: 9px; }
+    .twr-btn-primary { padding: 7px 14px; font-size: 9px; }
+    .twr-nav-spacer { height: 60px; }
   }
 
   @media (max-width: 480px) {
