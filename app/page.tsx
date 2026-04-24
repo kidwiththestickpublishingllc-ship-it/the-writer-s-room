@@ -206,6 +206,7 @@ box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
     .twr-nav-brand-sub { display: none; }
     .twr-nav-spacer { height: 64px; }
     .twr-bottom-nav { display: flex !important; }
+    .twr-hamburger { display: flex !important; }
   }
   .twr-bottom-nav {
     display: none;
@@ -961,14 +962,98 @@ box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
   }
 
   @media (max-width: 768px) {
-    .twr-nav-inner { padding: 0 16px; height: 60px; }
+    .twr-nav-top { padding: 0 16px; height: 60px; }
+    .twr-nav-bottom { display: none; }
     .twr-nav-badge { display: none; }
-    .twr-nav-right { gap: 6px; }
+    .twr-nav-tour { display: none; }
+    .twr-nav-right { gap: 8px; }
     .twr-nav-brand-main { font-size: 14px; }
     .twr-nav-brand-sub { display: none; }
     .twr-nav-logo-badge { width: 28px; height: 28px; font-size: 9px; }
-    .twr-btn-primary { padding: 7px 14px; font-size: 9px; }
     .twr-nav-spacer { height: 60px; }
+    .twr-hamburger { display: flex !important; }
+    .twr-mobile-menu.open { display: flex !important; }
+  }
+
+  /* Hamburger button */
+  .twr-hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 36px; height: 36px;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .twr-hamburger-line {
+    width: 18px; height: 1.5px;
+    background: var(--text-main);
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  /* Mobile full screen menu */
+  .twr-mobile-menu {
+    display: none;
+    position: fixed;
+    top: 60px; left: 0; right: 0;
+    z-index: 39;
+    background: rgba(8, 6, 14, 0.98);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    flex-direction: column;
+    padding: 16px 24px 24px;
+    gap: 4px;
+    max-height: calc(100vh - 60px);
+    overflow-y: auto;
+  }
+
+  .twr-mobile-menu-item {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 14px 0;
+    text-align: left;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    transition: color 0.2s;
+  }
+
+  .twr-mobile-menu-item:hover,
+  .twr-mobile-menu-item.active {
+    color: var(--gold-light);
+  }
+
+  .twr-mobile-menu-apply {
+    margin-top: 16px;
+    display: block;
+    text-align: center;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--gold), #8a6510);
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    border-radius: 8px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
   }
 
   @media (max-width: 480px) {
@@ -1405,7 +1490,8 @@ function Footer({ onNavigate }: NavigateProps) {
 // =========================
 export default function WritersRoomHome() {
   const [spotsLeft] = useState(87);
-  const [page, setPage] = useState('home'); // 'home' | 'guidelines' | 'faqs' | 'copyright' | 'contact'
+  const [page, setPage] = useState('home');
+  const [menuOpen, setMenuOpen] = useState(false); // 'home' | 'guidelines' | 'faqs' | 'copyright' | 'contact'
 
   const goHome = () => { setPage('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const goPage = (p: string) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
@@ -1466,10 +1552,35 @@ export default function WritersRoomHome() {
               <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary" style={{ fontSize: '10px', padding: '8px 20px', borderRadius: '999px' }}>
                 Apply Now →
               </a>
+              <button
+                onClick={() => setMenuOpen(o => !o)}
+                style={{ display: 'none', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 5, width: 36, height: 36, background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, cursor: 'pointer', padding: 0, flexShrink: 0 }}
+                className="twr-hamburger"
+                aria-label="Menu"
+              >
+                <span style={{ width: 18, height: 1.5, background: '#f0ece2', borderRadius: 2, display: 'block', transform: menuOpen ? 'rotate(45deg) translate(4px, 4px)' : 'none', transition: 'all 0.2s' }} />
+                <span style={{ width: 18, height: 1.5, background: '#f0ece2', borderRadius: 2, display: 'block', opacity: menuOpen ? 0 : 1, transition: 'all 0.2s' }} />
+                <span style={{ width: 18, height: 1.5, background: '#f0ece2', borderRadius: 2, display: 'block', transform: menuOpen ? 'rotate(-45deg) translate(4px, -4px)' : 'none', transition: 'all 0.2s' }} />
+              </button>
             </div>
           </div>
         </nav>
 
+        {/* Mobile dropdown menu */}
+        {menuOpen && (
+          <div style={{ position: 'fixed', top: 64, left: 0, right: 0, zIndex: 39, background: 'rgba(8,6,14,0.98)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(201,168,76,0.2)', padding: '16px 24px 24px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <button onClick={() => { goHome(); setMenuOpen(false); }} style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,228,218,0.6)', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '14px 0', textAlign: 'left', cursor: 'pointer', width: '100%' }}>🏠 Home</button>
+            <button onClick={() => { const el = document.getElementById('why'); el?.scrollIntoView({ behavior: 'smooth' }); setMenuOpen(false); }} style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,228,218,0.6)', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '14px 0', textAlign: 'left', cursor: 'pointer', width: '100%' }}>✨ Why TTL</button>
+            <button onClick={() => { const el = document.getElementById('how'); el?.scrollIntoView({ behavior: 'smooth' }); setMenuOpen(false); }} style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,228,218,0.6)', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '14px 0', textAlign: 'left', cursor: 'pointer', width: '100%' }}>⚙️ How It Works</button>
+            <button onClick={() => { const el = document.getElementById('ink'); el?.scrollIntoView({ behavior: 'smooth' }); setMenuOpen(false); }} style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,228,218,0.6)', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '14px 0', textAlign: 'left', cursor: 'pointer', width: '100%' }}>✒️ Ink Revenue</button>
+            {NAV_PAGES.map(p => (
+              <button key={p.key} onClick={() => { goPage(p.key); setMenuOpen(false); }} style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,228,218,0.6)', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '14px 0', textAlign: 'left', cursor: 'pointer', width: '100%' }}>{p.label}</button>
+            ))}
+            <button onClick={() => { window.dispatchEvent(new CustomEvent("twr-start-tour")); setMenuOpen(false); }} style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,228,218,0.6)', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '14px 0', textAlign: 'left', cursor: 'pointer', width: '100%' }}>🪶 Take the Tour</button>
+            <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)} style={{ marginTop: 16, display: 'block', textAlign: 'center', padding: 14, background: 'linear-gradient(135deg,#C9A84C,#8a6510)', color: '#000', fontFamily: "'Syne',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', borderRadius: 8, textDecoration: 'none' }}>Apply Now →</a>
+          </div>
+        )}
+         
         <div className="twr-nav-spacer" />
 
         {/* ── Mobile Bottom Nav ── */}
