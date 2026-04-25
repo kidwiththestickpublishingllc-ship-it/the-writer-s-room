@@ -84,12 +84,14 @@ export default function WriterProfileForm({ userId }) {
 
       const cleanWorks = form.published_works.filter(w => w.title.trim())
 
+      const slug = form.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       const { error: dbError } = await supabase
         .from('writers')
         .upsert(
           {
             user_id: userId,
             name: form.name,
+            slug,
             bio: form.bio,
             greeting: form.greeting,
             twitter_url: form.twitter_url || null,
