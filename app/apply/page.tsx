@@ -457,7 +457,7 @@ export default function ApplyPage() {
   };
 
   const canProceed = {
-    1: form.full_name.trim().length >= 2 && form.email.trim().includes("@") && form.bio.trim().length >= 20,
+    1: form.full_name.trim().length >= 2 && form.email.trim().includes("@") && form.password.trim().length >= 6 && form.bio.trim().length >= 20,
     2: form.genres.length >= 1 && form.why_ttl.trim().length >= 30,
     3: form.writing_sample.trim().length >= 100,
     4: true,
@@ -633,7 +633,11 @@ export default function ApplyPage() {
                     <input className="ap-input" type="email" placeholder="your@email.com" value={form.email} onChange={e => update("email", e.target.value)} />
                     <p className="ap-field-hint">We'll send your application decision here. Double-check it's correct.</p>
                   </div>
-
+                  <div className="ap-field">
+                    <label className="ap-field-label">Create a Password <span className="req">*</span></label>
+                    <input className="ap-input" type="password" placeholder="Minimum 6 characters" value={form.password} onChange={e => update("password", e.target.value)} />
+                    <p className="ap-field-hint">You'll use this to log into your Writer Dashboard once approved.</p>
+                  </div>
                   <div className="ap-field">
                     <label className="ap-field-label">About Yourself <span className="req">*</span></label>
                     <textarea className="ap-textarea" placeholder="Tell us about yourself — your background, your life, what brought you to writing…" value={form.bio} onChange={e => update("bio", e.target.value)} rows={5} />
