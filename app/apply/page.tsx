@@ -27,6 +27,7 @@ type FormData = {
   full_name: string;
   pen_name: string;
   email: string;
+  password: string;
   bio: string;
   why_ttl: string;
   genres: string[];
@@ -37,7 +38,7 @@ type FormData = {
 };
 
 const EMPTY_FORM: FormData = {
-  full_name: "", pen_name: "", email: "", bio: "",
+  full_name: "", pen_name: "", email: "", password: "", bio: "",
   why_ttl: "", genres: [], writing_sample: "",
   twitter_url: "", instagram_url: "", website_url: "",
 };
@@ -466,6 +467,12 @@ export default function ApplyPage() {
     setSubmitting(true);
     setError("");
     try {
+      const { error: authError } = await supabase.auth.signUp({
+        email: form.email.trim(),
+        password: form.password.trim(),
+        options: { data: { full_name: form.full_name.trim() } }
+      });
+      if (authError && authError.message !== "User already registered") throw new Error(authError.message);
       const { error: dbError } = await supabase
         .from("applications")
         .insert({
