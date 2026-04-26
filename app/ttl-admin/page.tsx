@@ -526,7 +526,10 @@ function ApplicationsTab() {
       await supabase.from("writers").upsert({
         name, email, is_approved: true, is_founding_author: false,
         slug: name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
-      }); // Phase 1 — You're approved
+        tagline: "A writer at The Tiniest Library.",
+        bio: "This author is setting up their profile. Check back soon.",
+        genres: [],
+      }, { onConflict: "email" }); // Bridge profile — author fills in the rest
     await fetch("/api/email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
