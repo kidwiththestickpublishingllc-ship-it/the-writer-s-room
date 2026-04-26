@@ -523,6 +523,12 @@ function ApplicationsTab() {
     async function updateStatus(id: string, status: string, email: string, name: string) {
     await supabase.from("applications").update({ status }).eq("id", id);
     if (status === "approved") {
+      // Create Supabase auth account via invite
+      await fetch("/api/invite-writer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, name }),
+      });
       await supabase.from("writers").upsert({
         name, email, is_approved: true, is_founding_author: false,
         slug: name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
