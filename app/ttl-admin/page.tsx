@@ -220,7 +220,7 @@ function AdsTab() {
 // Protected by Supabase auth
 // =========================
 
-type Tab = "applications" | "stories" | "writers" | "agreements" | "ink";
+type Tab = "applications" | "stories" | "writers" | "agreements" | "ink" | "media";
 
 type Application = {
   id: string;
@@ -261,9 +261,13 @@ type Story = {
   title: string;
   slug: string;
   author_name: string;
+  author_email?: string;
   description: string | null;
   badge: string | null;
   is_published: boolean;
+  status?: string;
+  genre?: string;
+  room?: string;
 };
 
 type Agreement = {
@@ -654,29 +658,47 @@ function ApplicationsTab() {
 function StoriesTab() {
   const [items, setItems] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "published" | "draft">("draft");
-
+  const [filter, setFilter] = useState<"all" | "pending" | "published" | "draft">("pending");
+  const [rejectId, setRejectId] = useState<string | null>(null);
+  const [rejectNote, setRejectNote] = useState("");
   useEffect(() => { load(); }, []);
-
   async function load() {
     setLoading(true);
     const { data } = await supabase.from("stories").select("*").order("created_at", { ascending: false });
     setItems(data ?? []);
     setLoading(false);
   }
-
+  async function approveStory(id: string, authorEmail: string, title: string) {
+    await supabase.from("stories").update({ is_published: true }).eq("id", id);
+    await fetch("/api/email", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "story-approved", to: authorEmail, data: { title } }),
+    });
+    load();
+  }
+  async function rejectStory(id: string, authorEmail: string, title: string) {
+    await supabase.from("stories").update({ is_published: false, status: "rejected" }).eq("id", id);
+    await fetch("/api/email", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "story-rejected", to: authorEmail, data: { title, note: rejectNote } }),
+    });
+    setRejectId(null); setRejectNote(""); load();
+  }
   async function togglePublish(id: string, current: boolean) {
     await supabase.from("stories").update({ is_published: !current }).eq("id", id);
     load();
   }
-
-  const filtered = items.filter(i => filter === "all" ? true : filter === "published" ? i.is_published : !i.is_published);
-  const draftCount = items.filter(i => !i.is_published).length;
-
+  const filtered = items.filter(i =>
+    filter === "all" ? true :
+    filter === "published" ? i.is_published :
+    filter === "pending" ? !i.is_published && i.status !== "rejected" :
+    !i.is_published
+  );
+  const pendingCount = items.filter(i => !i.is_published && i.status !== "rejected").length;
   return (
     <div>
       <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-        {(["draft", "published", "all"] as const).map(f => (
+        {(["pending", "published", "all"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)} style={{
             fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase",
             padding: "6px 14px", borderRadius: 999, cursor: "pointer", transition: "all 0.2s",
@@ -684,7 +706,7 @@ function StoriesTab() {
             border: filter === f ? "1px solid var(--gold-dim)" : "1px solid var(--ink-border)",
             color: filter === f ? "var(--gold-light)" : "var(--text-faint)",
           }}>
-            {f}{f === "draft" && draftCount > 0 ? ` (${draftCount})` : ""}
+            {f}{f === "pending" && pendingCount > 0 ? ` (${pendingCount})` : ""}
           </button>
         ))}
       </div>
@@ -697,25 +719,110 @@ function StoriesTab() {
           <div className="adm-empty"><div className="adm-empty-title">No stories yet.</div></div>
         ) : (
           <table>
-            <thead><tr><th>Title</th><th>Author</th><th>Badge</th><th>Added</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Title</th><th>Author</th><th>Genre</th><th>Room</th><th>Added</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
               {filtered.map(s => (
                 <tr key={s.id}>
                   <td><div className="adm-cell-name">{s.title}</div><div className="adm-cell-sub">{s.slug}</div></td>
                   <td>{s.author_name}</td>
-                  <td><span style={{ fontSize: 10, color: "var(--text-faint)" }}>{s.badge ?? "—"}</span></td>
+                  <td><span style={{ fontSize: 10, color: "var(--text-faint)" }}>{s.genre ?? "—"}</span></td>
+                  <td><span style={{ fontSize: 10, color: s.room === "red-room" ? "#c84444" : "var(--blue-bright)" }}>{s.room ?? "reading-room"}</span></td>
                   <td>{new Date(s.created_at).toLocaleDateString()}</td>
-                  <td><span className={`adm-status ${s.is_published ? "adm-status-published" : "adm-status-draft"}`}>{s.is_published ? "Published" : "Draft"}</span></td>
-                  <td>
-                    <button className={`adm-btn ${s.is_published ? "adm-btn-reject" : "adm-btn-publish"}`} onClick={() => togglePublish(s.id, s.is_published)}>
-                      {s.is_published ? "Unpublish" : "Publish"}
-                    </button>
+                  <td><span className={`adm-status ${s.is_published ? "adm-status-approved" : "adm-status-pending"}`}>{s.is_published ? "Published" : "Pending"}</span></td>
+                  <td style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {!s.is_published && (
+                      <button className="adm-btn adm-btn-approve" onClick={() => approveStory(s.id, s.author_email ?? "", s.title)}>Publish</button>
+                    )}
+                    {s.is_published && (
+                      <button className="adm-btn adm-btn-reject" onClick={() => togglePublish(s.id, true)}>Unpublish</button>
+                    )}
+                    {!s.is_published && rejectId !== s.id && (
+                      <button className="adm-btn adm-btn-reject" onClick={() => setRejectId(s.id)}>Reject</button>
+                    )}
+                    {rejectId === s.id && (
+                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                        <input value={rejectNote} onChange={e => setRejectNote(e.target.value)} placeholder="Reason (optional)" style={{ fontSize: 11, padding: "4px 8px", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 4, color: "var(--text-main)", width: 160 }} />
+                        <button className="adm-btn adm-btn-reject" onClick={() => rejectStory(s.id, s.author_email ?? "", s.title)}>Confirm</button>
+                        <button className="adm-btn" onClick={() => setRejectId(null)}>Cancel</button>
+                      </div>
+                    )}
+                    <a href={`/reading-room/stories/${s.slug}`} target="_blank" rel="noopener noreferrer" className="adm-btn">Preview →</a>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── Media Review Tab ──────────────────────────────────────────
+function MediaReviewTab() {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"pending" | "approved" | "all">("pending");
+  useEffect(() => { load(); }, []);
+  async function load() {
+    setLoading(true);
+    const { data } = await supabase
+      .from("story_media")
+      .select("*, writers(name, email)")
+      .order("created_at", { ascending: false });
+    setItems(data ?? []);
+    setLoading(false);
+  }
+  async function approveMedia(id: string) {
+    await supabase.from("story_media").update({ is_approved: true }).eq("id", id);
+    load();
+  }
+  async function rejectMedia(id: string) {
+    await supabase.from("story_media").delete().eq("id", id);
+    load();
+  }
+  const filtered = items.filter(i =>
+    filter === "all" ? true :
+    filter === "approved" ? i.is_approved :
+    !i.is_approved
+  );
+  const pendingCount = items.filter(i => !i.is_approved).length;
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+        {(["pending", "approved", "all"] as const).map(f => (
+          <button key={f} onClick={() => setFilter(f)} style={{
+            fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase",
+            padding: "6px 14px", borderRadius: 999, cursor: "pointer", transition: "all 0.2s",
+            background: filter === f ? "var(--gold-glow)" : "transparent",
+            border: filter === f ? "1px solid var(--gold-dim)" : "1px solid var(--ink-border)",
+            color: filter === f ? "var(--gold-light)" : "var(--text-faint)",
+          }}>
+            {f}{f === "pending" && pendingCount > 0 ? ` (${pendingCount})` : ""}
+          </button>
+        ))}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+        {loading ? <div className="adm-loading">Loading…</div> : filtered.length === 0 ? (
+          <div className="adm-empty"><div className="adm-empty-title">No media to review.</div></div>
+        ) : filtered.map(item => (
+          <div key={item.id} style={{ background: "var(--ink-surface)", border: "1px solid var(--ink-border)", borderRadius: 10, overflow: "hidden" }}>
+            <img src={item.url} alt={item.title} style={{ width: "100%", height: 180, objectFit: "cover" }} />
+            <div style={{ padding: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-main)", marginBottom: 4 }}>{item.title}</div>
+              <div style={{ fontSize: 10, color: "var(--gold)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>{item.media_type?.replace("_", " ")}</div>
+              <div style={{ fontSize: 11, color: "var(--text-faint)", marginBottom: 4 }}>by {item.writers?.name ?? "Unknown"}</div>
+              {item.caption && <div style={{ fontSize: 11, color: "var(--text-dim)", marginBottom: 8, lineHeight: 1.5 }}>{item.caption}</div>}
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                {!item.is_approved && (
+                  <button className="adm-btn adm-btn-approve" onClick={() => approveMedia(item.id)}>Approve</button>
+                )}
+                <button className="adm-btn adm-btn-reject" onClick={() => rejectMedia(item.id)}>Remove</button>
+                <a href={item.url} target="_blank" rel="noopener noreferrer" className="adm-btn">View →</a>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -950,7 +1057,7 @@ export default function AdminDashboard() {
   const [session, setSession] = useState<any>(null);
   const [checking, setChecking] = useState(true);
   const [tab, setTab] = useState<Tab>("applications");
-  const [counts, setCounts] = useState({ applications: 0, stories: 0, writers: 0, agreements: 0 });
+  const [counts, setCounts] = useState({ applications: 0, stories: 0, writers: 0, agreements: 0, media: 0 });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -963,17 +1070,19 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!session) return;
     async function loadCounts() {
-      const [apps, stories, writers, agreements] = await Promise.all([
+      const [apps, stories, writers, agreements, media] = await Promise.all([
         supabase.from("applications").select("id", { count: "exact" }).eq("status", "pending"),
         supabase.from("stories").select("id", { count: "exact" }).eq("is_published", false),
         supabase.from("writers").select("id", { count: "exact" }),
         supabase.from("agreements").select("id", { count: "exact" }),
+        supabase.from("story_media").select("id", { count: "exact" }).eq("is_approved", false),
       ]);
       setCounts({
         applications: apps.count ?? 0,
         stories: stories.count ?? 0,
         writers: writers.count ?? 0,
         agreements: agreements.count ?? 0,
+        media: media.count ?? 0,
       });
     }
     loadCounts();
@@ -988,14 +1097,15 @@ export default function AdminDashboard() {
     { key: "writers" as Tab, label: "Writers", count: counts.writers, countColor: "green" },
     { key: "agreements" as Tab, label: "Agreements", count: counts.agreements, countColor: "green" },
     { key: "ink" as Tab, label: "Ink & Revenue", count: 0, countColor: "" },
+    { key: "media" as Tab, label: "Media Review", count: counts.media, countColor: "green" },
   ];
-
   const TAB_TITLES: Record<Tab, string> = {
     applications: "Applications",
     stories: "Stories",
     writers: "Writers",
     agreements: "Agreements",
     ink: "Ink & Revenue",
+    media: "Media Review",
   };
 
   return (
@@ -1043,6 +1153,7 @@ export default function AdminDashboard() {
             )}
             {tab === "stories" && <StoriesTab />}
             {tab === "writers" && <WritersTab />}
+            {tab === "media" && <MediaReviewTab />}
             {tab === "agreements" && <AgreementsTab />}
             {tab === "ink" && <InkTab />}
           </div>
