@@ -795,9 +795,10 @@ const READING_ROOM_GENRES = [
 <button className={`hq-nav-item${tab === 'media' ? ' active' : ''}`} onClick={() => setTab('media')}>
   <span className="hq-nav-icon">🎨</span> Story Media
 </button>
-<button className={`hq-nav-item${tab === 'verify' ? ' active' : ''}`} onClick={() => setTab('verify')}>
-  <span className="hq-nav-icon">🪶</span> Verification
-</button>
+<div className="hq-nav-section">Verify</div>
+            <button className={`hq-nav-item${tab === 'verify' ? ' active' : ''}`} onClick={() => setTab('verify')}>
+              <span className="hq-nav-icon">🪶</span> Verification
+            </button>
           </aside>
 
           {/* Main content */}
