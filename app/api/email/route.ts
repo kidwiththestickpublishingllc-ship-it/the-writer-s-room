@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { isArabicWriter, arabicApprovedEmail, arabicOnboardingEmail } from './arabic-templates';
 
 // =========================
 // TTL Email API Route
@@ -204,6 +205,31 @@ export async function POST(req: NextRequest) {
         break;
       }
 // ── 4. Writer Onboarding Phase 2 ──
+case "writer-onboarding-phase-2": {
+  const arabic = isArabicWriter(name, to);
+  const firstName = name.split(" ")[0];
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: FROM,
+      to,
+      subject: arabic
+        ? "لوحة تحكم الكاتب جاهزة — كل ما تحتاجه هنا 🕯️"
+        : "Your writer dashboard is waiting — here's everything you need 🕯️",
+      template_id: arabic
+        ? "4e653d06-5b00-45fd-aafd-04c6192a7f61"
+        : "2abae03a-5233-404a-a506-4d73b3583382",
+      variables: {
+        writer_first_name: firstName,
+      },
+    }),
+  });
+  break;
+}
       case "writer-onboarding-phase-2": {
         const firstName = name.split(" ")[0];
         await fetch("https://api.resend.com/emails", {
