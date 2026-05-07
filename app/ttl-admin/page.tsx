@@ -220,7 +220,7 @@ function AdsTab() {
 // Protected by Supabase auth
 // =========================
 
-type Tab = "applications" | "stories" | "writers" | "agreements" | "ink" | "media";
+type Tab = "applications" | "stories" | "writers" | "agreements" | "ink" | "media" | "payouts";
 
 type Application = {
   id: string;
@@ -1052,6 +1052,118 @@ function InkTab() {
   );
 }
 
+// ── Payout Admin Tab ──────────────────────────────────────────
+function PayoutAdminTab() {
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState<string | null>(null);
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [filter, setFilter] = useState("pending");
+
+  useEffect(() => { loadRequests(); }, []);
+
+  async function loadRequests() {
+    setLoading(true);
+    try {
+      const { data } = await supabase
+        .from("payout_requests")
+        .select("*")
+        .order("requested_at", { ascending: false });
+      if (data) {
+        const enriched = await Promise.all(
+          data.map(async (req: any) => {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("full_name, email")
+              .eq("id", req.writer_id)
+              .single();
+            return { ...req, writer_name: profile?.full_name ?? "Unknown", writer_email: profile?.email ?? "Unknown" };
+          })
+        );
+        setRequests(enriched);
+      }
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
+  }
+
+  async function updateStatus(id: string, status: "completed" | "rejected", writerId: string, amount: number) {
+    setProcessing(id);
+    try {
+      await supabase.from("payout_requests").update({ status, notes: notes[id] ?? null, processed_at: new Date().toISOString() }).eq("id", id);
+      if (status === "rejected") {
+        const { data: profile } = await supabase.from("profiles").select("earnings_balance").eq("id", writerId).single();
+        if (profile) await supabase.from("profiles").update({ earnings_balance: profile.earnings_balance + amount, pending_payout: 0 }).eq("id", writerId);
+      } else {
+        await supabase.from("profiles").update({ pending_payout: 0 }).eq("id", writerId);
+      }
+      await loadRequests();
+    } catch (err) { console.error(err); }
+    finally { setProcessing(null); }
+  }
+
+  const filtered = requests.filter(r => filter === "all" ? true : r.status === filter);
+  const totalPending = requests.filter(r => r.status === "pending").reduce((s, r) => s + Number(r.amount), 0);
+  const totalPaid = requests.filter(r => r.status === "completed").reduce((s, r) => s + Number(r.amount), 0);
+
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 24 }}>
+        {[
+          { label: "Total Pending", val: `$${totalPending.toFixed(2)}`, color: "var(--gold-light)" },
+          { label: "Total Paid Out", val: `$${totalPaid.toFixed(2)}`, color: "var(--green)" },
+          { label: "Pending", val: String(requests.filter(r => r.status === "pending").length), color: "var(--text)" },
+          { label: "Total", val: String(requests.length), color: "var(--text)" },
+        ].map(s => (
+          <div key={s.label} style={{ background: "var(--ink2)", border: "1px solid var(--border)", borderRadius: 10, padding: 16 }}>
+            <div style={{ fontSize: 11, color: "var(--text-dim)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>{s.label}</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: s.color }}>{s.val}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+        {["pending", "completed", "rejected", "all"].map(f => (
+          <button key={f} onClick={() => setFilter(f)} style={{ padding: "6px 14px", borderRadius: 99, border: `1px solid ${filter === f ? "var(--gold)" : "var(--border)"}`, background: filter === f ? "var(--gold-glow)" : "transparent", color: filter === f ? "var(--gold-light)" : "var(--text-dim)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+            {f.charAt(0).toUpperCase() + f.slice(1)}
+          </button>
+        ))}
+      </div>
+      {loading ? (
+        <p style={{ color: "var(--text-dim)", textAlign: "center", padding: 40 }}>Loading...</p>
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: 60, background: "var(--ink2)", borderRadius: 12, border: "1px solid var(--border)" }}>
+          <div style={{ fontSize: 32, marginBottom: 12 }}>💰</div>
+          <p style={{ color: "var(--text-dim)" }}>No {filter} payout requests.</p>
+        </div>
+      ) : filtered.map(req => (
+        <div key={req.id} style={{ background: "var(--ink2)", border: "1px solid var(--border)", borderRadius: 10, padding: 16, marginBottom: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+            <div>
+              <div style={{ fontWeight: 600, color: "var(--text)" }}>{req.writer_name}</div>
+              <div style={{ fontSize: 12, color: "var(--text-dim)" }}>{req.writer_email}</div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: "var(--gold-light)" }}>${Number(req.amount).toFixed(2)}</div>
+              <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: req.status === "completed" ? "rgba(34,197,94,0.15)" : req.status === "rejected" ? "rgba(239,68,68,0.15)" : "rgba(201,168,76,0.15)", color: req.status === "completed" ? "#22c55e" : req.status === "rejected" ? "#ef4444" : "var(--gold-light)" }}>{req.status.toUpperCase()}</span>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 16, marginBottom: 12, fontSize: 12 }}>
+            <span><span style={{ color: "var(--text-dim)" }}>Method: </span>{req.payout_method}</span>
+            <span><span style={{ color: "var(--text-dim)" }}>Account: </span>{req.payout_email}</span>
+          </div>
+          {req.status === "pending" && (
+            <>
+              <input type="text" placeholder="Add a note (optional)" value={notes[req.id] ?? ""} onChange={e => setNotes({ ...notes, [req.id]: e.target.value })} style={{ width: "100%", padding: "8px 12px", background: "var(--ink3)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", fontSize: 13, outline: "none", boxSizing: "border-box", marginBottom: 10 }} />
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={() => updateStatus(req.id, "completed", req.writer_id, req.amount)} disabled={processing === req.id} style={{ padding: "8px 16px", background: "#22c55e", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>✅ Mark as Paid</button>
+                <button onClick={() => updateStatus(req.id, "rejected", req.writer_id, req.amount)} disabled={processing === req.id} style={{ padding: "8px 16px", background: "rgba(239,68,68,0.15)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>❌ Reject</button>
+              </div>
+            </>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 // ── Main Dashboard ────────────────────────────────────────────
 export default function AdminDashboard() {
   const [session, setSession] = useState<any>(null);
@@ -1098,6 +1210,7 @@ export default function AdminDashboard() {
     { key: "agreements" as Tab, label: "Agreements", count: counts.agreements, countColor: "green" },
     { key: "ink" as Tab, label: "Ink & Revenue", count: 0, countColor: "" },
     { key: "media" as Tab, label: "Media Review", count: counts.media, countColor: "green" },
+    { key: "payouts" as Tab, label: "Payouts", count: 0, countColor: "" },
   ];
   const TAB_TITLES: Record<Tab, string> = {
     applications: "Applications",
@@ -1106,6 +1219,7 @@ export default function AdminDashboard() {
     agreements: "Agreements",
     ink: "Ink & Revenue",
     media: "Media Review",
+    payouts: "Payout Requests",
   };
 
   return (
@@ -1154,6 +1268,7 @@ export default function AdminDashboard() {
             {tab === "stories" && <StoriesTab />}
             {tab === "writers" && <WritersTab />}
             {tab === "media" && <MediaReviewTab />}
+            {tab === "payouts" && <PayoutAdminTab />}
             {tab === "agreements" && <AgreementsTab />}
             {tab === "ink" && <InkTab />}
           </div>
