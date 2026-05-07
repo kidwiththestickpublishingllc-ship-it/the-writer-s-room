@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { isArabicWriter, arabicApprovedEmail, arabicOnboardingEmail } from './arabic-templates';
+import { japaneseApprovedEmail, japaneseOnboardingEmail } from './japanese-templates';
+import { isArabicWriter, detectWriterLanguage, arabicApprovedEmail, arabicOnboardingEmail } from './arabic-templates';
 
 // =========================
 // TTL Email API Route
@@ -206,8 +207,18 @@ export async function POST(req: NextRequest) {
       }
 // ── 4. Writer Onboarding Phase 2 ──
 case "writer-onboarding-phase-2": {
-  const arabic = isArabicWriter(name, to);
+  const language = detectWriterLanguage(name, to);
   const firstName = name.split(" ")[0];
+  const subjects: Record<string, string> = {
+    arabic:   "لوحة تحكم الكاتب جاهزة — كل ما تحتاجه هنا 🕯️",
+    japanese: "作家ダッシュボードへようこそ — The Tiniest Library 🌸",
+    english:  "Your writer dashboard is waiting — here's everything you need 🕯️",
+  };
+  const templates: Record<string, string> = {
+    arabic:   "4e653d06-5b00-45fd-aafd-04c6192a7f61",
+    japanese: "10c1dd38-aa3d-4baa-a562-cc220d92317f",
+    english:  "2abae03a-5233-404a-a506-4d73b3583382",
+  };
   await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -217,15 +228,9 @@ case "writer-onboarding-phase-2": {
     body: JSON.stringify({
       from: FROM,
       to,
-      subject: arabic
-        ? "لوحة تحكم الكاتب جاهزة — كل ما تحتاجه هنا 🕯️"
-        : "Your writer dashboard is waiting — here's everything you need 🕯️",
-      template_id: arabic
-        ? "4e653d06-5b00-45fd-aafd-04c6192a7f61"
-        : "2abae03a-5233-404a-a506-4d73b3583382",
-      variables: {
-        writer_first_name: firstName,
-      },
+      subject: subjects[language],
+      template_id: templates[language],
+      variables: { writer_first_name: firstName },
     }),
   });
   break;

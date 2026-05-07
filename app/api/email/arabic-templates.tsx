@@ -2,16 +2,20 @@
 // Add this function at the top of your email route file
 // It detects Arabic names and email addresses automatically
 
-export function isArabicWriter(name: string, email?: string): boolean {
-  // Check if name contains Arabic characters
+export function detectWriterLanguage(name: string, email?: string): 'arabic' | 'japanese' | 'english' {
   const arabicPattern = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
-  if (arabicPattern.test(name)) return true;
-  // Check common Arabic email patterns as fallback
+  if (arabicPattern.test(name)) return 'arabic';
   if (email) {
-    const arabicDomains = ['.sa', '.ae', '.eg', '.kw', '.qa', '.bh', '.om', '.jo', '.iq', '.sy', '.lb', '.ma', '.dz', '.tn', '.ly', '.sd'];
-    if (arabicDomains.some(d => email.toLowerCase().endsWith(d))) return true;
+    const arabicDomains = ['.sa','.ae','.eg','.kw','.qa','.bh','.om','.jo','.iq','.sy','.lb','.ma','.dz','.tn','.ly','.sd'];
+    if (arabicDomains.some(d => email.toLowerCase().endsWith(d))) return 'arabic';
   }
-  return false;
+  const japanesePattern = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
+  if (japanesePattern.test(name)) return 'japanese';
+  return 'english';
+}
+
+export function isArabicWriter(name: string, email?: string): boolean {
+  return detectWriterLanguage(name, email) === 'arabic';
 }
 
 // ── Arabic Application Approved Email ──────────────────────────
