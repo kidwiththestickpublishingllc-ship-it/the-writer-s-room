@@ -235,27 +235,7 @@ case "writer-onboarding-phase-2": {
   });
   break;
 }
-      case "writer-onboarding-phase-2": {
-        const firstName = name.split(" ")[0];
-        await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: FROM,
-            to,
-            subject: "Your writer dashboard is waiting — here's everything you need 🕯️",
-            template_id: "2abae03a-5233-404a-a506-4d73b3583382",
-            variables: {
-              writer_first_name: firstName,
-            },
-          }),
-        });
-        break;
-      }
-// ── 5. Writer Reminder ──
+      
 case "writer-reminder": {
   await resend.emails.send({
     from: FROM,
