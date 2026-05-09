@@ -138,12 +138,18 @@ export async function POST(req: NextRequest) {
                       1. Log into your writer dashboard<br>
                       2. Sign your writer agreements<br>
                       3. Fill out your profile — bio, photo, genres, social links<br>
-                      4. Your profile goes live in The Reading Room automatically
+                      4. Click <strong style="color:#C9A84C;">Submit Story</strong> in the sidebar to upload your manuscript<br>
+                      5. Add your chapters one by one in the Chapters tab<br>
+                      6. We review and publish — your profile and stories go live automatically
                     </p>
                   </div>
 
-                  <a href="${DASHBOARD_URL}" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;margin-bottom:32px;">
+                  <a href="${DASHBOARD_URL}" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;margin-bottom:16px;">
                     Go to Your Dashboard →
+                  </a>
+                  <br>
+                  <a href="${DASHBOARD_URL}?tab=submit" style="display:inline-block;background:transparent;color:#C9A84C;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;border:1px solid rgba(201,168,76,0.4);margin-bottom:32px;">
+                    Submit Your First Story →
                   </a>
 
                   <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;">
