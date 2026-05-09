@@ -1,4 +1,4 @@
-import './globals.css'
+import '../globals.css'
 import { Playfair_Display, Inter } from 'next/font/google'
 import PageChatWidget from "./QuillChatWidget";
 import WelcomeTour from "./WritersTour";

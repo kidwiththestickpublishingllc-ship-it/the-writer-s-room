@@ -639,6 +639,147 @@ function InkTab() {
   );
 }
 
+// ── Members Tab ───────────────────────────────────────────────
+function MembersTab() {
+  const [members, setMembers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<any | null>(null);
+  const [inkAmount, setInkAmount] = useState("");
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [toast, setToast] = useState("");
+
+  useEffect(() => { load(); }, []);
+
+  async function load() {
+    setLoading(true);
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setMembers(data ?? []);
+    setLoading(false);
+  }
+
+  async function sendInk() {
+    if (!selected || !inkAmount) return;
+    setSending(true);
+    const amount = parseInt(inkAmount);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ ink_balance: (selected.ink_balance ?? 0) + amount })
+      .eq("id", selected.id);
+    if (!error) {
+      setMembers(prev => prev.map(m => m.id === selected.id ? { ...m, ink_balance: (m.ink_balance ?? 0) + amount } : m));
+      setSelected((prev: any) => ({ ...prev, ink_balance: (prev.ink_balance ?? 0) + amount }));
+      setToast(`✓ Sent ${amount} Ink to ${selected.full_name ?? selected.email}`);
+      setInkAmount("");
+      setTimeout(() => setToast(""), 3000);
+    }
+    setSending(false);
+  }
+
+  async function sendMessage() {
+    if (!selected || !message.trim()) return;
+    setSending(true);
+    await fetch("/api/email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "admin-message",
+        to: selected.email,
+        name: selected.full_name ?? selected.email,
+        data: { message: message.trim() }
+      }),
+    });
+    setToast(`✓ Message sent to ${selected.email}`);
+    setMessage("");
+    setTimeout(() => setToast(""), 3000);
+    setSending(false);
+  }
+
+  const filtered = members.filter(m =>
+    search.trim() === "" ||
+    m.email?.toLowerCase().includes(search.toLowerCase()) ||
+    m.full_name?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: selected ? "1fr 360px" : "1fr", gap: 20 }}>
+      {toast && <div style={{ position: "fixed", bottom: 32, right: 32, background: "#1a2e1a", border: "1px solid rgba(74,222,128,0.4)", color: "#4ade80", padding: "14px 24px", borderRadius: 10, fontSize: 13, zIndex: 100 }}>{toast}</div>}
+      <div>
+        <div style={{ marginBottom: 16 }}>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or email…" style={{ width: "100%", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 6, padding: "10px 14px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit" }} />
+        </div>
+        <div className="adm-table-wrap">
+          <div className="adm-table-header">
+            <span className="adm-table-title">All Members</span>
+            <span className="adm-table-count">{filtered.length} members</span>
+          </div>
+          {loading ? <div className="adm-loading">Loading…</div> : filtered.length === 0 ? (
+            <div className="adm-empty"><div className="adm-empty-title">No members yet.</div></div>
+          ) : (
+            <table>
+              <thead><tr><th>Member</th><th>Tier</th><th>Ink Balance</th><th>Joined</th><th>Actions</th></tr></thead>
+              <tbody>
+                {filtered.map(m => (
+                  <tr key={m.id} style={{ cursor: "pointer" }}>
+                    <td><div className="adm-cell-name">{m.full_name ?? "Anonymous"}</div><div className="adm-cell-sub">{m.email}</div></td>
+                    <td><span className={`adm-status ${m.membership_tier === "pro" ? "adm-status-approved" : "adm-status-draft"}`}>{m.membership_tier ?? "free"}</span></td>
+                    <td><span style={{ color: "var(--gold)", fontFamily: "'Cormorant Garamond', serif", fontSize: 18 }}>{m.ink_balance ?? 0}</span></td>
+                    <td>{new Date(m.created_at).toLocaleDateString()}</td>
+                    <td><button className="adm-btn adm-btn-approve" onClick={() => setSelected(m)}>Manage →</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+      {selected && (
+        <div style={{ background: "var(--ink-surface)", border: "1px solid var(--ink-border-gold)", borderRadius: 10, padding: 24, position: "sticky", top: 80, height: "fit-content" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 300, color: "var(--text-main)" }}>{selected.full_name ?? "Anonymous"}</div>
+            <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", color: "var(--text-faint)", cursor: "pointer", fontSize: 18 }}>✕</button>
+          </div>
+          <div style={{ fontSize: 12, color: "var(--text-dim)", marginBottom: 20 }}>{selected.email}</div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid var(--ink-border)" }}>
+            <span style={{ fontSize: 12, color: "var(--text-faint)" }}>Ink Balance</span>
+            <span style={{ color: "var(--gold)", fontFamily: "'Cormorant Garamond', serif", fontSize: 20 }}>{selected.ink_balance ?? 0}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid var(--ink-border)" }}>
+            <span style={{ fontSize: 12, color: "var(--text-faint)" }}>Tier</span>
+            <span style={{ fontSize: 12, color: "var(--text-main)" }}>{selected.membership_tier ?? "free"}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid var(--ink-border)", marginBottom: 20 }}>
+            <span style={{ fontSize: 12, color: "var(--text-faint)" }}>Joined</span>
+            <span style={{ fontSize: 12, color: "var(--text-main)" }}>{new Date(selected.created_at).toLocaleDateString()}</span>
+          </div>
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 10 }}>Send Free Ink</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input type="number" value={inkAmount} onChange={e => setInkAmount(e.target.value)} placeholder="Amount" style={{ flex: 1, background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 6, padding: "8px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit" }} />
+              <button className="adm-btn adm-btn-approve" disabled={sending || !inkAmount} onClick={sendInk}>Send</button>
+            </div>
+            <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+              {[100, 250, 500].map(amt => (
+                <button key={amt} onClick={() => setInkAmount(String(amt))} style={{ fontSize: 10, padding: "4px 10px", borderRadius: 999, cursor: "pointer", background: "transparent", border: "1px solid var(--ink-border)", color: "var(--text-faint)" }}>+{amt}</button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 10 }}>Send Message</div>
+            <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Write a message to this member…" rows={4} style={{ width: "100%", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 6, padding: "10px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box" as const }} />
+            <button className="adm-btn adm-btn-approve" disabled={sending || !message.trim()} onClick={sendMessage} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>
+              {sending ? "Sending…" : "Send Message →"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 // ── Main Dashboard ────────────────────────────────────────────
 export default function AdminDashboard() {
   const [session, setSession] = useState<any>(null);

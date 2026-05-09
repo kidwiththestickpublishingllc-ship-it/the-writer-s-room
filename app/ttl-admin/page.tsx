@@ -220,7 +220,7 @@ function AdsTab() {
 // Protected by Supabase auth
 // =========================
 
-type Tab = "applications" | "stories" | "writers" | "agreements" | "ink" | "media" | "payouts";
+type Tab = "applications" | "stories" | "writers" | "agreements" | "ink" | "media" | "payouts" | "members";
 
 type Application = {
   id: string;
@@ -1164,12 +1164,76 @@ function PayoutAdminTab() {
     </div>
   );
 }
+function MembersTab() {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<any>(null);
+  const [inkAmount, setInkAmount] = useState("");
+  const [msg, setMsg] = useState("");
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    supabase.from("profiles").select("*").order("created_at", { ascending: false })
+      .then(({ data }) => { setItems(data ?? []); setLoading(false); });
+  }, []);
+  async function sendInk() {
+    if (!selected || !inkAmount) return;
+    setSaving(true);
+    const amt = parseInt(inkAmount);
+    await supabase.from("profiles").update({ ink_balance: (selected.ink_balance ?? 0) + amt }).eq("id", selected.id);
+    setItems(prev => prev.map(m => m.id === selected.id ? { ...m, ink_balance: (m.ink_balance ?? 0) + amt } : m));
+    setSelected((p: any) => ({ ...p, ink_balance: (p.ink_balance ?? 0) + amt }));
+    setInkAmount(""); setSaving(false);
+  }
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: selected ? "1fr 340px" : "1fr", gap: 20 }}>
+      <div className="adm-table-wrap">
+        <div className="adm-table-header"><span className="adm-table-title">All Members</span><span className="adm-table-count">{items.length} members</span></div>
+        {loading ? <div className="adm-loading">Loading…</div> : items.length === 0 ? <div className="adm-empty"><div className="adm-empty-title">No members yet.</div></div> : (
+          <table><thead><tr><th>Member</th><th>Tier</th><th>Ink</th><th>Joined</th><th></th></tr></thead>
+          <tbody>{items.map(m => (
+            <tr key={m.id}>
+              <td><div className="adm-cell-name">{m.full_name ?? "Anonymous"}</div><div className="adm-cell-sub">{m.email}</div></td>
+              <td><span className={`adm-status ${m.membership_tier === "pro" ? "adm-status-approved" : "adm-status-draft"}`}>{m.membership_tier ?? "free"}</span></td>
+              <td style={{ color: "var(--gold)" }}>{m.ink_balance ?? 0}</td>
+              <td>{new Date(m.created_at).toLocaleDateString()}</td>
+              <td><button className="adm-btn adm-btn-approve" onClick={() => setSelected(m)}>Manage</button></td>
+            </tr>
+          ))}</tbody></table>
+        )}
+      </div>
+      {selected && (
+        <div style={{ background: "var(--ink-surface)", border: "1px solid var(--ink-border-gold)", borderRadius: 10, padding: 24, position: "sticky", top: 80 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+            <div style={{ fontSize: 18, color: "var(--text-main)" }}>{selected.full_name ?? "Anonymous"}</div>
+            <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", color: "var(--text-faint)", cursor: "pointer", fontSize: 16 }}>✕</button>
+          </div>
+          <div style={{ fontSize: 12, color: "var(--text-dim)", marginBottom: 16 }}>{selected.email}</div>
+          <div style={{ padding: "8px 0", borderBottom: "1px solid var(--ink-border)", marginBottom: 16 }}>
+            <span style={{ fontSize: 12, color: "var(--text-faint)" }}>Ink Balance: </span>
+            <span style={{ color: "var(--gold)" }}>{selected.ink_balance ?? 0}</span>
+          </div>
+          <div style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 8 }}>Send Free Ink</div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+            <input type="number" value={inkAmount} onChange={e => setInkAmount(e.target.value)} placeholder="Amount" style={{ flex: 1, background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 6, padding: "8px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit" }} />
+            <button className="adm-btn adm-btn-approve" disabled={saving || !inkAmount} onClick={sendInk}>Send</button>
+          </div>
+          <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
+            {[100, 250, 500].map(amt => <button key={amt} onClick={() => setInkAmount(String(amt))} style={{ fontSize: 10, padding: "4px 10px", borderRadius: 999, cursor: "pointer", background: "transparent", border: "1px solid var(--ink-border)", color: "var(--text-faint)" }}>+{amt}</button>)}
+          </div>
+          <div style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 8 }}>Send Message</div>
+          <textarea value={msg} onChange={e => setMsg(e.target.value)} placeholder="Write a message..." rows={4} style={{ width: "100%", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 6, padding: "10px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit", resize: "vertical" as const, boxSizing: "border-box" as const }} />
+          <button className="adm-btn adm-btn-approve" disabled={saving || !msg.trim()} style={{ marginTop: 8, width: "100%", justifyContent: "center" }} onClick={async () => { setSaving(true); await fetch("/api/email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "admin-message", to: selected.email, name: selected.full_name, data: { message: msg } }) }); setMsg(""); setSaving(false); }}>{saving ? "Sending…" : "Send Message"}</button>
+        </div>
+      )}
+    </div>
+  );
+}
 // ── Main Dashboard ────────────────────────────────────────────
 export default function AdminDashboard() {
   const [session, setSession] = useState<any>(null);
   const [checking, setChecking] = useState(true);
   const [tab, setTab] = useState<Tab>("applications");
-  const [counts, setCounts] = useState({ applications: 0, stories: 0, writers: 0, agreements: 0, media: 0 });
+  const [counts, setCounts] = useState({ applications: 0, stories: 0, writers: 0, agreements: 0, media: 0, members: 0 });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -1182,12 +1246,13 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!session) return;
     async function loadCounts() {
-      const [apps, stories, writers, agreements, media] = await Promise.all([
+      const [apps, stories, writers, agreements, media, members] = await Promise.all([
         supabase.from("applications").select("id", { count: "exact" }).eq("status", "pending"),
         supabase.from("stories").select("id", { count: "exact" }).eq("is_published", false),
         supabase.from("writers").select("id", { count: "exact" }),
         supabase.from("agreements").select("id", { count: "exact" }),
         supabase.from("story_media").select("id", { count: "exact" }).eq("is_approved", false),
+        supabase.from("profiles").select("id", { count: "exact" }),
       ]);
       setCounts({
         applications: apps.count ?? 0,
@@ -1195,6 +1260,7 @@ export default function AdminDashboard() {
         writers: writers.count ?? 0,
         agreements: agreements.count ?? 0,
         media: media.count ?? 0,
+        members: members.count ?? 0,
       });
     }
     loadCounts();
@@ -1211,6 +1277,7 @@ export default function AdminDashboard() {
     { key: "ink" as Tab, label: "Ink & Revenue", count: 0, countColor: "" },
     { key: "media" as Tab, label: "Media Review", count: counts.media, countColor: "green" },
     { key: "payouts" as Tab, label: "Payouts", count: 0, countColor: "" },
+    { key: "members" as Tab, label: "Members", count: counts.members, countColor: "green" },
   ];
   const TAB_TITLES: Record<Tab, string> = {
     applications: "Applications",
@@ -1220,6 +1287,7 @@ export default function AdminDashboard() {
     ink: "Ink & Revenue",
     media: "Media Review",
     payouts: "Payout Requests",
+    members: "Members",
   };
 
   return (
@@ -1269,6 +1337,7 @@ export default function AdminDashboard() {
             {tab === "writers" && <WritersTab />}
             {tab === "media" && <MediaReviewTab />}
             {tab === "payouts" && <PayoutAdminTab />}
+            {tab === "members" && <MembersTab />}
             {tab === "agreements" && <AgreementsTab />}
             {tab === "ink" && <InkTab />}
           </div>
