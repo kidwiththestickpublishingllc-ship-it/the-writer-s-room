@@ -813,6 +813,35 @@ const READING_ROOM_GENRES = [
                   <p className="hq-page-sub">Here's how your work is performing.</p>
                 </div>
 
+                {/* Getting Started Banner — shows only for new writers */}
+                {stories.length === 0 && (
+                  <div style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.08), rgba(201,168,76,0.04))", border: "1px solid rgba(201,168,76,0.25)", borderLeft: "4px solid var(--gold)", borderRadius: 12, padding: 28, marginBottom: 32 }}>
+                    <div style={{ fontSize: 9, letterSpacing: "0.28em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 12 }}>Getting Started</div>
+                    <div style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 300, color: "var(--text)", marginBottom: 8 }}>Welcome to your Writer HQ, {writer.name.split(' ')[0]}. 🪶</div>
+                    <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.8, marginBottom: 20 }}>You're all set up. Here's how to get your first story published on TTL:</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 24 }}>
+                      {[
+                        { step: "1", title: "Fill out your profile", desc: "Add your bio, photo and genres so readers can find you.", tab: "profile" },
+                        { step: "2", title: "Submit your story", desc: "Upload your manuscript title, description and first chapter.", tab: "submit" },
+                        { step: "3", title: "Add your chapters", desc: "Paste your chapter content in the Chapters tab.", tab: "chapters" },
+                        { step: "4", title: "Wait for approval", desc: "We review every story personally. Usually within 5-7 days.", tab: null },
+                      ].map(s => (
+                        <div key={s.step} onClick={() => s.tab && setTab(s.tab as any)} style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(201,168,76,0.15)", borderRadius: 8, padding: 16, cursor: s.tab ? "pointer" : "default", transition: "all 0.2s" }}
+                          onMouseEnter={e => s.tab && (e.currentTarget.style.borderColor = "rgba(201,168,76,0.4)")}
+                          onMouseLeave={e => s.tab && (e.currentTarget.style.borderColor = "rgba(201,168,76,0.15)")}>
+                          <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "var(--gold)", marginBottom: 10 }}>{s.step}</div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>{s.title}</div>
+                          <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.6 }}>{s.desc}</div>
+                          {s.tab && <div style={{ fontSize: 10, color: "var(--gold)", marginTop: 8, letterSpacing: "0.1em" }}>Go → </div>}
+                        </div>
+                      ))}
+                    </div>
+                    <button onClick={() => setTab('submit')} style={{ fontFamily: "var(--font-ui)", fontSize: 11, fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", padding: "12px 28px", borderRadius: 8, border: "none", cursor: "pointer", background: "linear-gradient(135deg,var(--gold),#8a6510)", color: "#000" }}>
+                      Submit Your First Story →
+                    </button>
+                  </div>
+                )}
+
                 <div className="hq-stats">
                   <div className="hq-stat">
                     <span className="hq-stat-label">Total Earned</span>
