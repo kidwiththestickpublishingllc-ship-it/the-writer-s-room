@@ -1460,7 +1460,12 @@ function Footer({ onNavigate }: NavigateProps) {
             <div className="twr-footer-brand-sub">The Writer's Room</div>
           </div>
         </div>
-        <span className="twr-footer-copy">© {new Date().getFullYear()} The Tiniest Library. All rights reserved.</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, textAlign: "center" }}>
+          <span className="twr-footer-copy">© {new Date().getFullYear()} The Tiniest Library. All rights reserved.</span>
+          <a href="https://www.kidwiththestick.com" target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, letterSpacing: "0.12em", color: "#C9A84C", textDecoration: "none", fontFamily: "'Syne', sans-serif" }}>
+            A company of Kid With The Stick Publishing
+          </a>
+        </div>
         <div className="twr-footer-actions">
           <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-ghost" style={{ fontSize: '9px', padding: '8px 18px', borderRadius: '8px' }}>
             Submit Your Story
