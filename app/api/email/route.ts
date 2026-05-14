@@ -215,30 +215,105 @@ export async function POST(req: NextRequest) {
 case "writer-onboarding-phase-2": {
   const language = detectWriterLanguage(name, to);
   const firstName = name.split(" ")[0];
-  const subjects: Record<string, string> = {
-    arabic:   "لوحة تحكم الكاتب جاهزة — كل ما تحتاجه هنا 🕯️",
-    japanese: "作家ダッシュボードへようこそ — The Tiniest Library 🌸",
-    english:  "Your writer dashboard is waiting — here's everything you need 🕯️",
-  };
-  const templates: Record<string, string> = {
-    arabic:   "4e653d06-5b00-45fd-aafd-04c6192a7f61",
-    japanese: "10c1dd38-aa3d-4baa-a562-cc220d92317f",
-    english:  "2abae03a-5233-404a-a506-4d73b3583382",
-  };
-  await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+
+  // Arabic and Japanese still use Resend templates (those are correct)
+  // English now uses inline HTML since template_id was silently failing
+  if (language === "arabic" || language === "japanese") {
+    const subjects: Record<string, string> = {
+      arabic:   "لوحة تحكم الكاتب جاهزة — كل ما تحتاجه هنا 🕯️",
+      japanese: "作家ダッシュボードへようこそ — The Tiniest Library 🌸",
+    };
+    const templates: Record<string, string> = {
+      arabic:   "4e653d06-5b00-45fd-aafd-04c6192a7f61",
+      japanese: "10c1dd38-aa3d-4baa-a562-cc220d92317f",
+    };
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: FROM,
+        to,
+        subject: subjects[language],
+        template_id: templates[language],
+        variables: { writer_first_name: firstName },
+      }),
+    });
+  } else {
+    // English — inline HTML, fires reliably every time
+    await resend.emails.send({
       from: FROM,
       to,
-      subject: subjects[language],
-      template_id: templates[language],
-      variables: { writer_first_name: firstName },
-    }),
-  });
+      subject: "Your writer dashboard is live — here's everything you need 🕯️",
+      html: `<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#0a0a0a;font-family:'Georgia',serif;">
+<div style="max-width:620px;margin:0 auto;background:#0f0f0f;border:1px solid rgba(201,168,76,0.2);border-radius:8px;overflow:hidden;">
+  <div style="height:3px;background:linear-gradient(90deg,transparent,#C9A84C,transparent);"></div>
+  <div style="padding:48px 40px;">
+    <p style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 16px;">The Tiniest Library</p>
+    <h1 style="font-family:'Georgia',serif;font-size:36px;font-weight:400;color:#f0ece2;margin:0 0 8px;">Welcome to the shelf,<br>${firstName}.</h1>
+    <p style="font-size:15px;font-style:italic;color:rgba(240,236,226,0.5);margin:0 0 32px;">Your writer dashboard is live and ready.</p>
+    <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 32px;">Your application has been approved and your writer account is active. Everything you need to start publishing on TTL is below.</p>
+    <div style="text-align:center;margin:0 0 40px;">
+      <a href="https://write.the-tiniest-library.com/dashboard?welcome=true" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:16px 40px;border-radius:6px;text-decoration:none;">Go to Your Dashboard →</a>
+      <p style="font-size:11px;color:rgba(240,236,226,0.3);margin:12px 0 0;">Your profile, stories, earnings and agreements — all in one place.</p>
+    </div>
+    <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-radius:8px;padding:24px;margin-bottom:28px;">
+      <p style="font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 12px;">Your Room</p>
+      <p style="font-size:14px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 16px;">You are approved to publish in <strong style="color:#f0ece2;">The Reading Room</strong> — TTL's home for literary fiction, genre fiction, serials, short stories, comics, and manga.</p>
+      <p style="font-size:13px;color:rgba(240,236,226,0.6);line-height:1.75;margin:0;">
+        ✦ Original work only. AI-assisted writing must be disclosed.<br>
+        ✦ You keep your copyright. Always.<br>
+        ✦ Proofread before you publish. Quality matters.<br>
+        ✦ No content that harms minors. Immediate permanent ban.<br>
+        ✦ If you start a serial, commit to it. Your readers are investing.
+      </p>
+    </div>
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:24px;margin-bottom:28px;">
+      <p style="font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 16px;">How Ink Pays You</p>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.07);">
+          <th style="text-align:left;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(240,236,226,0.35);padding:8px 0;font-weight:500;">Reader Action</th>
+          <th style="text-align:right;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(240,236,226,0.35);padding:8px 0;font-weight:500;">Your Cut</th>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+          <td style="font-size:13px;color:rgba(240,236,226,0.7);padding:10px 0;">Unlocks one of your chapters (25 Ink)</td>
+          <td style="text-align:right;font-size:13px;color:#C9A84C;padding:10px 0;">70% — ~$0.18 per unlock</td>
+        </tr>
+        <tr>
+          <td style="font-size:13px;color:rgba(240,236,226,0.7);padding:10px 0;">Tips you via your Ink Jar</td>
+          <td style="text-align:right;font-size:13px;color:#C9A84C;padding:10px 0;">100% — every penny</td>
+        </tr>
+      </table>
+      <p style="font-size:12px;color:rgba(240,236,226,0.4);line-height:1.7;margin:0;">No minimum payout. Request anytime via Stripe, PayPal, or Venmo.</p>
+    </div>
+    <div style="background:rgba(201,168,76,0.04);border:1px solid rgba(201,168,76,0.15);border-radius:8px;padding:24px;margin-bottom:32px;">
+      <p style="font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 16px;">Your Next Steps</p>
+      <p style="font-size:14px;color:rgba(240,236,226,0.75);line-height:1.9;margin:0;">
+        1. Log into your dashboard<br>
+        2. Complete your profile — photo, bio, genres, social links<br>
+        3. Sign your agreements — Plagiarism Clause and Copyright Agreement<br>
+        4. Submit your first story from the Stories tab<br>
+        5. Share your TTL profile link everywhere you write online
+      </p>
+    </div>
+    <div style="text-align:center;margin-bottom:32px;">
+      <a href="https://write.the-tiniest-library.com/dashboard?welcome=true&tab=submit" style="display:inline-block;background:transparent;color:#C9A84C;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;border:1px solid rgba(201,168,76,0.4);">Submit Your First Story →</a>
+    </div>
+    <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;text-align:center;">
+      <p style="font-size:11px;color:rgba(240,236,226,0.25);margin:0 0 8px;letter-spacing:0.1em;">Reading Room · Writer's Room · Red Room</p>
+      <p style="font-size:11px;color:rgba(240,236,226,0.2);margin:0;">Questions? <a href="mailto:hello@the-tiniest-library.com" style="color:rgba(201,168,76,0.5);">hello@the-tiniest-library.com</a></p>
+      <p style="font-size:10px;color:rgba(240,236,226,0.15);margin:12px 0 0;">You keep your copyright. Always. · The Tiniest Library</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>`,
+    });
+  }
   break;
 }
       
