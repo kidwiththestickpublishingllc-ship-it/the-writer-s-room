@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 
 const supabase = createBrowserClient(
@@ -447,7 +448,8 @@ export default function WriterDashboard() {
   const [payoutHandle, setPayoutHandle] = useState('');
   const [requesting, setRequesting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
-
+  const [showWelcome, setShowWelcome] = useState(false);
+  const searchParams = useSearchParams();
   // Profile edit state
   const [editName, setEditName] = useState('');
   const [editBio, setEditBio] = useState('');
@@ -549,7 +551,6 @@ const READING_ROOM_GENRES = [
         setLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) { window.location.href = '/login'; return; }
-
         // Get writer profile
         const { data: writerData } = await supabase
         .from('writers')
@@ -622,7 +623,12 @@ const READING_ROOM_GENRES = [
     }
     load();
   }, []);
-
+  useEffect(() => {
+    if (searchParams.get('welcome') === 'true') {
+      setShowWelcome(true);
+      window.history.replaceState({}, '', '/dashboard');
+    }
+  }, [searchParams]);
   // Select chapter for editing
   const selectChapter = (ch: Chapter) => {
     setSelectedChapter(ch);
@@ -738,7 +744,55 @@ const READING_ROOM_GENRES = [
     <>
       <style>{STYLES}</style>
       <div className="hq-root">
-
+      {showWelcome && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)" }}>
+          <div style={{ width: "100%", maxWidth: 620, background: "#0f0f0f", border: "1px solid rgba(201,168,76,0.35)", borderRadius: 16, overflow: "hidden", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ height: 3, background: "linear-gradient(90deg,transparent,#C9A84C,transparent)" }} />
+            <div style={{ padding: "48px 40px" }}>
+              <div style={{ textAlign: "center", marginBottom: 32 }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>🕯️</div>
+                <p style={{ fontSize: 11, letterSpacing: "0.28em", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.7)", marginBottom: 12 }}>The Tiniest Library</p>
+                <h1 style={{ fontFamily: "var(--font-display)", fontSize: 36, fontWeight: 300, color: "var(--text)", marginBottom: 8 }}>Welcome to the shelf, {writer?.name.split(" ")[0] ?? "Writer"}.</h1>
+                <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7 }}>Your writer dashboard is live. Here's how to get started in the next 10 minutes.</p>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 12, marginBottom: 32 }}>
+                {[
+                  { n: "1", title: "Complete your profile", desc: "Add your photo, bio, genres and social links. This is what readers see.", tab: "profile" },
+                  { n: "2", title: "Sign your agreements", desc: "Plagiarism Clause and Copyright Agreement — takes 2 minutes.", tab: "agreements" },
+                  { n: "3", title: "Submit your first story", desc: "Upload your manuscript title, description and first chapter.", tab: "submit" },
+                  { n: "4", title: "Share your profile link", desc: "Tell your audience where to find you on TTL.", tab: null },
+                ].map(s => (
+                  <div key={s.n} onClick={() => { if (s.tab) setTab(s.tab as any); setShowWelcome(false); }}
+                    style={{ display: "flex", gap: 16, alignItems: "flex-start", padding: 16, background: "rgba(201,168,76,0.04)", border: "1px solid rgba(201,168,76,0.12)", borderRadius: 10, cursor: s.tab ? "pointer" : "default" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "var(--gold)", flexShrink: 0 }}>{s.n}</div>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>{s.title}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>{s.desc}</div>
+                      {s.tab && <div style={{ fontSize: 10, color: "var(--gold)", marginTop: 6, letterSpacing: "0.1em" }}>Go →</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: 20, marginBottom: 32 }}>
+                <p style={{ fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.7)", marginBottom: 12 }}>How Ink Pays You</p>
+                <div style={{ display: "flex", gap: 24, flexWrap: "wrap" as const }}>
+                  <div><div style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 300, color: "var(--gold)" }}>70%</div><div style={{ fontSize: 11, color: "var(--text-muted)" }}>per chapter unlock</div></div>
+                  <div><div style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 300, color: "#4ade80" }}>100%</div><div style={{ fontSize: 11, color: "var(--text-muted)" }}>of every tip</div></div>
+                  <div><div style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 300, color: "var(--text)" }}>$0</div><div style={{ fontSize: 11, color: "var(--text-muted)" }}>minimum payout</div></div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const }}>
+                <button onClick={() => { setTab('submit'); setShowWelcome(false); }} style={{ flex: 1, fontFamily: "var(--font-ui)", fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase" as const, padding: "14px 24px", borderRadius: 8, border: "none", cursor: "pointer", background: "linear-gradient(135deg,var(--gold),#8a6510)", color: "#000" }}>
+                  Submit My First Story →
+                </button>
+                <button onClick={() => setShowWelcome(false)} style={{ fontFamily: "var(--font-ui)", fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase" as const, padding: "14px 24px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "var(--text-muted)", cursor: "pointer" }}>
+                  Explore Dashboard
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
         {/* Toast */}
         {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
