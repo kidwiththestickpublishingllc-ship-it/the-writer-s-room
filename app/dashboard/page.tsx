@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 
 const supabase = createBrowserClient(
@@ -449,8 +448,7 @@ export default function WriterDashboard() {
   const [requesting, setRequesting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
-  const searchParams = useSearchParams();
-  // Profile edit state
+    // Profile edit state
   const [editName, setEditName] = useState('');
   const [editBio, setEditBio] = useState('');
   const [editTwitter, setEditTwitter] = useState('');
@@ -624,11 +622,14 @@ const READING_ROOM_GENRES = [
     load();
   }, []);
   useEffect(() => {
-    if (searchParams.get('welcome') === 'true') {
-      setShowWelcome(true);
-      window.history.replaceState({}, '', '/dashboard');
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('welcome') === 'true') {
+        setShowWelcome(true);
+        window.history.replaceState({}, '', '/dashboard');
+      }
     }
-  }, [searchParams]);
+  }, []);
   // Select chapter for editing
   const selectChapter = (ch: Chapter) => {
     setSelectedChapter(ch);
