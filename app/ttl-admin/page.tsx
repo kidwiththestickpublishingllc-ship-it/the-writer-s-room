@@ -828,23 +828,40 @@ function MediaReviewTab() {
   );
 }
 
-// ── Writers Tab ───────────────────────────────────────────────
+// ============================================================
+// UPGRADED WritersTab — drop-in replacement for WritersTab()
+// in app/ttl-admin/page.tsx
+//
+// CHANGES:
+// - Pipeline status column (Approved → Email Sent → Profile Complete → Active)
+// - Inline admin notes (click pencil to edit, saves to Supabase)
+// - Timestamps: onboarding_email_sent_at, profile_completed_at
+// - Onboarding button now stamps onboarding_email_sent_at in Supabase
+// ============================================================
+
 function WritersTab() {
   const [items, setItems] = useState<Writer[]>([]);
   const [loading, setLoading] = useState(true);
   const [reminding, setReminding] = useState<string | null>(null);
+  const [editingNote, setEditingNote] = useState<string | null>(null);
+  const [noteValue, setNoteValue] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
 
   useEffect(() => { load(); }, []);
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase.from("writers").select("*").order("created_at", { ascending: false });
+    const { data } = await supabase
+      .from("writers")
+      .select("*")
+      .order("created_at", { ascending: false });
     setItems(data ?? []);
     setLoading(false);
   }
 
-  async function resendOnboarding(name: string) {
-    const email = prompt(`Send onboarding email to what address for ${name}?`);
+  // Send onboarding email AND stamp the timestamp
+  async function resendOnboarding(writer: Writer) {
+    const email = writer.email ?? prompt(`Email address for ${writer.name}?`);
     if (!email) return;
     await fetch("/api/email", {
       method: "POST",
@@ -852,27 +869,26 @@ function WritersTab() {
       body: JSON.stringify({
         type: "writer-onboarding-phase-2",
         to: email,
-        name,
+        name: writer.name,
         templateId: "2abae03a-5233-404a-a506-4d73b3583382",
       }),
     });
+    // Stamp the timestamp so admin knows email was sent
+    await supabase
+      .from("writers")
+      .update({ onboarding_email_sent_at: new Date().toISOString() })
+      .eq("id", writer.id);
     alert(`Onboarding email sent to ${email}!`);
+    load();
   }
 
   async function sendReminder(writer: Writer) {
-    if (!writer.email) {
-      alert("No email on file for this writer.");
-      return;
-    }
+    if (!writer.email) { alert("No email on file for this writer."); return; }
     setReminding(writer.id);
     await fetch("/api/email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: "writer-reminder",
-        to: writer.email,
-        name: writer.name,
-      }),
+      body: JSON.stringify({ type: "writer-reminder", to: writer.email, name: writer.name }),
     });
     setReminding(null);
     alert(`Reminder sent to ${writer.name}!`);
@@ -888,6 +904,35 @@ function WritersTab() {
     load();
   }
 
+  async function saveNote(id: string) {
+    setSavingNote(true);
+    await supabase.from("writers").update({ admin_notes: noteValue }).eq("id", id);
+    setSavingNote(false);
+    setEditingNote(null);
+    setNoteValue("");
+    load();
+  }
+
+  // Pipeline: what stage is this writer at?
+  function pipelineStatus(w: any) {
+    const hasProfile = w.bio && w.photo_url && w.genres?.length > 0;
+    const emailSent = !!w.onboarding_email_sent_at;
+
+    if (!w.is_approved) {
+      return { label: "Not Approved", color: "var(--text-faint)", bg: "rgba(255,255,255,0.05)", border: "var(--ink-border)" };
+    }
+    if (w.is_approved && !emailSent) {
+      return { label: "⚡ Needs Email", color: "var(--amber)", bg: "var(--amber-dim)", border: "rgba(251,191,36,0.3)" };
+    }
+    if (emailSent && !hasProfile) {
+      return { label: "⏳ Awaiting Profile", color: "#84b0f5", bg: "rgba(100,149,237,0.1)", border: "rgba(100,149,237,0.3)" };
+    }
+    if (hasProfile) {
+      return { label: "✅ Active", color: "var(--green)", bg: "var(--green-dim)", border: "rgba(74,222,128,0.3)" };
+    }
+    return { label: "Unknown", color: "var(--text-faint)", bg: "transparent", border: "var(--ink-border)" };
+  }
+
   function profileStatus(w: Writer) {
     const fields = [w.bio, w.photo_url, w.genres?.length];
     const filled = fields.filter(Boolean).length;
@@ -896,67 +941,229 @@ function WritersTab() {
     return { label: "Empty", cls: "adm-status-rejected" };
   }
 
+  function fmtDate(ts: string | null | undefined) {
+    if (!ts) return "—";
+    return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+
+  // Count pipeline stages for the summary row
+  const needsEmail = items.filter(w => w.is_approved && !(w as any).onboarding_email_sent_at).length;
+  const awaitingProfile = items.filter(w => {
+    const hasProfile = w.bio && w.photo_url && w.genres?.length;
+    return w.is_approved && (w as any).onboarding_email_sent_at && !hasProfile;
+  }).length;
+  const active = items.filter(w => w.bio && w.photo_url && w.genres?.length).length;
+
   return (
-    <div className="adm-table-wrap">
-      <div className="adm-table-header">
-        <span className="adm-table-title">All Writers</span>
-        <span className="adm-table-count">{items.length} records</span>
+    <div>
+      {/* Pipeline summary strip */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
+        gap: 12, marginBottom: 24,
+      }}>
+        {[
+          { label: "Total Writers", val: items.length, color: "var(--gold)" },
+          { label: "Needs Onboarding Email", val: needsEmail, color: "var(--amber)" },
+          { label: "Awaiting Profile", val: awaitingProfile, color: "#84b0f5" },
+          { label: "Fully Active", val: active, color: "var(--green)" },
+        ].map(s => (
+          <div key={s.label} className="adm-stat-card">
+            <div className="adm-stat-num" style={{ color: s.color, fontSize: 28 }}>{s.val}</div>
+            <div className="adm-stat-label">{s.label}</div>
+          </div>
+        ))}
       </div>
-      {loading ? <div className="adm-loading">Loading…</div> : items.length === 0 ? (
-        <div className="adm-empty"><div className="adm-empty-title">No writers yet.</div></div>
-      ) : (
-        <table>
-          <thead><tr>
-            <th>Writer</th>
-            <th>Email</th>
-            <th>Profile</th>
-            <th>Approved</th>
-            <th>Founding</th>
-            <th>Actions</th>
-          </tr></thead>
-          <tbody>
-            {items.map(w => {
-              const ps = profileStatus(w);
-              return (
-                <tr key={w.id}>
-                  <td>
-                    <div className="adm-cell-name">{w.name}</div>
-                    <div className="adm-cell-sub">{w.slug ?? "—"}</div>
-                  </td>
-                  <td>
-                    <div className="adm-cell-sub">{w.email ?? "—"}</div>
-                  </td>
-                  <td>
-                    <span className={`adm-status ${ps.cls}`}>{ps.label}</span>
-                  </td>
-                  <td><span className={`adm-status ${w.is_approved ? "adm-status-approved" : "adm-status-pending"}`}>{w.is_approved ? "Yes" : "No"}</span></td>
-                  <td><span className={`adm-status ${w.is_founding_author ? "adm-status-approved" : "adm-status-draft"}`}>{w.is_founding_author ? "Yes" : "No"}</span></td>
-                  <td>
-                    <div className="adm-actions">
-                      <button className={`adm-btn ${w.is_approved ? "adm-btn-reject" : "adm-btn-approve"}`} onClick={() => toggleApproved(w.id, w.is_approved)}>
-                        {w.is_approved ? "Revoke" : "Approve"}
-                      </button>
-                      <button className="adm-btn adm-btn-founding" onClick={() => toggleFounding(w.id, w.is_founding_author)}>
-                        {w.is_founding_author ? "Remove Founding" : "Make Founding"}
-                      </button>
-                      <button className="adm-btn adm-btn-publish" onClick={() => resendOnboarding(w.name)}>
-                        Onboarding
-                      </button>
-                      <button className="adm-btn adm-btn-approve" disabled={reminding === w.id} onClick={() => sendReminder(w)}
-                        style={{ color: "var(--amber)", borderColor: "rgba(251,191,36,0.3)", background: "var(--amber-dim)" }}>
-                        {reminding === w.id ? "Sending…" : "Remind"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
+
+      <div className="adm-table-wrap">
+        <div className="adm-table-header">
+          <span className="adm-table-title">All Writers</span>
+          <span className="adm-table-count">{items.length} records</span>
+        </div>
+        {loading ? (
+          <div className="adm-loading">Loading…</div>
+        ) : items.length === 0 ? (
+          <div className="adm-empty"><div className="adm-empty-title">No writers yet.</div></div>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Writer</th>
+                <th>Pipeline</th>
+                <th>Profile</th>
+                <th>Email Sent</th>
+                <th>Approved</th>
+                <th>Founding</th>
+                <th>Notes</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map(w => {
+                const ps = profileStatus(w);
+                const pipe = pipelineStatus(w);
+                const isEditingThisNote = editingNote === w.id;
+
+                return (
+                  <tr key={w.id}>
+                    {/* Writer name + slug */}
+                    <td>
+                      <div className="adm-cell-name">{w.name}</div>
+                      <div className="adm-cell-sub">{w.slug ?? "—"}</div>
+                      <div className="adm-cell-sub" style={{ fontSize: 10 }}>{w.email ?? "no email"}</div>
+                    </td>
+
+                    {/* Pipeline status */}
+                    <td>
+                      <span style={{
+                        fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase",
+                        padding: "3px 10px", borderRadius: 999,
+                        color: pipe.color, background: pipe.bg,
+                        border: `1px solid ${pipe.border}`,
+                        whiteSpace: "nowrap",
+                      }}>
+                        {pipe.label}
+                      </span>
+                    </td>
+
+                    {/* Profile completeness */}
+                    <td>
+                      <span className={`adm-status ${ps.cls}`}>{ps.label}</span>
+                    </td>
+
+                    {/* Onboarding email sent timestamp */}
+                    <td>
+                      <span style={{ fontSize: 11, color: (w as any).onboarding_email_sent_at ? "var(--green)" : "var(--text-faint)" }}>
+                        {fmtDate((w as any).onboarding_email_sent_at)}
+                      </span>
+                    </td>
+
+                    {/* Approved */}
+                    <td>
+                      <span className={`adm-status ${w.is_approved ? "adm-status-approved" : "adm-status-pending"}`}>
+                        {w.is_approved ? "Yes" : "No"}
+                      </span>
+                    </td>
+
+                    {/* Founding */}
+                    <td>
+                      <span className={`adm-status ${w.is_founding_author ? "adm-status-approved" : "adm-status-draft"}`}>
+                        {w.is_founding_author ? "Yes" : "No"}
+                      </span>
+                    </td>
+
+                    {/* Admin notes — inline edit */}
+                    <td style={{ minWidth: 180 }}>
+                      {isEditingThisNote ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          <textarea
+                            value={noteValue}
+                            onChange={e => setNoteValue(e.target.value)}
+                            rows={3}
+                            style={{
+                              width: "100%", background: "var(--ink-surface2)",
+                              border: "1px solid var(--gold-dim)", borderRadius: 5,
+                              padding: "6px 8px", fontSize: 11, color: "var(--text-main)",
+                              outline: "none", fontFamily: "inherit", resize: "none",
+                            }}
+                            placeholder="Admin note…"
+                            autoFocus
+                          />
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <button
+                              className="adm-btn adm-btn-approve"
+                              style={{ fontSize: 9 }}
+                              disabled={savingNote}
+                              onClick={() => saveNote(w.id)}
+                            >
+                              {savingNote ? "Saving…" : "Save"}
+                            </button>
+                            <button
+                              className="adm-btn"
+                              style={{ fontSize: 9 }}
+                              onClick={() => { setEditingNote(null); setNoteValue(""); }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => { setEditingNote(w.id); setNoteValue((w as any).admin_notes ?? ""); }}
+                          style={{
+                            fontSize: 11, color: (w as any).admin_notes ? "var(--text-dim)" : "var(--text-faint)",
+                            cursor: "pointer", lineHeight: 1.5,
+                            padding: "4px 6px", borderRadius: 4,
+                            border: "1px dashed transparent",
+                            transition: "all 0.15s",
+                          }}
+                          title="Click to add/edit note"
+                          onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--gold-dim)")}
+                          onMouseLeave={e => (e.currentTarget.style.borderColor = "transparent")}
+                        >
+                          {(w as any).admin_notes
+                            ? (w as any).admin_notes.slice(0, 60) + ((w as any).admin_notes.length > 60 ? "…" : "")
+                            : "✏️ Add note"}
+                        </div>
+                      )}
+                    </td>
+
+                    {/* Actions */}
+                    <td>
+                      <div className="adm-actions" style={{ flexDirection: "column", alignItems: "flex-start", gap: 5 }}>
+                        <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                          <button
+                            className={`adm-btn ${w.is_approved ? "adm-btn-reject" : "adm-btn-approve"}`}
+                            onClick={() => toggleApproved(w.id, w.is_approved)}
+                          >
+                            {w.is_approved ? "Revoke" : "Approve"}
+                          </button>
+                          <button
+                            className="adm-btn adm-btn-founding"
+                            onClick={() => toggleFounding(w.id, w.is_founding_author)}
+                          >
+                            {w.is_founding_author ? "↓ Founding" : "↑ Founding"}
+                          </button>
+                        </div>
+                        <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                          <button
+                            className="adm-btn adm-btn-publish"
+                            onClick={() => resendOnboarding(w)}
+                          >
+                            📧 Onboarding
+                          </button>
+                          <button
+                            className="adm-btn"
+                            style={{ color: "var(--amber)", borderColor: "rgba(251,191,36,0.3)", background: "var(--amber-dim)" }}
+                            disabled={reminding === w.id}
+                            onClick={() => sendReminder(w)}
+                          >
+                            {reminding === w.id ? "Sending…" : "🔔 Remind"}
+                          </button>
+                        </div>
+                        {w.slug && (
+                          <a
+                            href={`https://read.the-tiniest-library.com/reading-room/authors/${w.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="adm-btn"
+                            style={{ fontSize: 9 }}
+                          >
+                            👁 View Profile →
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }
+
 
 // ── Agreements Tab ────────────────────────────────────────────
 function AgreementsTab() {
