@@ -553,7 +553,6 @@ function ApplicationsTab() {
         type: "writer-onboarding-phase-2",
         to: email,
         name,
-        templateId: "2abae03a-5233-404a-a506-4d73b3583382",
       }),
     });
     } else if (status === "rejected") {
@@ -870,7 +869,6 @@ function WritersTab() {
         type: "writer-onboarding-phase-2",
         to: email,
         name: writer.name,
-        templateId: "2abae03a-5233-404a-a506-4d73b3583382",
       }),
     });
     // Stamp the timestamp so admin knows email was sent
@@ -1140,16 +1138,11 @@ function WritersTab() {
                             {reminding === w.id ? "Sending…" : "🔔 Remind"}
                           </button>
                         </div>
-                        {w.slug && (
-                          <a
-                            href={`https://read.the-tiniest-library.com/reading-room/authors/${w.slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="adm-btn"
-                            style={{ fontSize: 9 }}
-                          >
-                            👁 View Profile →
-                          </a>
+                      {w.slug && (
+                          <div style={{ display: "flex", gap: 5 }}>
+                            <a href={`https://read.the-tiniest-library.com/reading-room/authors/${w.slug}`} target="_blank" rel="noopener noreferrer" className="adm-btn" style={{ fontSize: 9 }}>👁 Profile →</a>
+                            <a href={`https://write.the-tiniest-library.com/ttl-admin?tab=stories&writer=${w.slug}`} target="_blank" rel="noopener noreferrer" className="adm-btn adm-btn-approve" style={{ fontSize: 9 }}>📖 Stories →</a>
+                          </div>
                         )}
                       </div>
                     </td>
