@@ -1323,11 +1323,15 @@ const READING_ROOM_GENRES = [
                     <label className="editor-label">Bio</label>
                     <textarea
                       className="editor-textarea"
-                      style={{ minHeight: 120 }}
+                      style={{ minHeight: 180 }}
                       value={editBio}
+                      maxLength={3000}
                       onChange={e => setEditBio(e.target.value)}
                       placeholder="Tell readers about yourself…"
                     />
+                    <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 6 }}>
+                      {editBio.length}/3000 characters
+                    </div>
                   </div>
 
                   <div className="hq-divider" />
