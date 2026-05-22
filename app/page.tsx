@@ -30,8 +30,8 @@ const TWR_STYLES = `
     --ink-border: rgba(255,255,255,0.07);
     --ink-border-gold: rgba(201,168,76,0.26);
     --text-main: #f0ece2;
-    --text-dim: rgba(232,228,218,0.45);
-    --text-faint: rgba(232,228,218,0.25);
+    --text-dim: rgba(255,255,255,0.85);
+    --text-faint: rgba(255,255,255,0.65);
     --quill: #a78bfa;
     --quill-dim: rgba(167,139,250,0.25);
     --quill-glow: rgba(167,139,250,0.12);
@@ -114,7 +114,7 @@ box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
   .twr-nav-brand-sub {
     font-family: 'Syne', sans-serif;
     font-size: 10px; font-weight: 500;
-    color: rgba(255,255,255,0.32);
+    color: rgba(255,255,255,0.7);
     letter-spacing: 0.1em; text-transform: uppercase;
   }
 
