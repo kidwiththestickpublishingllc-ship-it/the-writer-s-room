@@ -1485,7 +1485,7 @@ export default function WritersRoomHome() {
           <div className="twr-nav-gold-line" />
           {/* Top row — brand + right actions */}
           <div className="twr-nav-top">
-            <a href="https://read.the-tiniest-library.com" className="twr-nav-brand">
+            <a href="https://www.the-tiniest-library.com" className="twr-nav-brand">
               <div className="twr-nav-logo-badge">TTL</div>
               <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
                 <span className="twr-nav-brand-main">The Tiniest Library</span>
