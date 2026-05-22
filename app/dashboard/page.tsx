@@ -550,16 +550,30 @@ const READING_ROOM_GENRES = [
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) { window.location.href = '/login'; return; }
         // Get writer profile
-        const { data: writerData } = await supabase
-        .from('writers')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .single();
+        let { data: writerData } = await supabase
+          .from('writers')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
 
+        // Auto-link: if no writer found by user_id, try matching by email
         if (!writerData) {
-          // Check if writer exists by auth user id
-          window.location.href = '/apply';
-          return;
+          const { data: writerByEmail } = await supabase
+            .from('writers')
+            .select('*')
+            .eq('email', session.user.email)
+            .maybeSingle();
+
+          if (writerByEmail) {
+            await supabase
+              .from('writers')
+              .update({ user_id: session.user.id })
+              .eq('id', writerByEmail.id);
+            writerData = { ...writerByEmail, user_id: session.user.id };
+          } else {
+            window.location.href = '/apply';
+            return;
+          }
         }
 
         setWriter(writerData);
