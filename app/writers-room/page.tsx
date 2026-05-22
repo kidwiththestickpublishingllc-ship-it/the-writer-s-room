@@ -1485,13 +1485,13 @@ export default function WritersRoomHome() {
           <div className="twr-nav-gold-line" />
           {/* Top row — brand + right actions */}
           <div className="twr-nav-top">
-            <button onClick={goHome} className="twr-nav-brand">
+            <a href="https://read.the-tiniest-library.com" className="twr-nav-brand">
               <div className="twr-nav-logo-badge">TTL</div>
               <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
                 <span className="twr-nav-brand-main">The Tiniest Library</span>
                 <span className="twr-nav-brand-sub">The Writer's Room</span>
               </div>
-            </button>
+            </a>
             <div className="twr-nav-right">
               <div className="twr-nav-badge"><span>🪶</span><span>{spotsLeft} Spots Left</span></div>
               <button
