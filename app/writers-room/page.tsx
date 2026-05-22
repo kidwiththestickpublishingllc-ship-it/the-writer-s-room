@@ -254,7 +254,7 @@ const QUILL_TOUR_STYLES = `
   @keyframes qt-bounce { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   .qt-eyebrow { font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase; color: rgba(167,139,250,0.6); margin-bottom: 10px; }
   .qt-title { font-family: 'Cormorant Garamond', serif; font-size: 34px; font-weight: 300; color: #f0ece2; line-height: 1.1; margin-bottom: 14px; white-space: pre-line; }
-  .qt-body { font-size: 13px; color: rgba(232,228,218,0.65); line-height: 1.75; max-width: 360px; margin-bottom: 16px; }
+  .qt-body { font-size: 15px; color: rgba(255,255,255,0.9); line-height: 1.75; max-width: 360px; margin-bottom: 16px; }
   .qt-highlight { display: flex; align-items: flex-start; gap: 8px; background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.2); border-radius: 10px; padding: 12px 16px; font-size: 12px; color: rgba(232,228,218,0.7); line-height: 1.6; text-align: left; max-width: 360px; }
   .qt-footer { display: flex; align-items: center; justify-content: space-between; padding: 20px 32px 28px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 8px; }
   .qt-skip { font-family: 'Syne', sans-serif; font-size: 10px; color: rgba(255,255,255,0.28); background: none; border: none; cursor: pointer; padding: 0; }
@@ -490,7 +490,7 @@ const TWR_STYLES = `
 
   .twr-hero-sub {
     font-family: 'Syne', sans-serif;
-    font-size: 15px; color: var(--text-dim);
+    font-size: 17px; color: rgba(255,255,255,0.95);
     max-width: 540px; line-height: 1.75; margin-bottom: 40px;
   }
 
@@ -545,7 +545,7 @@ const TWR_STYLES = `
 
   .twr-founding-sub {
     font-family: 'Syne', sans-serif;
-    font-size: 13px; color: var(--text-dim);
+    font-size: 15px; color: rgba(255,255,255,0.9);
     max-width: 480px; margin: 0 auto 28px;
     line-height: 1.7;
   }
@@ -640,7 +640,7 @@ const TWR_STYLES = `
 
   .twr-why-text {
     font-family: 'Syne', sans-serif;
-    font-size: 13px; color: var(--text-dim); line-height: 1.75;
+    font-size: 15px; color: rgba(255,255,255,0.9); line-height: 1.75;
   }
 
   /* HOW IT WORKS */
@@ -674,7 +674,7 @@ const TWR_STYLES = `
 
   .twr-step-text {
     font-family: 'Syne', sans-serif;
-    font-size: 13px; color: var(--text-dim); line-height: 1.7;
+    font-size: 15px; color: rgba(255,255,255,0.9); line-height: 1.7;
   }
 
   .twr-step-badge {
@@ -742,7 +742,7 @@ const TWR_STYLES = `
 
   .twr-ink-text {
     font-family: 'Syne', sans-serif;
-    font-size: 13px; color: var(--text-dim); line-height: 1.75;
+    font-size: 15px; color: rgba(255,255,255,0.9); line-height: 1.75;
   }
 
   .twr-ink-flow { display: flex; flex-direction: column; gap: 12px; }
@@ -949,7 +949,7 @@ const TWR_STYLES = `
 
   .twr-content-p {
     font-family: 'Syne', sans-serif;
-    font-size: 13px; color: var(--text-dim); line-height: 1.85;
+    font-size: 15px; color: rgba(255,255,255,0.9); line-height: 1.85;
     margin-bottom: 14px;
   }
 
@@ -971,7 +971,7 @@ const TWR_STYLES = `
 
   .twr-checklist-text {
     font-family: 'Syne', sans-serif;
-    font-size: 13px; color: var(--text-dim); line-height: 1.7;
+    font-size: 15px; color: rgba(255,255,255,0.9); line-height: 1.7;
   }
 
   .twr-checklist-text strong { color: var(--text-main); font-weight: 700; }
@@ -998,7 +998,7 @@ const TWR_STYLES = `
 
   .twr-info-panel-text {
     font-family: 'Syne', sans-serif;
-    font-size: 13px; color: var(--text-dim); line-height: 1.8;
+    font-size: 15px; color: rgba(255,255,255,0.9); line-height: 1.8;
   }
 
   .twr-info-panel-text strong { color: var(--gold-light); }
@@ -1035,7 +1035,7 @@ const TWR_STYLES = `
   .twr-faq-a {
     padding: 0 24px 20px;
     font-family: 'Syne', sans-serif;
-    font-size: 13px; color: var(--text-dim); line-height: 1.8;
+    font-size: 15px; color: rgba(255,255,255,0.9); line-height: 1.8;
     display: none;
   }
 
@@ -1088,7 +1088,7 @@ const TWR_STYLES = `
 
   .twr-contact-sent-text {
     font-family: 'Syne', sans-serif;
-    font-size: 13px; color: var(--text-dim); line-height: 1.7;
+    font-size: 15px; color: rgba(255,255,255,0.9); line-height: 1.7;
   }
 
   .twr-copyright-highlight {
