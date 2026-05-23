@@ -561,7 +561,7 @@ export default function ApplyPage() {
       <style>{STYLES}</style>
       <div className="ap-root">
         <TWRNav />
-        <div style={{ height: 74 }} />
+        <div style={{ height: 75 }} />
 
         {/* HERO */}
         <div className="ap-hero">
