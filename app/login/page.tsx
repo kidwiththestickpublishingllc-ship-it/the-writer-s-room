@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
+import { TWRNav } from "@/app/components/TWRNav";
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -308,7 +309,8 @@ export default function WritersRoomLogin() {
   return (
     <>
       <style>{STYLES}</style>
-      <div className="login-root">
+      <TWRNav />
+      <div className="login-root" style={{ paddingTop: 74 }}>
         <div className="login-card">
           <div className="login-card-top" />
           <div className="login-card-body">
