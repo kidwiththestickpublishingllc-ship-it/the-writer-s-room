@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { TWRNav, TWRFooter } from "@/app/components/TWRNav";
 
 // =========================
 // Route: app/apply/page.tsx
@@ -514,19 +515,8 @@ export default function ApplyPage() {
       <>
         <style>{STYLES}</style>
         <div className="ap-root">
-          <nav className="ap-nav">
-            <div className="ap-nav-line" />
-            <div className="ap-nav-inner">
-              <a href={TTL_WRITERS_ROOM} className="ap-nav-brand">
-                <div className="ap-nav-logo">TTL</div>
-                <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
-                  <span className="ap-nav-brand-main">The Tiniest Library</span>
-                  <span className="ap-nav-brand-sub">The Writer's Room</span>
-                </div>
-              </a>
-            </div>
-          </nav>
-          <div className="ap-spacer" />
+          <TWRNav />
+          <div style={{ height: 74 }} />
           <div className="ap-success">
             <div className="ap-success-seal">🪶</div>
             <span className="ap-success-eyebrow">Application Received</span>
@@ -570,21 +560,8 @@ export default function ApplyPage() {
     <>
       <style>{STYLES}</style>
       <div className="ap-root">
-        {/* NAV */}
-        <nav className="ap-nav">
-          <div className="ap-nav-line" />
-          <div className="ap-nav-inner">
-            <a href={TTL_WRITERS_ROOM} className="ap-nav-brand">
-              <div className="ap-nav-logo">TTL</div>
-              <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
-                <span className="ap-nav-brand-main">The Tiniest Library</span>
-                <span className="ap-nav-brand-sub">The Writer's Room</span>
-              </div>
-            </a>
-            <a href={TTL_WRITERS_ROOM} className="ap-nav-back">← Back</a>
-          </div>
-        </nav>
-        <div className="ap-spacer" />
+        <TWRNav />
+        <div style={{ height: 74 }} />
 
         {/* HERO */}
         <div className="ap-hero">
