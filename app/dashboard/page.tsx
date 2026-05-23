@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createBrowserClient } from "@supabase/ssr";
+import { TWRNav } from "@/app/components/TWRNav";
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -815,10 +816,10 @@ const READING_ROOM_GENRES = [
         <nav className="hq-nav">
           <div className="hq-nav-line" />
           <div className="hq-nav-inner">
-            <a href="https://write.the-tiniest-library.com" className="hq-nav-brand">
-              <div className="hq-nav-logo">TWR</div>
+            <a href="https://www.the-tiniest-library.com" className="hq-nav-brand">
+              <div className="hq-nav-logo">TTL</div>
               <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3 }}>
-                <span className="hq-nav-title">The Writer's Room</span>
+                <span className="hq-nav-title">The Tiniest Library</span>
                 <span className="hq-nav-sub">Writer HQ</span>
               </div>
             </a>
