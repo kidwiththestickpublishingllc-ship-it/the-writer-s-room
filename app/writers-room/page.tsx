@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ApprovalGate from "../components/ApprovalGate";
 import WriterAgreements from "../components/WriterAgreements";
+import { TWRNav, TWRFooter } from "@/app/components/TWRNav";
+
 // =========================
 // Quill Tour — FIXED
 // Bug 1: phase now starts as "idle" (not "modal")
@@ -1480,61 +1482,8 @@ export default function WritersRoomHome() {
     <>
       <style>{TWR_STYLES}</style>
       <div className="twr-root">
-{/* NAV */}
-        <nav className="twr-nav">
-          <div className="twr-nav-gold-line" />
-          {/* Top row — brand + right actions */}
-          <div className="twr-nav-top">
-            <a href="https://www.the-tiniest-library.com" target="_blank" rel="noopener noreferrer" className="twr-nav-brand">
-              <div className="twr-nav-logo-badge">TTL</div>
-              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
-                <span className="twr-nav-brand-main">The Tiniest Library</span>
-                <span className="twr-nav-brand-sub">The Writer's Room</span>
-              </div>
-            </a>
-            <div className="twr-nav-right">
-              <div className="twr-nav-badge"><span>🪶</span><span>{spotsLeft} Spots Left</span></div>
-              <button
-                onClick={() => window.dispatchEvent(new CustomEvent("twr-start-tour"))}
-                className="twr-btn-ghost"
-                style={{ fontSize: '9px', padding: '6px 14px', borderRadius: '999px' }}
-              >
-                🪶 Tour
-              </button>
-              <a href="/apply" className="twr-btn-primary" style={{ fontSize: '9px', padding: '6px 18px', borderRadius: '999px' }}>
-                Apply Now →
-              </a>
-            </div>
-          </div>
-          {/* Bottom row — nav links */}
-          <div className="twr-nav-bottom">
-            <div className="twr-nav-links">
-              {page === 'home' ? (
-                <>
-                  <a href="#why" className="twr-nav-link">Why TTL</a>
-                  <a href="#how" className="twr-nav-link">How It Works</a>
-                  <a href="#formats" className="twr-nav-link">Formats</a>
-                  <a href="#ink" className="twr-nav-link">Ink Revenue</a>
-                  <a href="#rules" className="twr-nav-link">Rules</a>
-                  {NAV_PAGES.map(p => (
-                    <button key={p.key} className="twr-nav-link" onClick={() => goPage(p.key)}>{p.label}</button>
-                  ))}
-                  <a href={TTL_READING_ROOM_URL} className="twr-nav-link" target="_blank" rel="noopener noreferrer">Reading Room</a>
-                </>
-              ) : (
-                <>
-                  <button className="twr-nav-link" onClick={goHome}>Home</button>
-                  {NAV_PAGES.map(p2 => (
-                    <button key={p2.key} className={`twr-nav-link${page === p2.key ? ' active' : ''}`} onClick={() => goPage(p2.key)}>{p2.label}</button>
-                  ))}
-                  <a href={TTL_READING_ROOM_URL} className="twr-nav-link" target="_blank" rel="noopener noreferrer">Reading Room</a>
-                </>
-              )}
-            </div>
-          </div>
-        </nav>
-
-        <div className="twr-nav-spacer" />
+<TWRNav />
+        <div style={{ height: 74 }} />
 
         {/* PAGE ROUTING */}
         {page === 'guidelines' && <PageSubmissionGuidelines onBack={goHome} />}
@@ -1704,14 +1653,14 @@ export default function WritersRoomHome() {
                 </div>
               </div>
 
-              <Footer onNavigate={goPage} />
+              <TWRFooter />
             </div>
           </>
         )}
 
         {page !== 'home' && (
           <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 40px 60px' }}>
-            <Footer onNavigate={goPage} />
+            <TWRFooter />
           </div>
         )}
 
