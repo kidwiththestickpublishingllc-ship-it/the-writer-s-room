@@ -384,6 +384,89 @@ case "writer-reminder": {
         });
         break;
       }
+      // ── Story Approved ──
+      case "story-approved": {
+        await resend.emails.send({
+          from: FROM,
+          to,
+          subject: `Your story is live on The Tiniest Library — ${data?.title}`,
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Georgia',serif;">
+              <div style="max-width:600px;margin:0 auto;background:#0f0f0f;border:1px solid rgba(201,168,76,0.2);border-radius:8px;overflow:hidden;">
+                <div style="height:3px;background:linear-gradient(90deg,transparent,#C9A84C,#E2C97E,#C9A84C,transparent);"></div>
+                <div style="padding:48px 40px;">
+                  <p style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 16px;">The Tiniest Library</p>
+                  <h1 style="font-family:'Georgia',serif;font-size:36px;font-weight:400;color:#f0ece2;margin:0 0 8px;">Your story is live.</h1>
+                  <p style="font-size:16px;font-style:italic;color:rgba(240,236,226,0.5);margin:0 0 32px;">${data?.title}</p>
+                  <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 20px;">Hi ${name},</p>
+                  <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 32px;">
+                    Your story has been reviewed and approved. It's now live in The Reading Room and appearing in your genre pages. Readers can find it, follow you, and start spending Ink on your chapters right now.
+                  </p>
+                  <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:24px;margin-bottom:32px;">
+                    <p style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 12px;">What happens now</p>
+                    <p style="font-size:14px;color:rgba(240,236,226,0.6);line-height:1.8;margin:0;">
+                      ✦ Your story is live in The Reading Room<br>
+                      ✦ It appears on your author profile automatically<br>
+                      ✦ Readers can unlock chapters with Ink<br>
+                      ✦ Tips go 100% to you — unlocks earn you 70%<br>
+                      ✦ Share your profile link everywhere you write
+                    </p>
+                  </div>
+                  <a href="${DASHBOARD_URL}" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;margin-bottom:32px;">
+                    Go to Your Dashboard →
+                  </a>
+                  <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;">
+                    <p style="font-size:12px;color:rgba(240,236,226,0.3);margin:0;">You keep your copyright. Always. · The Tiniest Library</p>
+                  </div>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+        });
+        break;
+      }
+
+      // ── Story Rejected ──
+      case "story-rejected": {
+        await resend.emails.send({
+          from: FROM,
+          to,
+          subject: `Your story submission — The Tiniest Library`,
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Georgia',serif;">
+              <div style="max-width:600px;margin:0 auto;background:#0f0f0f;border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow:hidden;">
+                <div style="height:3px;background:linear-gradient(90deg,transparent,rgba(201,168,76,0.4),transparent);"></div>
+                <div style="padding:48px 40px;">
+                  <p style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(201,168,76,0.5);margin:0 0 16px;">The Tiniest Library</p>
+                  <h1 style="font-family:'Georgia',serif;font-size:32px;font-weight:400;color:#f0ece2;margin:0 0 32px;">Thanks for submitting, ${name}.</h1>
+                  <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 20px;">
+                    We've reviewed your submission of <strong style="color:#f0ece2;">${data?.title}</strong> and we aren't able to publish it at this time.
+                  </p>
+                  ${data?.note ? `
+                  <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:24px;margin-bottom:32px;">
+                    <p style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(240,236,226,0.3);margin:0 0 10px;">Note from the team</p>
+                    <p style="font-size:14px;color:rgba(240,236,226,0.6);line-height:1.7;margin:0;">${data.note}</p>
+                  </div>` : ''}
+                  <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 32px;">
+                    You're welcome to revise and resubmit from your dashboard at any time.
+                  </p>
+                  <a href="${DASHBOARD_URL}?tab=submit" style="display:inline-block;border:1px solid rgba(201,168,76,0.3);color:#C9A84C;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;padding:12px 24px;border-radius:6px;text-decoration:none;">
+                    Revise & Resubmit →
+                  </a>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+        });
+        break;
+      }
+
       default:
         return NextResponse.json({ error: "Unknown email type" }, { status: 400 });      
     }
