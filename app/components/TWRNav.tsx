@@ -101,11 +101,11 @@ const TWR_NAV_STYLES = `
   .twr-shared-link {
     font-family: 'Times New Roman', Times, serif;
     font-size: 10px;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: rgba(240,236,226,0.75);
     text-decoration: none;
-    padding: 6px 12px;
+    padding: 6px 8px;
     border-radius: 4px;
     border: 1px solid transparent;
     transition: all 0.2s;

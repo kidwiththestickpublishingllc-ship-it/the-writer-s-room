@@ -1525,29 +1525,7 @@ export default function WritersRoomHome() {
                   <span className="twr-nav-brand-sub">The Writer's Room</span>
                 </div>
               </button>
-              <div className="twr-nav-links">
-                {page === 'home' ? (
-                  <>
-                    <a href="#why" className="twr-nav-link">Why TTL</a>
-                    <a href="#how" className="twr-nav-link">How It Works</a>
-                    <a href="#formats" className="twr-nav-link">Formats</a>
-                    <a href="#ink" className="twr-nav-link">Ink Revenue</a>
-                    <a href="#rules" className="twr-nav-link">Rules</a>
-                    {NAV_PAGES.map((p: { key: string; label: string }) => (
-                      <button key={p.key} className="twr-nav-link" onClick={() => goPage(p.key)}>{p.label}</button>
-                    ))}
-                    <a href={TTL_READING_ROOM_URL} className="twr-nav-link" target="_blank" rel="noopener noreferrer">Reading Room</a>
-                  </>
-                ) : (
-                  <>
-                    <button className="twr-nav-link" onClick={goHome}>Home</button>
-                    {NAV_PAGES.map((p2: { key: string; label: string }) => (
-                      <button key={p2.key} className={`twr-nav-link${page === p2.key ? ' active' : ''}`} onClick={() => goPage(p2.key)}>{p2.label}</button>
-                    ))}
-                    <a href={TTL_READING_ROOM_URL} className="twr-nav-link" target="_blank" rel="noopener noreferrer">Reading Room</a>
-                  </>
-                )}
-              </div>
+              
             </div>
             <div className="twr-nav-right">
               <div className="twr-nav-badge">
