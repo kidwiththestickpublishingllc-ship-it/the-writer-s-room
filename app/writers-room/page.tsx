@@ -306,7 +306,6 @@ const TWR_STYLES = `
     font-family: 'Syne', sans-serif;
     color: var(--text-main);
     position: relative;
-    overflow-x: hidden;
   }
 
   .twr-root::before {
