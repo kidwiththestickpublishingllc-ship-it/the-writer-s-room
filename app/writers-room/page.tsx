@@ -5,6 +5,7 @@ import ApprovalGate from "../components/ApprovalGate";
 import WriterAgreements from "../components/WriterAgreements";
 import { TWRNav, TWRFooter } from "@/app/components/TWRNav";
 
+
 // =========================
 // Quill Tour — FIXED
 // Bug 1: phase now starts as "idle" (not "modal")
@@ -318,150 +319,8 @@ const TWR_STYLES = `
     opacity: 0.35;
   }
 
-  /* NAV */
-  .twr-nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 40;
-    background: rgba(8,8,8,0.96);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--ink-border-gold);
-    box-shadow: 0 2px 40px rgba(0,0,0,0.7);
-  }
-
-  .twr-nav-gold-line {
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--gold), var(--quill), transparent);
-  }
-
-  .twr-nav-inner {
-    max-width: 1400px; margin: 0 auto; padding: 0 40px;
-    height: 72px; display: flex; align-items: center;
-    justify-content: space-between; gap: 24px;
-  }
-  .twr-nav-top {
-    max-width: 1400px; margin: 0 auto; padding: 0 40px;
-    height: 56px; display: flex; align-items: center;
-    justify-content: space-between; gap: 24px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-  .twr-nav-bottom {
-    max-width: 1400px; margin: 0 auto; padding: 0 40px;
-    height: 38px; display: flex; align-items: center;
-  }
-
-  .twr-nav-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-decoration: none;
-    flex-shrink: 0;
-    cursor: pointer;
-    background: none;
-    border: none;
-    padding: 0;
-  }
-
-  .twr-nav-logo-badge {
-    width: 36px; height: 36px;
-    display: flex; align-items: center; justify-content: center;
-    border-radius: 8px;
-    background: linear-gradient(135deg, var(--gold), #8a6510);
-    font-family: 'Syne', sans-serif;
-    font-size: 11px; font-weight: 700; color: #000;
-  }
-
-  .twr-nav-brand-main {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 17px; font-weight: 400;
-    color: var(--gold-light); letter-spacing: 0.02em;
-  }
-
-  .twr-nav-brand-sub {
-    font-family: 'Syne', sans-serif;
-    font-size: 10px; font-weight: 500;
-    color: rgba(255,255,255,0.32);
-    letter-spacing: 0.1em; text-transform: uppercase;
-  }
-
-  .twr-nav-links {
-    display: flex; align-items: center; gap: 2px;
-  }
-
-  .twr-nav-link {
-    font-family: 'Syne', sans-serif;
-    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
-    color: var(--text-dim); text-decoration: none;
-    padding: 6px 14px; border-radius: 4px;
-    border: 1px solid transparent;
-    transition: all 0.2s; white-space: nowrap;
-    background: none; cursor: pointer;
-  }
-
-  .twr-nav-link:hover, .twr-nav-link.active {
-    color: var(--gold-light);
-    border-color: var(--ink-border-gold);
-    background: var(--gold-glow);
-  }
-
-  .twr-nav-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-
-  .twr-nav-badge {
-    display: flex; align-items: center; gap: 6px;
-    font-family: 'Syne', sans-serif;
-    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-    color: var(--quill);
-    border: 1px solid var(--quill-dim);
-    background: var(--quill-glow);
-    padding: 6px 14px; border-radius: 999px;
-    white-space: nowrap;
-  }
-
-  .twr-btn-primary {
-    font-family: 'Syne', sans-serif;
-    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: #000;
-    background: linear-gradient(135deg, var(--gold), #8a6510);
-    border: none; padding: 13px 28px; border-radius: 8px;
-    text-decoration: none; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 8px;
-    font-weight: 700; transition: opacity 0.2s;
-  }
-
-  .twr-btn-primary:hover { opacity: 0.88; }
-
-  .twr-btn-ghost {
-    font-family: 'Syne', sans-serif;
-    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: rgba(232,228,218,0.6);
-    background: transparent;
-    border: 1px solid rgba(232,228,218,0.15);
-    padding: 13px 28px; border-radius: 8px;
-    text-decoration: none; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 8px;
-    transition: all 0.2s;
-  }
-
-  .twr-btn-ghost:hover {
-    color: var(--gold-light);
-    border-color: var(--gold-dim);
-    background: var(--gold-glow);
-  }
-
-  .twr-btn-quill {
-    font-family: 'Syne', sans-serif;
-    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: #000;
-    background: linear-gradient(135deg, var(--quill), #7c3aed);
-    border: none; padding: 13px 28px; border-radius: 8px;
-    text-decoration: none; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 8px;
-    font-weight: 700; transition: opacity 0.2s;
-  }
-
-  .twr-btn-quill:hover { opacity: 0.88; }
-
-  .twr-nav-spacer { height: 94px; }
+  <TWRNav />
+        <div style={{ height: 74 }} />
 
   /* HERO */
   .twr-hero {
