@@ -99,7 +99,7 @@ const STYLES = `
     width:220px; flex-shrink:0;
     border-right:1px solid var(--border);
     padding:32px 0;
-    position:sticky; top:64px; height:calc(100vh - 64px); overflow-y:auto;
+    position:sticky; top:74px; height:calc(100vh - 74px); overflow-y:auto;
   }
 
   .hq-nav-section {
@@ -764,8 +764,6 @@ const READING_ROOM_GENRES = [
       <TWRNav />
       <div style={{ height: 74 }} />
       <div className="hq-root">
-      <TWRNav />
-      <div style={{ height: 74 }} />
       {showWelcome && (
         <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)" }}>
           <div style={{ width: "100%", maxWidth: 620, background: "#0f0f0f", border: "1px solid rgba(201,168,76,0.35)", borderRadius: 16, overflow: "hidden", maxHeight: "90vh", overflowY: "auto" }}>
