@@ -15,7 +15,7 @@ const TTL_READING_ROOM_URL = "https://read.the-tiniest-library.com";
 // Styles
 // =========================
 const TWR_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;500;600;700&family=Press+Start+2P&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
 
   :root {
     --gold: #C9A84C;
@@ -31,8 +31,8 @@ const TWR_STYLES = `
     --ink-border: rgba(255,255,255,0.07);
     --ink-border-gold: rgba(201,168,76,0.26);
     --text-main: #f0ece2;
-    --text-dim: rgba(255,255,255,0.85);
-    --text-faint: rgba(255,255,255,0.65);
+    --text-dim: #ffffff;
+    --text-faint: rgba(255,255,255,0.85);
     --quill: #a78bfa;
     --quill-dim: rgba(167,139,250,0.25);
     --quill-glow: rgba(167,139,250,0.12);
@@ -41,7 +41,8 @@ const TWR_STYLES = `
   .twr-root {
     min-height: 100vh;
     background: radial-gradient(ellipse at 60% 20%, #1a0a2e 0%, #0d0618 40%, #060310 70%, #000000 100%);
-    font-family: 'Syne', sans-serif;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 16px;
     color: var(--text-main);
     position: relative;
     overflow-x: hidden;
