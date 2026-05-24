@@ -319,8 +319,7 @@ const TWR_STYLES = `
     opacity: 0.35;
   }
 
-  <TWRNav />
-        <div style={{ height: 74 }} />
+  
 
   /* HERO */
   .twr-hero {
