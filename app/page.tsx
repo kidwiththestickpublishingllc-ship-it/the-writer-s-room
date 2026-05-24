@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import WritersRoomAdPanel from './components/WritersRoomAdPanel'
+import { TWRNav, TWRFooter } from "@/app/components/TWRNav";
 
 // =========================
 // Constants
@@ -1496,7 +1497,7 @@ function Footer({ onNavigate }: NavigateProps) {
 export default function WritersRoomHome() {
   const [spotsLeft] = useState(87);
   const [page, setPage] = useState('home');
-  const [menuOpen, setMenuOpen] = useState(false); // 'home' | 'guidelines' | 'faqs' | 'copyright' | 'contact'
+   // 'home' | 'guidelines' | 'faqs' | 'copyright' | 'contact'
 
   const goHome = () => { setPage('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const goPage = (p: string) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
@@ -1514,84 +1515,17 @@ export default function WritersRoomHome() {
       <div className="twr-root">
 
         {/* NAV */}
-        <nav className="twr-nav">
-          <div className="twr-nav-gold-line" />
-          <div className="twr-nav-inner">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 40, minWidth: 0 }}>
-              <button onClick={goHome} className="twr-nav-brand">
-                <div className="twr-nav-logo-badge">TTL</div>
-                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
-                  <span className="twr-nav-brand-main">The Tiniest Library</span>
-                  <span className="twr-nav-brand-sub">The Writer's Room</span>
-                </div>
-              </button>
-              
-            </div>
-            <div className="twr-nav-right">
-              <div className="twr-nav-badge">
-                <span>🪶</span>
-                <span>{spotsLeft} Spots Left</span>
-              </div>
-              <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-primary" style={{ fontSize: '10px', padding: '8px 20px', borderRadius: '999px' }}>
-                Apply Now →
-              </a>
-              <button
-                onClick={() => setMenuOpen(o => !o)}
-                style={{ display: 'none', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 5, width: 36, height: 36, background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, cursor: 'pointer', padding: 0, flexShrink: 0 }}
-                className="twr-hamburger"
-                aria-label="Menu"
-              >
-                <span style={{ width: 18, height: 1.5, background: '#f0ece2', borderRadius: 2, display: 'block', transform: menuOpen ? 'rotate(45deg) translate(4px, 4px)' : 'none', transition: 'all 0.2s' }} />
-                <span style={{ width: 18, height: 1.5, background: '#f0ece2', borderRadius: 2, display: 'block', opacity: menuOpen ? 0 : 1, transition: 'all 0.2s' }} />
-                <span style={{ width: 18, height: 1.5, background: '#f0ece2', borderRadius: 2, display: 'block', transform: menuOpen ? 'rotate(-45deg) translate(4px, -4px)' : 'none', transition: 'all 0.2s' }} />
-              </button>
-            </div>
-          </div>
-        </nav>
+        <TWRNav />
+        <div style={{ height: 74 }} />
+        
 
-        {/* Mobile dropdown menu */}
-        {menuOpen && (
-          <div style={{ position: 'fixed', top: 64, left: 0, right: 0, zIndex: 39, background: 'rgba(8,6,14,0.98)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(201,168,76,0.2)', padding: '16px 24px 24px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <button onClick={() => { goHome(); setMenuOpen(false); }} style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,228,218,0.6)', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '14px 0', textAlign: 'left', cursor: 'pointer', width: '100%' }}>🏠 Home</button>
-            <button onClick={() => { const el = document.getElementById('why'); el?.scrollIntoView({ behavior: 'smooth' }); setMenuOpen(false); }} style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,228,218,0.6)', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '14px 0', textAlign: 'left', cursor: 'pointer', width: '100%' }}>✨ Why TTL</button>
-            <button onClick={() => { const el = document.getElementById('how'); el?.scrollIntoView({ behavior: 'smooth' }); setMenuOpen(false); }} style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,228,218,0.6)', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '14px 0', textAlign: 'left', cursor: 'pointer', width: '100%' }}>⚙️ How It Works</button>
-            <button onClick={() => { const el = document.getElementById('ink'); el?.scrollIntoView({ behavior: 'smooth' }); setMenuOpen(false); }} style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,228,218,0.6)', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '14px 0', textAlign: 'left', cursor: 'pointer', width: '100%' }}>✒️ Ink Revenue</button>
-            {NAV_PAGES.map(p => (
-              <button key={p.key} onClick={() => { goPage(p.key); setMenuOpen(false); }} style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,228,218,0.6)', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '14px 0', textAlign: 'left', cursor: 'pointer', width: '100%' }}>{p.label}</button>
-            ))}
-            <button onClick={() => { window.dispatchEvent(new CustomEvent("twr-start-tour")); setMenuOpen(false); }} style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,228,218,0.6)', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '14px 0', textAlign: 'left', cursor: 'pointer', width: '100%' }}>🪶 Take the Tour</button>
-            <a href={TTL_SUBMIT_URL} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)} style={{ marginTop: 16, display: 'block', textAlign: 'center', padding: 14, background: 'linear-gradient(135deg,#C9A84C,#8a6510)', color: '#000', fontFamily: "'Syne',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', borderRadius: 8, textDecoration: 'none' }}>Apply Now →</a>
-          </div>
-        )}
+        
          
-        <div className="twr-nav-spacer" />
+        
 
         {/* ── Mobile Bottom Nav ── */}
-        <nav className="twr-bottom-nav">
-          <div className="twr-bottom-nav-inner">
-            <button className="twr-bottom-nav-item" onClick={goHome}>
-              <span className="twr-bottom-nav-icon">🏠</span>
-              <span className="twr-bottom-nav-label">Home</span>
-            </button>
-            <button className="twr-bottom-nav-item" onClick={() => goPage('guidelines')}>
-              <span className="twr-bottom-nav-icon">📋</span>
-              <span className="twr-bottom-nav-label">Rules</span>
-            </button>
-            <button className="twr-bottom-nav-item" onClick={() => goPage('faqs')}>
-              <span className="twr-bottom-nav-icon">❓</span>
-              <span className="twr-bottom-nav-label">FAQs</span>
-            </button>
-            <button className="twr-bottom-nav-item" onClick={() => goPage('contact')}>
-              <span className="twr-bottom-nav-icon">✉️</span>
-              <span className="twr-bottom-nav-label">Contact</span>
-            </button>
-            <a href="https://write.the-tiniest-library.com/apply" className="twr-bottom-nav-item">
-              <span className="twr-bottom-nav-icon">🪶</span>
-              <span className="twr-bottom-nav-label">Apply</span>
-            </a>
-          </div>
-        </nav>
-        <div className="twr-bottom-nav-spacer" />
+        
+        
 
         {/* PAGE ROUTING */}
         {page === 'guidelines' && <PageSubmissionGuidelines onBack={goHome} />}
@@ -1814,7 +1748,7 @@ export default function WritersRoomHome() {
               </div>
 
               {/* FOOTER */}
-              <Footer onNavigate={goPage} />
+              <TWRFooter />
             </div>
           </>
         )}
@@ -1822,7 +1756,7 @@ export default function WritersRoomHome() {
         {/* Footer on sub-pages */}
         {page !== 'home' && (
           <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 40px 60px' }}>
-            <Footer onNavigate={goPage} />
+            <TWRFooter />
           </div>
         )}
 
