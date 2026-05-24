@@ -745,6 +745,8 @@ const READING_ROOM_GENRES = [
       <>
         <style>{STYLES}</style>
         <div className="hq-root">
+          <TWRNav />
+          <div style={{ height: 74 }} />
           <div className="loading-wrap" style={{ minHeight: '100vh' }}>
             <div className="spinner" />
             <p className="loading-text">Loading your Writer HQ…</p>
@@ -759,7 +761,11 @@ const READING_ROOM_GENRES = [
   return (
     <>
       <style>{STYLES}</style>
+      <TWRNav />
+      <div style={{ height: 74 }} />
       <div className="hq-root">
+      <TWRNav />
+      <div style={{ height: 74 }} />
       {showWelcome && (
         <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)" }}>
           <div style={{ width: "100%", maxWidth: 620, background: "#0f0f0f", border: "1px solid rgba(201,168,76,0.35)", borderRadius: 16, overflow: "hidden", maxHeight: "90vh", overflowY: "auto" }}>
