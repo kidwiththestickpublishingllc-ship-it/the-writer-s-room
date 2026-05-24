@@ -464,6 +464,10 @@ export default function WriterDashboard() {
   const [storyFormat, setStoryFormat] = useState<'serial' | 'standalone'>('serial');
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [coverMode, setCoverMode] = useState<'upload' | 'url'>('url');
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [docxChapters, setDocxChapters] = useState<{ title: string; content: string; isFree: boolean }[]>([]);
+  const [docxProcessing, setDocxProcessing] = useState(false);
   const [mediaItems, setMediaItems] = useState<any[]>([]);
   const [mediaUploading, setMediaUploading] = useState(false);
   const [mediaTitle, setMediaTitle] = useState('');
@@ -504,7 +508,7 @@ const READING_ROOM_GENRES = [
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-]/g, '');
 
-      const { error } = await supabase.from('stories').insert({
+      const { data: storyData, error } = await supabase.from('stories').insert({
         title: storyTitle,
         slug: `${slug}-${Date.now()}`,
         author_name: writer?.name,
@@ -515,7 +519,7 @@ const READING_ROOM_GENRES = [
         is_published: false,
         room: storyRoom,
         genre: storyGenre,
-      });
+      }).select().single();
 
       if (error) throw error;
 
@@ -530,6 +534,18 @@ const READING_ROOM_GENRES = [
           data: { title: storyTitle, genre: storyGenre, room: storyRoom }
         }),
       });
+      
+if (docxChapters.length > 0 && storyData?.id) {
+        const chaptersToInsert = docxChapters.map((ch, i) => ({
+          story_id: storyData.id,
+          chapter_number: i + 1,
+          title: ch.title,
+          content: ch.content,
+          is_free: ch.isFree,
+          ink_cost: ch.isFree ? 0 : 25,
+        }));
+        await supabase.from('chapters').insert(chaptersToInsert);
+      }
 
       setSubmitSuccess(true);
       setStoryTitle('');
@@ -1487,22 +1503,83 @@ const READING_ROOM_GENRES = [
                       </div>
                     </div>
 
-                    {/* Cover URL */}
+                   {/* Cover Art */}
                     <div className="editor-field">
-                      <label className="editor-label">Cover Image URL <span style={{ color: 'var(--text-dim)', fontSize: 10 }}>(optional)</span></label>
-                      <input
-                        className="editor-input"
-                        placeholder="https://your-cover-image.jpg"
-                        value={storyCover}
-                        onChange={e => setStoryCover(e.target.value)}
-                      />
+                      <label className="editor-label">Cover Art <span style={{ color: 'var(--text-dim)', fontSize: 10 }}>(optional)</span></label>
+                      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                        <button onClick={() => setCoverMode('upload')} style={{ flex: 1, padding: '8px', borderRadius: 6, cursor: 'pointer', border: coverMode === 'upload' ? '1px solid var(--gold)' : '1px solid var(--border)', background: coverMode === 'upload' ? 'var(--gold-glow)' : 'var(--ink2)', color: coverMode === 'upload' ? 'var(--gold-light)' : 'var(--text-muted)', fontFamily: 'var(--font-ui)', fontSize: 11 }}>⬆ Upload File</button>
+                        <button onClick={() => setCoverMode('url')} style={{ flex: 1, padding: '8px', borderRadius: 6, cursor: 'pointer', border: coverMode === 'url' ? '1px solid var(--gold)' : '1px solid var(--border)', background: coverMode === 'url' ? 'var(--gold-glow)' : 'var(--ink2)', color: coverMode === 'url' ? 'var(--gold-light)' : 'var(--text-muted)', fontFamily: 'var(--font-ui)', fontSize: 11 }}>🔗 Paste URL</button>
+                      </div>
+                      {coverMode === 'url' ? (
+                        <input className="editor-input" placeholder="https://your-cover-image.jpg" value={storyCover} onChange={e => setStoryCover(e.target.value)} />
+                      ) : (
+                        <div>
+                          <input type="file" accept="image/*" id="cover-upload" style={{ display: 'none' }} onChange={async e => {
+                            const file = e.target.files?.[0];
+                            if (!file || !writer) return;
+                            setCoverUploading(true);
+                            const ext = file.name.split('.').pop();
+                            const path = `covers/${writer.id}-${Date.now()}.${ext}`;
+                            const { error } = await supabase.storage.from('story-media').upload(path, file, { upsert: true });
+                            if (!error) {
+                              const { data: { publicUrl } } = supabase.storage.from('story-media').getPublicUrl(path);
+                              setStoryCover(publicUrl);
+                            }
+                            setCoverUploading(false);
+                          }} />
+                          <label htmlFor="cover-upload" style={{ display: 'inline-block', padding: '10px 20px', borderRadius: 6, border: '1px dashed var(--border)', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', fontSize: 12, cursor: 'pointer' }}>
+                            {coverUploading ? 'Uploading…' : '+ Choose cover image'}
+                          </label>
+                        </div>
+                      )}
                       {storyCover && (
-                        <img
-                          src={storyCover}
-                          alt="Cover preview"
-                          style={{ marginTop: 12, width: 120, height: 160, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--border)' }}
-                          onError={e => (e.currentTarget.style.display = 'none')}
-                        />
+                        <img src={storyCover} alt="Cover preview" style={{ marginTop: 12, width: 120, height: 160, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--border)' }} onError={e => (e.currentTarget.style.display = 'none')} />
+                      )}
+                    </div>
+
+                    {/* .docx Upload + Chapter Splitter */}
+                    <div className="editor-field">
+                      <label className="editor-label">Upload Manuscript <span style={{ color: 'var(--text-dim)', fontSize: 10 }}>.docx file</span></label>
+                      <input type="file" accept=".docx" id="docx-upload" style={{ display: 'none' }} onChange={async e => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setDocxProcessing(true);
+                        const reader = new FileReader();
+                        reader.onload = async ev => {
+                          try {
+                            const mammoth = await import('mammoth');
+                            const result = await mammoth.extractRawText({ arrayBuffer: ev.target?.result as ArrayBuffer });
+                            const raw = result.value;
+                            setDocxChapters([{ title: 'Chapter 1', content: raw, isFree: true }]);
+                          } catch { setDocxChapters([{ title: 'Chapter 1', content: 'Could not extract text. Please paste content manually.', isFree: true }]); }
+                          setDocxProcessing(false);
+                        };
+                        reader.readAsArrayBuffer(file);
+                      }} />
+                      <label htmlFor="docx-upload" style={{ display: 'inline-block', padding: '10px 20px', borderRadius: 6, border: '1px dashed var(--border)', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', fontSize: 12, cursor: 'pointer' }}>
+                        {docxProcessing ? 'Processing…' : '+ Upload .docx manuscript'}
+                      </label>
+
+                      {docxChapters.length > 0 && (
+                        <div style={{ marginTop: 16 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-ui)' }}>{docxChapters.length} chapter{docxChapters.length > 1 ? 's' : ''} detected</span>
+                            <button onClick={() => setDocxChapters(c => [...c, { title: `Chapter ${c.length + 1}`, content: '', isFree: false }])} style={{ fontSize: 11, color: 'var(--gold-light)', background: 'none', border: '1px solid var(--gold-dim)', borderRadius: 6, padding: '4px 12px', cursor: 'pointer', fontFamily: 'var(--font-ui)' }}>+ Add Chapter</button>
+                          </div>
+                          {docxChapters.map((ch, i) => (
+                            <div key={i} style={{ background: 'var(--ink2)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, marginBottom: 10 }}>
+                              <div style={{ display: 'flex', gap: 10, marginBottom: 10, alignItems: 'center' }}>
+                                <span style={{ fontSize: 11, color: 'var(--text-dim)', fontFamily: 'var(--font-ui)', flexShrink: 0 }}>#{i + 1}</span>
+                                <input value={ch.title} onChange={e => setDocxChapters(c => c.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} style={{ flex: 1, background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 6, padding: '6px 10px', color: 'var(--text)', fontFamily: 'var(--font-ui)', fontSize: 12 }} placeholder="Chapter title" />
+                                <button onClick={() => setDocxChapters(c => c.map((x, j) => j === i ? { ...x, isFree: !x.isFree } : x))} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)', background: ch.isFree ? 'rgba(100,200,100,0.1)' : 'var(--ink)', color: ch.isFree ? '#6dc96d' : 'var(--text-dim)', fontFamily: 'var(--font-ui)', fontSize: 10, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                                  {ch.isFree ? '🔓 Free' : '🔒 Paid'}
+                                </button>
+                                {docxChapters.length > 1 && <button onClick={() => setDocxChapters(c => c.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 14 }}>✕</button>}
+                              </div>
+                              <textarea value={ch.content} onChange={e => setDocxChapters(c => c.map((x, j) => j === i ? { ...x, content: e.target.value } : x))} style={{ width: '100%', minHeight: 120, background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 6, padding: '10px 12px', color: 'var(--text)', fontFamily: 'var(--font-display)', fontSize: 13, lineHeight: 1.7, resize: 'vertical', boxSizing: 'border-box' }} placeholder="Paste or edit chapter content here…" />
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
 
