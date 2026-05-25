@@ -1121,6 +1121,25 @@ function WritersTab() {
                           >
                             {w.is_founding_author ? "↓ Founding" : "↑ Founding"}
                           </button>
+                          <button
+                            className="adm-btn"
+                            style={{
+                              color: (w as any).tier === 'tier1' ? '#a78bfa' : 'var(--text-dim)',
+                              borderColor: (w as any).tier === 'tier1' ? 'rgba(167,139,250,0.4)' : 'var(--ink-border)',
+                              background: (w as any).tier === 'tier1' ? 'rgba(167,139,250,0.1)' : 'transparent',
+                              fontWeight: (w as any).tier === 'tier1' ? 700 : 400,
+                            }}
+                            onClick={async () => {
+                              const newTier = (w as any).tier === 'tier1' ? 'tier2' : 'tier1';
+                              await supabase.from('writers').update({
+                                tier: newTier,
+                                publisher_label: newTier === 'tier1' ? 'Kid With The Stick Publishing LLC' : null
+                              }).eq('id', w.id);
+                              load();
+                            }}
+                          >
+                            {(w as any).tier === 'tier1' ? '🏢 Kid Signed' : '↑ Sign to Kid'}
+                          </button>
                         </div>
                         <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                           <button
