@@ -220,7 +220,7 @@ function AdsTab() {
 // Protected by Supabase auth
 // =========================
 
-type Tab = "applications" | "stories" | "writers" | "agreements" | "ink" | "media" | "payouts" | "members";
+type Tab = "applications" | "stories" | "writers" | "agreements" | "ink" | "media" | "payouts" | "members" | "world";
 
 type Application = {
   id: string;
@@ -1447,12 +1447,205 @@ function MembersTab() {
     </div>
   );
 }
+
+// ── World Content Tab ─────────────────────────────────────────
+function WorldContentTab() {
+  const [glossary, setGlossary] = useState<any[]>([]);
+  const [characters, setCharacters] = useState<any[]>([]);
+  const [locations, setLocations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [section, setSection] = useState<"glossary" | "characters" | "locations">("glossary");
+
+  useEffect(() => { load(); }, []);
+
+  async function load() {
+    setLoading(true);
+    const [g, c, l] = await Promise.all([
+      supabase.from("glossary").select("*, stories(title, author_name)").order("created_at", { ascending: false }),
+      supabase.from("characters").select("*, stories(title, author_name)").order("created_at", { ascending: false }),
+      supabase.from("story_locations").select("*, stories(title, author_name)").order("created_at", { ascending: false }),
+    ]);
+    setGlossary(g.data ?? []);
+    setCharacters(c.data ?? []);
+    setLocations(l.data ?? []);
+    setLoading(false);
+  }
+
+  async function approve(table: string, id: string) {
+    await supabase.from(table).update({ is_approved: true }).eq("id", id);
+    load();
+  }
+
+  async function reject(table: string, id: string) {
+    await supabase.from(table).delete().eq("id", id);
+    load();
+  }
+
+  const pendingG = glossary.filter(i => !i.is_approved);
+  const pendingC = characters.filter(i => !i.is_approved);
+  const pendingL = locations.filter(i => !i.is_approved);
+  const totalPending = pendingG.length + pendingC.length + pendingL.length;
+
+  const btnStyle = (s: string) => ({
+    fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase" as const,
+    padding: "6px 14px", borderRadius: 999, cursor: "pointer", transition: "all 0.2s",
+    background: section === s ? "var(--gold-glow)" : "transparent",
+    border: section === s ? "1px solid var(--gold-dim)" : "1px solid var(--ink-border)",
+    color: section === s ? "var(--gold-light)" : "var(--text-faint)",
+  });
+
+  return (
+    <div>
+      {/* Summary strip */}
+      <div className="adm-stats" style={{ gridTemplateColumns: "repeat(4, 1fr)", marginBottom: 24 }}>
+        <div className="adm-stat-card"><div className="adm-stat-num" style={{ color: totalPending > 0 ? "var(--amber)" : "var(--green)" }}>{totalPending}</div><div className="adm-stat-label">Pending Review</div></div>
+        <div className="adm-stat-card"><div className="adm-stat-num">{pendingG.length}</div><div className="adm-stat-label">Glossary Terms</div></div>
+        <div className="adm-stat-card"><div className="adm-stat-num">{pendingC.length}</div><div className="adm-stat-label">Characters</div></div>
+        <div className="adm-stat-card"><div className="adm-stat-num">{pendingL.length}</div><div className="adm-stat-label">Locations</div></div>
+      </div>
+
+      {/* Section filter */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+        <button style={btnStyle("glossary")} onClick={() => setSection("glossary")}>
+          📖 Glossary {pendingG.length > 0 && `(${pendingG.length})`}
+        </button>
+        <button style={btnStyle("characters")} onClick={() => setSection("characters")}>
+          👤 Characters {pendingC.length > 0 && `(${pendingC.length})`}
+        </button>
+        <button style={btnStyle("locations")} onClick={() => setSection("locations")}>
+          🗺️ Locations {pendingL.length > 0 && `(${pendingL.length})`}
+        </button>
+      </div>
+
+      {loading ? <div className="adm-loading">Loading…</div> : (
+        <>
+          {/* GLOSSARY */}
+          {section === "glossary" && (
+            <div className="adm-table-wrap">
+              <div className="adm-table-header">
+                <span className="adm-table-title">Glossary Terms</span>
+                <span className="adm-table-count">{glossary.length} total · {pendingG.length} pending</span>
+              </div>
+              {glossary.length === 0 ? (
+                <div className="adm-empty"><div className="adm-empty-title">No glossary terms yet.</div></div>
+              ) : (
+                <table>
+                  <thead><tr><th>Term</th><th>Definition</th><th>Story</th><th>Author</th><th>Chapter</th><th>Status</th><th>Actions</th></tr></thead>
+                  <tbody>
+                    {glossary.map(item => (
+                      <tr key={item.id}>
+                        <td><div className="adm-cell-name" style={{ color: "var(--gold-light)" }}>{item.term}</div></td>
+                        <td style={{ maxWidth: 300 }}><div style={{ fontSize: 11, color: "var(--text-dim)", lineHeight: 1.5 }}>{item.definition?.slice(0, 120)}{item.definition?.length > 120 ? "…" : ""}</div></td>
+                        <td><div className="adm-cell-sub">{item.stories?.title ?? "—"}</div></td>
+                        <td><div className="adm-cell-sub">{item.stories?.author_name ?? "—"}</div></td>
+                        <td><span style={{ fontSize: 10, color: "var(--text-faint)" }}>Ch. {item.chapter_first_appears}</span></td>
+                        <td><span className={`adm-status ${item.is_approved ? "adm-status-approved" : "adm-status-pending"}`}>{item.is_approved ? "Approved" : "Pending"}</span></td>
+                        <td>
+                          <div className="adm-actions">
+                            {!item.is_approved && <button className="adm-btn adm-btn-approve" onClick={() => approve("glossary", item.id)}>Approve</button>}
+                            <button className="adm-btn adm-btn-reject" onClick={() => reject("glossary", item.id)}>Remove</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
+          {/* CHARACTERS */}
+          {section === "characters" && (
+            <div className="adm-table-wrap">
+              <div className="adm-table-header">
+                <span className="adm-table-title">Characters</span>
+                <span className="adm-table-count">{characters.length} total · {pendingC.length} pending</span>
+              </div>
+              {characters.length === 0 ? (
+                <div className="adm-empty"><div className="adm-empty-title">No characters yet.</div></div>
+              ) : (
+                <table>
+                  <thead><tr><th>Character</th><th>Backstory</th><th>Story</th><th>Author</th><th>Chapter</th><th>Status</th><th>Actions</th></tr></thead>
+                  <tbody>
+                    {characters.map(char => (
+                      <tr key={char.id}>
+                        <td>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            {char.image_url && <img src={char.image_url} alt={char.name} style={{ width: 32, height: 32, borderRadius: 4, objectFit: "cover", flexShrink: 0 }} />}
+                            <div className="adm-cell-name" style={{ color: "#84b0f5" }}>{char.name}</div>
+                          </div>
+                        </td>
+                        <td style={{ maxWidth: 280 }}><div style={{ fontSize: 11, color: "var(--text-dim)", lineHeight: 1.5 }}>{char.backstory?.slice(0, 100)}{char.backstory?.length > 100 ? "…" : ""}</div></td>
+                        <td><div className="adm-cell-sub">{char.stories?.title ?? "—"}</div></td>
+                        <td><div className="adm-cell-sub">{char.stories?.author_name ?? "—"}</div></td>
+                        <td><span style={{ fontSize: 10, color: "var(--text-faint)" }}>Ch. {char.chapter_introduced}</span></td>
+                        <td><span className={`adm-status ${char.is_approved ? "adm-status-approved" : "adm-status-pending"}`}>{char.is_approved ? "Approved" : "Pending"}</span></td>
+                        <td>
+                          <div className="adm-actions">
+                            {!char.is_approved && <button className="adm-btn adm-btn-approve" onClick={() => approve("characters", char.id)}>Approve</button>}
+                            <button className="adm-btn adm-btn-reject" onClick={() => reject("characters", char.id)}>Remove</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
+          {/* LOCATIONS */}
+          {section === "locations" && (
+            <div className="adm-table-wrap">
+              <div className="adm-table-header">
+                <span className="adm-table-title">Map Locations</span>
+                <span className="adm-table-count">{locations.length} total · {pendingL.length} pending</span>
+              </div>
+              {locations.length === 0 ? (
+                <div className="adm-empty"><div className="adm-empty-title">No locations yet.</div></div>
+              ) : (
+                <table>
+                  <thead><tr><th>Location</th><th>Description</th><th>Story</th><th>Author</th><th>Type</th><th>Unlocks</th><th>Status</th><th>Actions</th></tr></thead>
+                  <tbody>
+                    {locations.map(loc => (
+                      <tr key={loc.id}>
+                        <td>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <div style={{ width: 10, height: 10, borderRadius: "50%", background: loc.accent_color, flexShrink: 0 }} />
+                            <div className="adm-cell-name">{loc.name}</div>
+                          </div>
+                        </td>
+                        <td style={{ maxWidth: 240 }}><div style={{ fontSize: 11, color: "var(--text-dim)", lineHeight: 1.5 }}>{loc.description?.slice(0, 80)}{loc.description?.length > 80 ? "…" : ""}</div></td>
+                        <td><div className="adm-cell-sub">{loc.stories?.title ?? "—"}</div></td>
+                        <td><div className="adm-cell-sub">{loc.stories?.author_name ?? "—"}</div></td>
+                        <td><span style={{ fontSize: 9, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{loc.location_type}</span></td>
+                        <td><span style={{ fontSize: 10, color: "var(--text-faint)" }}>Ch. {loc.chapter_unlocks_at}</span></td>
+                        <td><span className={`adm-status ${loc.is_approved ? "adm-status-approved" : "adm-status-pending"}`}>{loc.is_approved ? "Approved" : "Pending"}</span></td>
+                        <td>
+                          <div className="adm-actions">
+                            {!loc.is_approved && <button className="adm-btn adm-btn-approve" onClick={() => approve("story_locations", loc.id)}>Approve</button>}
+                            <button className="adm-btn adm-btn-reject" onClick={() => reject("story_locations", loc.id)}>Remove</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── Main Dashboard ────────────────────────────────────────────
 export default function AdminDashboard() {
   const [session, setSession] = useState<any>(null);
   const [checking, setChecking] = useState(true);
   const [tab, setTab] = useState<Tab>("applications");
-  const [counts, setCounts] = useState({ applications: 0, stories: 0, writers: 0, agreements: 0, media: 0, members: 0 });
+  const [counts, setCounts] = useState({ applications: 0, stories: 0, writers: 0, agreements: 0, media: 0, members: 0, world: 0 });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -1465,13 +1658,16 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!session) return;
     async function loadCounts() {
-      const [apps, stories, writers, agreements, media, members] = await Promise.all([
+      const [apps, stories, writers, agreements, media, members, glossary, characters, locations] = await Promise.all([
         supabase.from("applications").select("id", { count: "exact" }).eq("status", "pending"),
         supabase.from("stories").select("id", { count: "exact" }).eq("is_published", false),
         supabase.from("writers").select("id", { count: "exact" }),
         supabase.from("agreements").select("id", { count: "exact" }),
         supabase.from("story_media").select("id", { count: "exact" }).eq("is_approved", false),
         supabase.from("profiles").select("id", { count: "exact" }),
+        supabase.from("glossary").select("id", { count: "exact" }).eq("is_approved", false),
+        supabase.from("characters").select("id", { count: "exact" }).eq("is_approved", false),
+        supabase.from("story_locations").select("id", { count: "exact" }).eq("is_approved", false),
       ]);
       setCounts({
         applications: apps.count ?? 0,
@@ -1480,6 +1676,7 @@ export default function AdminDashboard() {
         agreements: agreements.count ?? 0,
         media: media.count ?? 0,
         members: members.count ?? 0,
+        world: (glossary.count ?? 0) + (characters.count ?? 0) + (locations.count ?? 0),
       });
     }
     loadCounts();
@@ -1495,6 +1692,7 @@ export default function AdminDashboard() {
     { key: "agreements" as Tab, label: "Agreements", count: counts.agreements, countColor: "green" },
     { key: "ink" as Tab, label: "Ink & Revenue", count: 0, countColor: "" },
     { key: "media" as Tab, label: "Media Review", count: counts.media, countColor: "green" },
+    { key: "world" as Tab, label: "World Content", count: counts.world, countColor: "green" },
     { key: "payouts" as Tab, label: "Payouts", count: 0, countColor: "" },
     { key: "members" as Tab, label: "Members", count: counts.members, countColor: "green" },
   ];
@@ -1505,6 +1703,7 @@ export default function AdminDashboard() {
     agreements: "Agreements",
     ink: "Ink & Revenue",
     media: "Media Review",
+    world: "World Content",
     payouts: "Payout Requests",
     members: "Members",
   };
@@ -1559,6 +1758,7 @@ export default function AdminDashboard() {
             {tab === "members" && <MembersTab />}
             {tab === "agreements" && <AgreementsTab />}
             {tab === "ink" && <InkTab />}
+            {tab === "world" && <WorldContentTab />}
           </div>
         </main>
       </div>
