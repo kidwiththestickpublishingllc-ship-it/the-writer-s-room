@@ -667,11 +667,30 @@ function StoriesTab() {
     setItems(data ?? []);
     setLoading(false);
   }
-  async function approveStory(id: string, authorEmail: string, title: string) {
+  async function approveStory(id: string, authorEmail: string, title: string, slug?: string) {
     await supabase.from("stories").update({ is_published: true }).eq("id", id);
+    
+    // Email 1 — story approved
     await fetch("/api/email", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "story-approved", to: authorEmail, data: { title } }),
+    });
+    
+    // Email 2 — social share nudge
+    const { data: writer } = await supabase
+      .from('writers')
+      .select('name')
+      .eq('email', authorEmail)
+      .single();
+    
+    await fetch("/api/email", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "story-live-share",
+        to: authorEmail,
+        name: writer?.name ?? authorEmail,
+        data: { title, slug: slug ?? '' }
+      }),
     });
     load();
   }
@@ -730,8 +749,9 @@ function StoriesTab() {
                   <td><span className={`adm-status ${s.is_published ? "adm-status-approved" : "adm-status-pending"}`}>{s.is_published ? "Published" : "Pending"}</span></td>
                   <td style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     {!s.is_published && (
-                      <button className="adm-btn adm-btn-approve" onClick={() => approveStory(s.id, s.author_email ?? "", s.title)}>Publish</button>
+                      <button className="adm-btn adm-btn-approve" onClick={() => approveStory(s.id, s.author_email ?? "", s.title, s.slug)}>Publish</button>
                     )}
+                                                            
                     {s.is_published && (
                       <button className="adm-btn adm-btn-reject" onClick={() => togglePublish(s.id, true)}>Unpublish</button>
                     )}
@@ -1473,6 +1493,37 @@ function WorldContentTab() {
 
   async function approve(table: string, id: string) {
     await supabase.from(table).update({ is_approved: true }).eq("id", id);
+    
+    // Get writer email and story title to notify
+    const item = [...glossary, ...characters, ...locations].find(i => i.id === id);
+    if (item?.stories?.author_name) {
+      // Get writer email
+      const { data: writer } = await supabase
+        .from('writers')
+        .select('email, name')
+        .eq('name', item.stories.author_name)
+        .single();
+      
+      if (writer?.email) {
+        const contentType = table === 'glossary' ? 'glossary term' 
+          : table === 'characters' ? 'character card' 
+          : 'map location';
+        await fetch('/api/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'world-content-approved',
+            to: writer.email,
+            name: writer.name,
+            data: {
+              story_title: item.stories.title,
+              content_type: contentType,
+              items_approved: `1 ${contentType} approved`
+            }
+          })
+        });
+      }
+    }
     load();
   }
 

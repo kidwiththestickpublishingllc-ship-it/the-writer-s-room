@@ -467,6 +467,171 @@ case "writer-reminder": {
         break;
       }
 
+      // ── World Content Approved ──
+      case "world-content-approved": {
+        await resend.emails.send({
+          from: FROM,
+          to,
+          subject: `Your world content is live on TTL — ${data?.story_title}`,
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Georgia',serif;">
+              <div style="max-width:600px;margin:0 auto;background:#0f0f0f;border:1px solid rgba(201,168,76,0.2);border-radius:8px;overflow:hidden;">
+                <div style="height:3px;background:linear-gradient(90deg,transparent,#C9A84C,#a78bfa,transparent);"></div>
+                <div style="padding:48px 40px;">
+                  <p style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 16px;">The Tiniest Library</p>
+                  <h1 style="font-family:'Georgia',serif;font-size:32px;font-weight:400;color:#f0ece2;margin:0 0 8px;">Your world is live.</h1>
+                  <p style="font-size:15px;font-style:italic;color:rgba(240,236,226,0.5);margin:0 0 32px;">${data?.story_title}</p>
+                  <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 20px;">Hi ${name},</p>
+                  <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 32px;">
+                    Your ${data?.content_type ?? 'world content'} for <strong style="color:#f0ece2;">${data?.story_title}</strong> has been reviewed and approved. It's now live and will unlock for readers as they progress through your story.
+                  </p>
+                  <div style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);border-radius:8px;padding:24px;margin-bottom:32px;">
+                    <p style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(167,139,250,0.7);margin:0 0 12px;">What was approved</p>
+                    <p style="font-size:14px;color:rgba(240,236,226,0.7);line-height:1.8;margin:0;">
+                      ${data?.items_approved ?? 'Your submitted content'} — approved and live in the Reading Room.
+                    </p>
+                  </div>
+                  <a href="${DASHBOARD_URL}" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;">
+                    View Your Dashboard →
+                  </a>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+        });
+        break;
+      }
+
+      // ── Story Live — Social Share Nudge ──
+      case "story-live-share": {
+        await resend.emails.send({
+          from: FROM,
+          to,
+          subject: `Your story is live — time to share it 🕯️`,
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Georgia',serif;">
+              <div style="max-width:600px;margin:0 auto;background:#0f0f0f;border:1px solid rgba(201,168,76,0.2);border-radius:8px;overflow:hidden;">
+                <div style="height:3px;background:linear-gradient(90deg,transparent,#C9A84C,transparent);"></div>
+                <div style="padding:48px 40px;">
+                  <p style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 16px;">The Tiniest Library</p>
+                  <h1 style="font-family:'Georgia',serif;font-size:32px;font-weight:400;color:#f0ece2;margin:0 0 8px;">${data?.title} is live.</h1>
+                  <p style="font-size:15px;font-style:italic;color:rgba(240,236,226,0.5);margin:0 0 32px;">Now let your readers find it.</p>
+                  <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 32px;">
+                    Hi ${name}, your story is published and live in The Reading Room. The next step is getting eyes on it. Here's how to spread the word:
+                  </p>
+                  <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-radius:8px;padding:24px;margin-bottom:24px;">
+                    <p style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 16px;">Share your story link</p>
+                    <p style="font-size:14px;color:rgba(240,236,226,0.7);line-height:1.8;margin:0 0 12px;">
+                      Your story is live at:
+                    </p>
+                    <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(201,168,76,0.2);border-radius:6px;padding:12px 16px;font-family:monospace;font-size:13px;color:#C9A84C;margin-bottom:16px;">
+                      ${READING_ROOM_URL}/stories/${data?.slug}
+                    </div>
+                    <p style="font-size:13px;color:rgba(240,236,226,0.6);line-height:1.8;margin:0;">
+                      ✦ Post your link on Instagram, X, TikTok, and anywhere you write online<br>
+                      ✦ Tell your existing audience exactly where to find you on TTL<br>
+                      ✦ Pin it. Link it in your bio. Put it everywhere.<br>
+                      ✦ The first 3 chapters are free — make it easy for new readers to start
+                    </p>
+                  </div>
+                  <div style="background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.18);border-radius:8px;padding:24px;margin-bottom:32px;">
+                    <p style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(167,139,250,0.7);margin:0 0 12px;">Your author profile</p>
+                    <p style="font-size:13px;color:rgba(240,236,226,0.6);line-height:1.8;margin:0;">
+                      Share your author profile too — readers can follow you there and get notified every time you drop a new chapter.
+                    </p>
+                  </div>
+                  <a href="${DASHBOARD_URL}" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;margin-bottom:16px;">
+                    Go to Your Dashboard →
+                  </a>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+        });
+        break;
+      }
+
+      // ── First Reader Celebration ──
+      case "first-unlock": {
+        await resend.emails.send({
+          from: FROM,
+          to,
+          subject: `Your first reader just unlocked your story 🎉`,
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Georgia',serif;">
+              <div style="max-width:600px;margin:0 auto;background:#0f0f0f;border:1px solid rgba(201,168,76,0.2);border-radius:8px;overflow:hidden;">
+                <div style="height:3px;background:linear-gradient(90deg,transparent,#4ade80,#C9A84C,transparent);"></div>
+                <div style="padding:48px 40px;">
+                  <p style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 16px;">The Tiniest Library</p>
+                  <h1 style="font-family:'Georgia',serif;font-size:32px;font-weight:400;color:#f0ece2;margin:0 0 8px;">Someone just paid to read your work.</h1>
+                  <p style="font-size:16px;font-style:italic;color:rgba(240,236,226,0.5);margin:0 0 32px;">This is what it feels like.</p>
+                  <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 32px;">
+                    Hi ${name}, a reader just spent Ink to unlock <strong style="color:#f0ece2;">${data?.chapter_title}</strong> of <strong style="color:#f0ece2;">${data?.story_title}</strong>. That's real money, from a real person, who chose your story.
+                  </p>
+                  <div style="background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:24px;margin-bottom:32px;text-align:center;">
+                    <p style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(74,222,128,0.7);margin:0 0 8px;">You earned</p>
+                    <p style="font-family:'Georgia',serif;font-size:48px;font-weight:400;color:#4ade80;margin:0 0 4px;">${data?.amount ?? '$0.18'}</p>
+                    <p style="font-size:12px;color:rgba(240,236,226,0.4);margin:0;">70% of the unlock — yours to keep</p>
+                  </div>
+                  <p style="font-size:14px;color:rgba(240,236,226,0.6);line-height:1.8;margin:0 0 32px;">
+                    Keep writing. Keep publishing. Every chapter you drop is another chance for this to happen again.
+                  </p>
+                  <a href="${DASHBOARD_URL}" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;">
+                    See Your Earnings →
+                  </a>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+        });
+        break;
+      }
+
+      // ── Payout Processed ──
+      case "payout-processed": {
+        await resend.emails.send({
+          from: FROM,
+          to,
+          subject: `Your payout has been sent — The Tiniest Library`,
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Georgia',serif;">
+              <div style="max-width:600px;margin:0 auto;background:#0f0f0f;border:1px solid rgba(201,168,76,0.2);border-radius:8px;overflow:hidden;">
+                <div style="height:3px;background:linear-gradient(90deg,transparent,#4ade80,transparent);"></div>
+                <div style="padding:48px 40px;">
+                  <p style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 16px;">The Tiniest Library</p>
+                  <h1 style="font-family:'Georgia',serif;font-size:32px;font-weight:400;color:#f0ece2;margin:0 0 8px;">Your payout is on its way.</h1>
+                  <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 32px;">Hi ${name}, your payout of <strong style="color:#4ade80;">${data?.amount}</strong> has been processed via <strong style="color:#f0ece2;">${data?.method}</strong> to ${data?.handle}.</p>
+                  <div style="background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:24px;margin-bottom:32px;">
+                    <p style="font-size:13px;color:rgba(240,236,226,0.6);line-height:1.8;margin:0;">
+                      ✦ Amount: <strong style="color:#4ade80;">${data?.amount}</strong><br>
+                      ✦ Method: ${data?.method}<br>
+                      ✦ Sent to: ${data?.handle}<br>
+                      ✦ Please allow 1-2 business days for funds to arrive.
+                    </p>
+                  </div>
+                  <a href="${DASHBOARD_URL}" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;">
+                    View Your Earnings →
+                  </a>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+        });
+        break;
+      }
+
       default:
         return NextResponse.json({ error: "Unknown email type" }, { status: 400 });      
     }
