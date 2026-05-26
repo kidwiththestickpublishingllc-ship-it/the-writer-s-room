@@ -632,6 +632,36 @@ case "writer-reminder": {
         break;
       }
 
+      // ── Admin Message to Member ──
+      case "admin-message": {
+        await resend.emails.send({
+          from: FROM,
+          to,
+          subject: `A message from The Tiniest Library`,
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Georgia',serif;">
+              <div style="max-width:600px;margin:0 auto;background:#0f0f0f;border:1px solid rgba(201,168,76,0.2);border-radius:8px;overflow:hidden;">
+                <div style="height:3px;background:linear-gradient(90deg,transparent,#C9A84C,transparent);"></div>
+                <div style="padding:48px 40px;">
+                  <p style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 16px;">The Tiniest Library</p>
+                  <h1 style="font-family:'Georgia',serif;font-size:28px;font-weight:400;color:#f0ece2;margin:0 0 32px;">A message for you, ${name}.</h1>
+                  <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:24px;margin-bottom:32px;">
+                    <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.9;margin:0;">${data?.message}</p>
+                  </div>
+                  <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;">
+                    <p style="font-size:12px;color:rgba(240,236,226,0.3);margin:0;">The Tiniest Library · hello@the-tiniest-library.com</p>
+                  </div>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+        });
+        break;
+      }
+
       default:
         return NextResponse.json({ error: "Unknown email type" }, { status: 400 });      
     }
