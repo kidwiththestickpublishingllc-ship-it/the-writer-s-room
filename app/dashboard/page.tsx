@@ -1046,12 +1046,12 @@ if (docxChapters.length > 0 && storyData?.id) {
     try {
       // Insert payout request — you'd wire this to Stripe/PayPal etc.
       const { error } = await supabase
-        .from('payouts')
+        .from('payout_requests')
         .insert({
           writer_id: writer?.id,
-          amount_usd: unpaidTotal,
-          method: payoutMethod,
-          handle: payoutHandle,
+          amount: unpaidTotal,
+          payout_method: payoutMethod,
+          payout_email: payoutHandle,
           status: 'pending',
         });
 
