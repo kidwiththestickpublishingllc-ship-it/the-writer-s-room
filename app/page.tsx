@@ -424,9 +424,10 @@ box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
   .twr-why-card {
     background: var(--ink-surface);
     border: 1px solid var(--ink-border);
-    border-radius: 16px; padding: 36px 28px;
-    transition: border-color 0.25s, transform 0.2s;
+    border-radius: 0; padding: 36px 28px;
+    transition: border-color 0.25s, transform 0.2s, box-shadow 0.25s;
     position: relative; overflow: hidden;
+    box-shadow: 4px 4px 0px rgba(201,168,76,0.4);
   }
 
   .twr-why-card::before {
@@ -438,7 +439,7 @@ box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
     transform-origin: left;
   }
 
-  .twr-why-card:hover { border-color: var(--ink-border-gold); transform: translateY(-3px); }
+  .twr-why-card:hover { border-color: var(--gold); transform: translateY(-3px); box-shadow: 6px 6px 0px rgba(201,168,76,0.6); }
   .twr-why-card:hover::before { transform: scaleX(1); }
 
   .twr-why-num {
@@ -448,15 +449,15 @@ box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
   }
 
   .twr-why-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 13px; font-weight: 700; letter-spacing: 0.12em;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 16px; font-weight: 700; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--gold-light);
     margin-bottom: 14px;
   }
 
   .twr-why-text {
-    font-family: 'Syne', sans-serif;
-    font-size: 13px; color: var(--text-dim); line-height: 1.75;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 16px; color: #ffffff; line-height: 1.75;
   }
 
   /* HOW IT WORKS */
@@ -466,11 +467,12 @@ box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
     display: flex; align-items: flex-start; gap: 24px;
     background: var(--ink-surface);
     border: 1px solid var(--ink-border);
-    border-radius: 12px; padding: 28px 32px;
-    transition: border-color 0.2s;
+    border-radius: 0; padding: 28px 32px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 4px 4px 0px rgba(201,168,76,0.4);
   }
 
-  .twr-step:hover { border-color: var(--ink-border-gold); }
+  .twr-step:hover { border-color: var(--gold); box-shadow: 6px 6px 0px rgba(201,168,76,0.6); }
 
   .twr-step-num {
     font-family: 'Cormorant Garamond', serif;
@@ -482,15 +484,15 @@ box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
   .twr-step-body { flex: 1; }
 
   .twr-step-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--text-main);
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 16px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #ffffff;
     margin-bottom: 8px;
   }
 
   .twr-step-text {
-    font-family: 'Syne', sans-serif;
-    font-size: 13px; color: var(--text-dim); line-height: 1.7;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 16px; color: #ffffff; line-height: 1.7;
   }
 
   .twr-step-badge {
@@ -509,28 +511,30 @@ box-shadow: 0 2px 40px rgba(100,0,200,0.15), 0 0 0 1px rgba(167,139,250,0.08);
   .twr-format-card {
     background: var(--ink-surface2);
     border: 1px solid var(--ink-border);
-    border-radius: 12px; padding: 20px 16px;
+    border-radius: 0; padding: 20px 16px;
     text-align: center; transition: all 0.2s; cursor: default;
+    box-shadow: 3px 3px 0px rgba(201,168,76,0.35);
   }
 
   .twr-format-card:hover {
-    border-color: var(--quill-dim);
-    background: var(--quill-glow);
+    border-color: var(--gold);
+    background: var(--gold-glow);
     transform: translateY(-2px);
+    box-shadow: 5px 5px 0px rgba(201,168,76,0.55);
   }
 
   .twr-format-icon { font-size: 24px; margin-bottom: 10px; display: block; }
 
   .twr-format-label {
-    font-family: 'Syne', sans-serif;
-    font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--text-main);
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 14px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #ffffff;
     margin-bottom: 6px;
   }
 
   .twr-format-desc {
-    font-family: 'Syne', sans-serif;
-    font-size: 10px; color: var(--text-faint); line-height: 1.6;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 13px; color: #ffffff; line-height: 1.6;
   }
 
   /* INK EXPLAINER */
