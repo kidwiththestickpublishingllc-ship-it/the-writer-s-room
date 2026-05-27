@@ -1766,10 +1766,9 @@ if (docxChapters.length > 0 && storyData?.id) {
                 {showSubmitModal && (
                   <div
                     id="submit-modal-overlay"
-                    style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', overflowY: 'auto', padding: '24px 40px' }}
-                    onClick={e => { if (e.target === e.currentTarget) setShowSubmitModal(false); }}
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', overflowY: 'auto' }}
                   >
-                    <div style={{ width: '100%', maxWidth: '100%', background: '#ffffff', borderRadius: 0, border: '2px solid #C9A84C', boxShadow: '8px 8px 0px rgba(201,168,76,0.4)', position: 'relative', marginBottom: 40, minHeight: 'calc(100vh - 48px)' }}>
+                    <div style={{ width: '100%', background: '#ffffff', borderRadius: 0, borderTop: '4px solid #C9A84C', borderBottom: '4px solid #C9A84C', position: 'relative', minHeight: '100vh' }}>
                       {/* Gold top line */}
                       <div style={{ height: 4, background: 'linear-gradient(90deg, #C9A84C, #6495ED, #C9A84C)' }} />
                       {/* Header */}
@@ -1781,7 +1780,7 @@ if (docxChapters.length > 0 && storyData?.id) {
                         <button onClick={() => setShowSubmitModal(false)} style={{ background: 'none', border: '1px solid rgba(201,168,76,0.4)', borderRadius: 0, width: 36, height: 36, fontSize: 16, cursor: 'pointer', color: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                       </div>
                       {/* Form body */}
-                      <div style={{ padding: '40px 56px', color: '#1a1a2e' }} className="submit-modal-body">
+                      <div style={{ padding: '48px 80px', color: '#1a1a2e', maxWidth: 1200, margin: '0 auto' }} className="submit-modal-body">
 
                 {submitSuccess ? (
                   <div className="empty-state">
@@ -1793,7 +1792,7 @@ if (docxChapters.length > 0 && storyData?.id) {
                     </button>
                   </div>
                 ) : (
-                  <div style={{ maxWidth: 680 }}>
+                  <div style={{ maxWidth: 900, margin: '0 auto' }}>
 
                     {/* Room selector */}
                     <div className="editor-field">
