@@ -775,6 +775,8 @@ export default function WriterDashboard() {
   const [storyTitle, setStoryTitle] = useState('');
   const [storyRoom, setStoryRoom] = useState<'reading-room' | 'red-room'>('reading-room');
   const [storyGenre, setStoryGenre] = useState('');
+  const [storySubGenre, setStorySubGenre] = useState('');
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [storyDescription, setStoryDescription] = useState('');
   const [storyCover, setStoryCover] = useState('');
   const [storyFormat, setStoryFormat] = useState<'serial' | 'standalone'>('serial');
@@ -795,14 +797,46 @@ export default function WriterDashboard() {
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type });
   };
-const READING_ROOM_GENRES = [
-    'Literary Fiction', 'Dark Academia', 'Mystery', 'Thriller', 'Horror',
-    'Sci-Fi', 'Fantasy', 'Romance', 'Historical Fiction', 'Crime',
-    'Adventure', 'Drama', 'Supernatural', 'Slice of Life', 'Comedy',
-    'Psychological', 'Political', 'War', 'Western', 'Biography/Memoir',
-    'Short Stories', 'Poetry', 'Novella', 'Experimental'
+const GENRE_GROUPS = [
+    {
+      group: 'Romance / Relationship',
+      subgenres: ['Age-Gap Romance', 'Billionaire Romance', 'Office Romance', 'Casino Romance', 'Young Love', 'Reverse Harem', 'Yaoi', 'Dark Romance', 'Roman Love Story', 'African American Romance']
+    },
+    {
+      group: 'Fantasy / Supernatural',
+      subgenres: ['Dark Fantasy', 'Gothic Horror', 'Magical Girl', 'Magical Boy', 'Monster Romance', 'Fairyland Fantasy', 'Mecha', 'Isekai', 'Dark-Fantasy Romance']
+    },
+    {
+      group: 'Manga / Comic / Visual Style',
+      subgenres: ['Manga', 'Manga Style', 'Comic Book Style', 'Watercolor Manga', 'Retro Comic', 'Seinen']
+    },
+    {
+      group: 'Horror / Thriller',
+      subgenres: ['Gothic Horror', '60s Horror', 'Horror Romance', 'Monster Castle', 'Psychological Horror']
+    },
+    {
+      group: 'Slice of Life / Specialty',
+      subgenres: ['Cooking', 'Cooking Romance', 'Adult Literature', 'Smut', 'Sexy Classy', 'Mature Romance']
+    },
+    {
+      group: 'Literary / General Fiction',
+      subgenres: ['Literary Fiction', 'Dark Academia', 'Mystery', 'Thriller', 'Crime', 'Adventure', 'Drama', 'Comedy', 'Psychological', 'Political', 'War', 'Western', 'Biography/Memoir', 'Short Stories', 'Poetry', 'Novella', 'Experimental']
+    },
+    {
+      group: 'Sci-Fi / Futuristic',
+      subgenres: ['Sci-Fi', 'Futuristic', 'Mecha', '3D Style', 'Cinematic']
+    },
+    {
+      group: 'Audience / Tone',
+      subgenres: ['PG', 'Tasteful', 'Mature', 'Adult', 'Sexy', 'Classy']
+    },
+    {
+      group: 'Aesthetic / Visual Mood',
+      subgenres: ['Purple Lighting', 'Futuristic', '3D Style', 'Watercolor', 'Japanese Oriented', 'Comic Noir', 'Cinematic']
+    },
   ];
 
+  const READING_ROOM_GENRES = GENRE_GROUPS.flatMap(g => g.subgenres);
   const RED_ROOM_GENRES = [
     'Dark Romance', 'Erotica', 'BDSM', 'Paranormal Romance', 'Taboo',
     'Age Gap', 'Forbidden', 'Reverse Harem', 'Monster Romance', 'Vampire',
@@ -834,7 +868,7 @@ const READING_ROOM_GENRES = [
         badge: storyFormat === 'serial' ? 'Serial' : null,
         is_published: false,
         room: storyRoom,
-        genre: storyGenre,
+        genre: storySubGenre || storyGenre,
       }).select().single();
 
       if (error) throw error;
@@ -847,7 +881,7 @@ const READING_ROOM_GENRES = [
           type: 'story-submitted',
           to: 'kidwiththestickpublishingllc@gmail.com',
           name: writer?.name,
-          data: { title: storyTitle, genre: storyGenre, room: storyRoom }
+          data: { title: storyTitle, genre: storySubGenre || storyGenre, room: storyRoom }
         }),
       });
       
@@ -1708,6 +1742,28 @@ if (docxChapters.length > 0 && storyData?.id) {
               <div className="fade-up">
                 <div className="hq-page-header">
                   <span className="hq-page-eyebrow">Publish</span>
+                  <h1 className="hq-page-title">Submit Your Story</h1>
+                  <p className="hq-page-sub">Fill in all details below. You have full editorial control before submission.</p>
+                </div>
+                <button className="btn-primary" onClick={() => setShowSubmitModal(true)} style={{ marginBottom: 24 }}>
+                  Open Full Submission Form →
+                </button>
+
+                {showSubmitModal && (
+                  <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }}>
+                    <div style={{ width: '100%', maxWidth: 800, background: '#ffffff', borderRadius: 0, border: '2px solid #C9A84C', boxShadow: '8px 8px 0px rgba(201,168,76,0.4)', position: 'relative' }}>
+                      {/* Gold top line */}
+                      <div style={{ height: 4, background: 'linear-gradient(90deg, #C9A84C, #6495ED, #C9A84C)' }} />
+                      {/* Header */}
+                      <div style={{ padding: '32px 40px 24px', borderBottom: '1px solid rgba(201,168,76,0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: 6 }}>The Tiniest Library — Writer Submission</div>
+                          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 300, color: '#1a1a2e' }}>Submit Your Story</div>
+                        </div>
+                        <button onClick={() => setShowSubmitModal(false)} style={{ background: 'none', border: '1px solid rgba(201,168,76,0.4)', borderRadius: 0, width: 36, height: 36, fontSize: 16, cursor: 'pointer', color: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                      </div>
+                      {/* Form body */}
+                      <div style={{ padding: '32px 40px', color: '#1a1a2e' }}>
 
                 {submitSuccess ? (
                   <div className="empty-state">
@@ -1761,24 +1817,39 @@ if (docxChapters.length > 0 && storyData?.id) {
                         className="editor-input"
                         placeholder="Enter your story title…"
                         value={storyTitle}
+                        style={{ background: '#f8f8f8', border: '1px solid rgba(201,168,76,0.4)', color: '#1a1a2e', borderRadius: 0 }}
                         onChange={e => setStoryTitle(e.target.value)}
                       />
                     </div>
 
-                    {/* Genre */}
+                    {/* Genre + Sub-genre */}
                     <div className="editor-field">
                       <label className="editor-label">Genre *</label>
-                      <select
-                        className="editor-input"
-                        value={storyGenre}
-                        onChange={e => setStoryGenre(e.target.value)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <option value="">Select a genre…</option>
-                        {(storyRoom === 'reading-room' ? READING_ROOM_GENRES : RED_ROOM_GENRES).map(g => (
-                          <option key={g} value={g}>{g}</option>
-                        ))}
-                      </select>
+                      {storyRoom === 'reading-room' ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                          <select className="editor-input" value={storyGenre} onChange={e => { setStoryGenre(e.target.value); setStorySubGenre(''); }} style={{ cursor: 'pointer' }}>
+                            <option value="">Select a genre group…</option>
+                            {GENRE_GROUPS.map(g => (
+                              <option key={g.group} value={g.group}>{g.group}</option>
+                            ))}
+                          </select>
+                          {storyGenre && (
+                            <select className="editor-input" value={storySubGenre} onChange={e => setStorySubGenre(e.target.value)} style={{ cursor: 'pointer' }}>
+                              <option value="">Select a sub-genre…</option>
+                              {GENRE_GROUPS.find(g => g.group === storyGenre)?.subgenres.map(s => (
+                                <option key={s} value={s}>{s}</option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+                      ) : (
+                        <select className="editor-input" value={storyGenre} onChange={e => setStoryGenre(e.target.value)} style={{ cursor: 'pointer' }}>
+                          <option value="">Select a genre…</option>
+                          {RED_ROOM_GENRES.map(g => (
+                            <option key={g} value={g}>{g}</option>
+                          ))}
+                        </select>
+                      )}
                     </div>
 
                     {/* Format */}
@@ -1893,7 +1964,7 @@ if (docxChapters.length > 0 && storyData?.id) {
                                 <button onClick={() => setDocxChapters(c => c.map((x, j) => j === i ? { ...x, isFree: !x.isFree } : x))} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)', background: ch.isFree ? 'rgba(100,200,100,0.1)' : 'var(--ink)', color: ch.isFree ? '#6dc96d' : 'var(--text-dim)', fontFamily: 'var(--font-ui)', fontSize: 10, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                                   {ch.isFree ? '🔓 Free' : '🔒 Paid'}
                                 </button>
-                                {docxChapters.length > 1 && <button onClick={() => setDocxChapters(c => c.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 14 }}>✕</button>}
+                                <button onClick={() => setDocxChapters(c => c.filter((_, j) => j !== i))} style={{ background: 'none', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 4, color: '#f87171', cursor: 'pointer', fontSize: 12, padding: '2px 8px' }}>✕ Delete</button>
                               </div>
                               <textarea value={ch.content} onChange={e => setDocxChapters(c => c.map((x, j) => j === i ? { ...x, content: e.target.value } : x))} style={{ width: '100%', minHeight: 120, background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 6, padding: '10px 12px', color: 'var(--text)', fontFamily: 'var(--font-display)', fontSize: 13, lineHeight: 1.7, resize: 'vertical', boxSizing: 'border-box' }} placeholder="Paste or edit chapter content here…" />
                             </div>
@@ -1918,8 +1989,11 @@ if (docxChapters.length > 0 && storyData?.id) {
                     </div>
                   </div>
                 )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-             </div>
             )}
 {/* ── WORLD BUILDING ── */}
             {tab === 'world' && (
