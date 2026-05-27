@@ -360,8 +360,22 @@ const STYLES = `
   .toast-success { background:#1a2e1a; border:1px solid rgba(74,222,128,0.4); color:var(--green); }
   .toast-error { background:#2e1a1a; border:1px solid rgba(248,113,113,0.4); color:var(--red); }
 
-  /* ── DIVIDER ── */
-  .hq-divider { height:1px; background:linear-gradient(to right,var(--gold-dim),transparent); margin:32px 0; }
+  /* ── SUBMIT MODAL LIGHT OVERRIDES ── */
+  .submit-modal-body .editor-label { color: #8a6510; }
+  .submit-modal-body .editor-input {
+    background: #f8f8f8; border: 1px solid rgba(201,168,76,0.35);
+    color: #1a1a2e; border-radius: 0;
+  }
+  .submit-modal-body .editor-input:focus { border-color: #C9A84C; }
+  .submit-modal-body .editor-textarea {
+    background: #f8f8f8; border: 1px solid rgba(201,168,76,0.35);
+    color: #1a1a2e; border-radius: 0;
+  }
+  .submit-modal-body .editor-textarea:focus { border-color: #C9A84C; }
+  .submit-modal-body .editor-field { margin-bottom: 20px; }
+  .submit-modal-body .hq-divider { background: linear-gradient(to right, rgba(201,168,76,0.4), transparent); }
+  .submit-modal-body .badge-free { color: #166534; border-color: rgba(22,101,52,0.3); background: rgba(22,101,52,0.08); }
+  .submit-modal-body .badge-locked { color: #6b7280; border-color: #d1d5db; background: #f3f4f6; }
 
   @media (max-width:1100px) {
     .hq-stats { grid-template-columns:repeat(2,1fr); }
@@ -1763,7 +1777,7 @@ if (docxChapters.length > 0 && storyData?.id) {
                         <button onClick={() => setShowSubmitModal(false)} style={{ background: 'none', border: '1px solid rgba(201,168,76,0.4)', borderRadius: 0, width: 36, height: 36, fontSize: 16, cursor: 'pointer', color: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                       </div>
                       {/* Form body */}
-                      <div style={{ padding: '32px 40px', color: '#1a1a2e' }}>
+                      <div style={{ padding: '32px 40px', color: '#1a1a2e' }} className="submit-modal-body">
 
                 {submitSuccess ? (
                   <div className="empty-state">
