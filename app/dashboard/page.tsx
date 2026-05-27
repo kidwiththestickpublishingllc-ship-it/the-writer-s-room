@@ -1143,6 +1143,168 @@ if (docxChapters.length > 0 && storyData?.id) {
       <style>{STYLES}</style>
       <TWRNav />
       <div style={{ height: 74 }} />
+
+      {showSubmitModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, background: 'rgba(0,0,0,0.75)', overflowY: 'auto' }}>
+          <div style={{ width: '100%', minHeight: '100vh', background: '#ffffff', borderTop: '4px solid #C9A84C' }}>
+            <div style={{ padding: '32px 56px 24px', borderBottom: '1px solid rgba(201,168,76,0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 10, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div>
+                <div style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: 6 }}>The Tiniest Library — Writer Submission</div>
+                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 300, color: '#1a1a2e' }}>Submit Your Story</div>
+              </div>
+              <button onClick={() => setShowSubmitModal(false)} style={{ background: 'none', border: '2px solid #C9A84C', borderRadius: 0, width: 44, height: 44, fontSize: 18, cursor: 'pointer', color: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            </div>
+            <div style={{ padding: '48px 80px', color: '#1a1a2e', maxWidth: 1100, margin: '0 auto' }} className="submit-modal-body">
+              {submitSuccess ? (
+                <div style={{ textAlign: 'center', padding: '80px 32px' }}>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 300, color: '#1a1a2e', marginBottom: 12 }}>Story submitted!</div>
+                  <p style={{ fontSize: 15, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>We'll review your submission shortly. You'll receive an email once it's approved.</p>
+                  <button className="btn-ghost" onClick={() => { setSubmitSuccess(false); setShowSubmitModal(false); }}>Close →</button>
+                </div>
+              ) : (
+                <div>
+                  <div className="editor-field">
+                    <label className="editor-label" style={{ color: '#8a6510' }}>Which Room? *</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <button onClick={() => { setStoryRoom('reading-room'); setStoryGenre(''); }} style={{ padding: '20px', borderRadius: 0, cursor: 'pointer', border: storyRoom === 'reading-room' ? '2px solid #C9A84C' : '1px solid #e5e7eb', background: storyRoom === 'reading-room' ? 'rgba(201,168,76,0.06)' : '#f9fafb', color: storyRoom === 'reading-room' ? '#8a6510' : '#6b7280', fontFamily: 'var(--font-ui)', fontSize: 14, textAlign: 'left' }}>
+                        📚 The Reading Room
+                        <div style={{ fontSize: 12, opacity: 0.6, marginTop: 6 }}>General fiction — all genres</div>
+                      </button>
+                      <button onClick={() => { setStoryRoom('red-room'); setStoryGenre(''); }} style={{ padding: '20px', borderRadius: 0, cursor: 'pointer', border: storyRoom === 'red-room' ? '2px solid #e05555' : '1px solid #e5e7eb', background: storyRoom === 'red-room' ? 'rgba(200,68,68,0.06)' : '#f9fafb', color: storyRoom === 'red-room' ? '#e05555' : '#6b7280', fontFamily: 'var(--font-ui)', fontSize: 14, textAlign: 'left' }}>
+                        🔴 The Red Room
+                        <div style={{ fontSize: 12, opacity: 0.6, marginTop: 6 }}>18+ adult fiction only</div>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="editor-field">
+                    <label className="editor-label" style={{ color: '#8a6510' }}>Story Title *</label>
+                    <input className="editor-input" placeholder="Enter your story title…" value={storyTitle} onChange={e => setStoryTitle(e.target.value)} />
+                  </div>
+                  <div className="editor-field">
+                    <label className="editor-label" style={{ color: '#8a6510' }}>Genre *</label>
+                    {storyRoom === 'reading-room' ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <select className="editor-input" value={storyGenre} onChange={e => { setStoryGenre(e.target.value); setStorySubGenre(''); }} style={{ cursor: 'pointer' }}>
+                          <option value="">Select a genre group…</option>
+                          {GENRE_GROUPS.map(g => <option key={g.group} value={g.group}>{g.group}</option>)}
+                        </select>
+                        {storyGenre && (
+                          <select className="editor-input" value={storySubGenre} onChange={e => setStorySubGenre(e.target.value)} style={{ cursor: 'pointer' }}>
+                            <option value="">Select a sub-genre…</option>
+                            {GENRE_GROUPS.find(g => g.group === storyGenre)?.subgenres.map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        )}
+                      </div>
+                    ) : (
+                      <select className="editor-input" value={storyGenre} onChange={e => setStoryGenre(e.target.value)} style={{ cursor: 'pointer' }}>
+                        <option value="">Select a genre…</option>
+                        {RED_ROOM_GENRES.map(g => <option key={g} value={g}>{g}</option>)}
+                      </select>
+                    )}
+                  </div>
+                  <div className="editor-field">
+                    <label className="editor-label" style={{ color: '#8a6510' }}>Format</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      {(['serial', 'standalone'] as const).map(f => (
+                        <button key={f} onClick={() => setStoryFormat(f)} style={{ padding: '16px', borderRadius: 0, cursor: 'pointer', border: storyFormat === f ? '2px solid #C9A84C' : '1px solid #e5e7eb', background: storyFormat === f ? 'rgba(201,168,76,0.06)' : '#f9fafb', color: storyFormat === f ? '#8a6510' : '#6b7280', fontFamily: 'var(--font-ui)', fontSize: 13, textAlign: 'left' }}>
+                          {f === 'serial' ? '📖 Serial' : '📄 Standalone'}
+                          <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>{f === 'serial' ? 'Multiple chapters, ongoing' : 'Single complete story'}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="editor-field">
+                    <label className="editor-label" style={{ color: '#8a6510' }}>Description / Blurb *</label>
+                    <textarea className="editor-textarea" style={{ minHeight: 160, background: '#f8f8f8', border: '1px solid rgba(201,168,76,0.35)', color: '#1a1a2e', borderRadius: 0 }} placeholder="Write a compelling blurb…" value={storyDescription} onChange={e => setStoryDescription(e.target.value)} />
+                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>{storyDescription.length}/500 characters</div>
+                  </div>
+                  <div className="editor-field">
+                    <label className="editor-label" style={{ color: '#8a6510' }}>Cover Art <span style={{ color: '#9ca3af', fontSize: 10 }}>(optional)</span></label>
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                      <button onClick={() => setCoverMode('upload')} style={{ flex: 1, padding: '10px', borderRadius: 0, cursor: 'pointer', border: coverMode === 'upload' ? '2px solid #C9A84C' : '1px solid #e5e7eb', background: coverMode === 'upload' ? 'rgba(201,168,76,0.06)' : '#f9fafb', color: coverMode === 'upload' ? '#8a6510' : '#6b7280', fontFamily: 'var(--font-ui)', fontSize: 12 }}>⬆ Upload File</button>
+                      <button onClick={() => setCoverMode('url')} style={{ flex: 1, padding: '10px', borderRadius: 0, cursor: 'pointer', border: coverMode === 'url' ? '2px solid #C9A84C' : '1px solid #e5e7eb', background: coverMode === 'url' ? 'rgba(201,168,76,0.06)' : '#f9fafb', color: coverMode === 'url' ? '#8a6510' : '#6b7280', fontFamily: 'var(--font-ui)', fontSize: 12 }}>🔗 Paste URL</button>
+                    </div>
+                    {coverMode === 'url' ? (
+                      <input className="editor-input" placeholder="https://your-cover-image.jpg" value={storyCover} onChange={e => setStoryCover(e.target.value)} />
+                    ) : (
+                      <div>
+                        <input type="file" accept="image/*" id="cover-upload" style={{ display: 'none' }} onChange={async e => {
+                          const file = e.target.files?.[0];
+                          if (!file || !writer) return;
+                          setCoverUploading(true);
+                          const ext = file.name.split('.').pop();
+                          const path = `covers/${writer.id}-${Date.now()}.${ext}`;
+                          const { error } = await supabase.storage.from('story-media').upload(path, file, { upsert: true });
+                          if (!error) {
+                            const { data: { publicUrl } } = supabase.storage.from('story-media').getPublicUrl(path);
+                            setStoryCover(publicUrl);
+                          }
+                          setCoverUploading(false);
+                        }} />
+                        <label htmlFor="cover-upload" style={{ display: 'inline-block', padding: '12px 24px', borderRadius: 0, border: '1px dashed #d1d5db', color: '#6b7280', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>
+                          {coverUploading ? 'Uploading…' : '+ Choose cover image'}
+                        </label>
+                      </div>
+                    )}
+                    {storyCover && <img src={storyCover} alt="Cover preview" style={{ marginTop: 12, width: 120, height: 160, objectFit: 'cover', border: '2px solid #C9A84C' }} onError={e => (e.currentTarget.style.display = 'none')} />}
+                  </div>
+                  <div className="editor-field">
+                    <label className="editor-label" style={{ color: '#8a6510' }}>Upload Manuscript <span style={{ color: '#9ca3af', fontSize: 10 }}>.docx file</span></label>
+                    <input type="file" accept=".docx" id="docx-upload" style={{ display: 'none' }} onChange={async e => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setDocxProcessing(true);
+                      const reader = new FileReader();
+                      reader.onload = async ev => {
+                        try {
+                          const mammoth = await import('mammoth');
+                          const result = await mammoth.extractRawText({ arrayBuffer: ev.target?.result as ArrayBuffer });
+                          setDocxChapters([{ title: 'Chapter 1', content: result.value, isFree: true }]);
+                        } catch { setDocxChapters([{ title: 'Chapter 1', content: 'Could not extract text.', isFree: true }]); }
+                        setDocxProcessing(false);
+                      };
+                      reader.readAsArrayBuffer(file);
+                    }} />
+                    <label htmlFor="docx-upload" style={{ display: 'inline-block', padding: '12px 24px', borderRadius: 0, border: '1px dashed #d1d5db', color: '#6b7280', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>
+                      {docxProcessing ? 'Processing…' : '+ Upload .docx manuscript'}
+                    </label>
+                    {docxChapters.length > 0 && (
+                      <div style={{ marginTop: 16 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                          <span style={{ fontSize: 13, color: '#6b7280' }}>{docxChapters.length} chapter{docxChapters.length > 1 ? 's' : ''} detected</span>
+                          <button onClick={() => setDocxChapters(c => [...c, { title: `Chapter ${c.length + 1}`, content: '', isFree: false }])} style={{ fontSize: 12, color: '#C9A84C', background: 'none', border: '1px solid rgba(201,168,76,0.4)', borderRadius: 0, padding: '6px 16px', cursor: 'pointer' }}>+ Add Chapter</button>
+                        </div>
+                        {docxChapters.map((ch, i) => (
+                          <div key={i} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: 16, marginBottom: 10 }}>
+                            <div style={{ display: 'flex', gap: 10, marginBottom: 10, alignItems: 'center' }}>
+                              <span style={{ fontSize: 12, color: '#9ca3af', flexShrink: 0 }}>#{i + 1}</span>
+                              <input value={ch.title} onChange={e => setDocxChapters(c => c.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} style={{ flex: 1, background: '#fff', border: '1px solid #e5e7eb', padding: '8px 12px', color: '#1a1a2e', fontFamily: 'var(--font-ui)', fontSize: 13 }} placeholder="Chapter title" />
+                              <button onClick={() => setDocxChapters(c => c.map((x, j) => j === i ? { ...x, isFree: !x.isFree } : x))} style={{ padding: '6px 12px', border: '1px solid #e5e7eb', background: ch.isFree ? 'rgba(22,101,52,0.08)' : '#fff', color: ch.isFree ? '#166534' : '#6b7280', fontFamily: 'var(--font-ui)', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                                {ch.isFree ? '🔓 Free' : '🔒 Paid'}
+                              </button>
+                              <button onClick={() => setDocxChapters(c => c.filter((_, j) => j !== i))} style={{ background: 'none', border: '1px solid rgba(248,113,113,0.3)', color: '#ef4444', cursor: 'pointer', fontSize: 12, padding: '4px 10px' }}>✕ Delete</button>
+                            </div>
+                            <textarea value={ch.content} onChange={e => setDocxChapters(c => c.map((x, j) => j === i ? { ...x, content: e.target.value } : x))} style={{ width: '100%', minHeight: 160, background: '#fff', border: '1px solid #e5e7eb', padding: '12px', color: '#1a1a2e', fontFamily: 'Georgia, serif', fontSize: 14, lineHeight: 1.8, resize: 'vertical', boxSizing: 'border-box' }} placeholder="Paste or edit chapter content here…" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ height: 1, background: 'linear-gradient(to right, #C9A84C, transparent)', margin: '40px 0' }} />
+                  <div style={{ display: 'flex', gap: 16, alignItems: 'center', paddingBottom: 80 }}>
+                    <button className="btn-primary" disabled={submitting || !storyTitle || !storyGenre || !storyDescription} onClick={submitStory}>
+                      {submitting ? 'Submitting…' : 'Submit Story for Review →'}
+                    </button>
+                    <span style={{ fontSize: 13, color: '#9ca3af' }}>We review all submissions within 5–7 business days.</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="hq-root">
       {showWelcome && (
         <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)" }}>
