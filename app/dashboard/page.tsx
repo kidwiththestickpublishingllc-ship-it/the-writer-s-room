@@ -1766,10 +1766,10 @@ if (docxChapters.length > 0 && storyData?.id) {
                 {showSubmitModal && (
                   <div
                     id="submit-modal-overlay"
-                    style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '24px 16px' }}
+                    style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', overflowY: 'auto', padding: '24px 40px' }}
                     onClick={e => { if (e.target === e.currentTarget) setShowSubmitModal(false); }}
                   >
-                    <div style={{ width: '100%', maxWidth: 1000, background: '#ffffff', borderRadius: 0, border: '2px solid #C9A84C', boxShadow: '8px 8px 0px rgba(201,168,76,0.4)', position: 'relative', marginBottom: 40 }}>
+                    <div style={{ width: '100%', maxWidth: '100%', background: '#ffffff', borderRadius: 0, border: '2px solid #C9A84C', boxShadow: '8px 8px 0px rgba(201,168,76,0.4)', position: 'relative', marginBottom: 40, minHeight: 'calc(100vh - 48px)' }}>
                       {/* Gold top line */}
                       <div style={{ height: 4, background: 'linear-gradient(90deg, #C9A84C, #6495ED, #C9A84C)' }} />
                       {/* Header */}
