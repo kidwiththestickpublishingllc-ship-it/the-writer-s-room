@@ -1759,13 +1759,17 @@ if (docxChapters.length > 0 && storyData?.id) {
                   <h1 className="hq-page-title">Submit Your Story</h1>
                   <p className="hq-page-sub">Fill in all details below. You have full editorial control before submission.</p>
                 </div>
-                <button className="btn-primary" onClick={() => setShowSubmitModal(true)} style={{ marginBottom: 24 }}>
+                <button className="btn-primary" onClick={() => { setShowSubmitModal(true); setTimeout(() => { document.getElementById('submit-modal-overlay')?.scrollTo({ top: 0 }); }, 50); }} style={{ marginBottom: 24 }}>
                   Open Full Submission Form →
                 </button>
 
                 {showSubmitModal && (
-                  <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 20px' }}>
-                    <div style={{ width: '100%', maxWidth: 800, background: '#ffffff', borderRadius: 0, border: '2px solid #C9A84C', boxShadow: '8px 8px 0px rgba(201,168,76,0.4)', position: 'relative' }}>
+                  <div
+                    id="submit-modal-overlay"
+                    style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '24px 16px' }}
+                    onClick={e => { if (e.target === e.currentTarget) setShowSubmitModal(false); }}
+                  >
+                    <div style={{ width: '100%', maxWidth: 1000, background: '#ffffff', borderRadius: 0, border: '2px solid #C9A84C', boxShadow: '8px 8px 0px rgba(201,168,76,0.4)', position: 'relative', marginBottom: 40 }}>
                       {/* Gold top line */}
                       <div style={{ height: 4, background: 'linear-gradient(90deg, #C9A84C, #6495ED, #C9A84C)' }} />
                       {/* Header */}
@@ -1777,7 +1781,7 @@ if (docxChapters.length > 0 && storyData?.id) {
                         <button onClick={() => setShowSubmitModal(false)} style={{ background: 'none', border: '1px solid rgba(201,168,76,0.4)', borderRadius: 0, width: 36, height: 36, fontSize: 16, cursor: 'pointer', color: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                       </div>
                       {/* Form body */}
-                      <div style={{ padding: '32px 40px', color: '#1a1a2e' }} className="submit-modal-body">
+                      <div style={{ padding: '80px 112px', color: '#1a1a2e' }} className="submit-modal-body">
 
                 {submitSuccess ? (
                   <div className="empty-state">
