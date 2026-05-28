@@ -765,7 +765,7 @@ function StoriesTab() {
                         <button className="adm-btn" onClick={() => setRejectId(null)}>Cancel</button>
                       </div>
                     )}
-                    <a href={`/reading-room/stories/${s.slug}`} target="_blank" rel="noopener noreferrer" className="adm-btn">Preview →</a>
+                    <a href={`https://read.the-tiniest-library.com/reading-room/stories/${s.slug}`} target="_blank" rel="noopener noreferrer" className="adm-btn">Preview →</a>
                   </td>
                 </tr>
               ))}
