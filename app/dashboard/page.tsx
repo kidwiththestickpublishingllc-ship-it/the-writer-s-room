@@ -883,7 +883,7 @@ const GENRE_GROUPS = [
         is_published: false,
         platform: 'ttl',
         room: storyRoom,
-        genre: storySubGenre || storyGenre,
+        genre: storySubGenre || storyGenre || 'Serialized Fiction',
       }).select().single();
 
       if (error) throw error;
@@ -896,7 +896,7 @@ const GENRE_GROUPS = [
           type: 'story-submitted',
           to: 'kidwiththestickpublishingllc@gmail.com',
           name: writer?.name,
-          data: { title: storyTitle, genre: storySubGenre || storyGenre, room: storyRoom }
+          data: { title: storyTitle, genre: storySubGenre || storyGenre || 'Serialized Fiction', room: storyRoom }
         }),
       });
       

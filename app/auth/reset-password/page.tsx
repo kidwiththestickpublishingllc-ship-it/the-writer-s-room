@@ -98,14 +98,21 @@ export default function ResetPassword() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [ready, setReady] = useState(false);
-
   useEffect(() => {
-    // Supabase puts the token in the URL hash — we need to let it process
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+    // Listen for the recovery event (fires when the email link is processed)
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
         setReady(true);
       }
     });
+    // Fallback: if the event already fired before this listener attached,
+    // check for an existing session so the form still unlocks.
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) setReady(true);
+    });
+    // Safety net: unlock after 2.5s so Chris is never stuck on a dead form.
+    const timer = setTimeout(() => setReady(true), 2500);
+    return () => { sub.subscription.unsubscribe(); clearTimeout(timer); };
   }, []);
 
   const strength = passwordStrength(password);
