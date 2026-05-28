@@ -881,6 +881,7 @@ const GENRE_GROUPS = [
         cover_url: storyCover || null,
         badge: storyFormat === 'serial' ? 'Serial' : null,
         is_published: false,
+        platform: 'ttl',
         room: storyRoom,
         genre: storySubGenre || storyGenre,
       }).select().single();
