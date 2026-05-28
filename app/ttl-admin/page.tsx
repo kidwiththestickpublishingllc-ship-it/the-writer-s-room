@@ -759,7 +759,7 @@ function StoriesTab() {
                       <button className="adm-btn adm-btn-reject" onClick={() => setRejectId(s.id)}>Reject</button>
                     )}
                     {rejectId === s.id && (
-                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      <div style={{ display: "flex", gap: 7, alignItems: "center" }}>
                         <input value={rejectNote} onChange={e => setRejectNote(e.target.value)} placeholder="Reason (optional)" style={{ fontSize: 11, padding: "4px 8px", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 4, color: "var(--text-main)", width: 160 }} />
                         <button className="adm-btn adm-btn-reject" onClick={() => rejectStory(s.id, s.author_email ?? "", s.title)}>Confirm</button>
                         <button className="adm-btn" onClick={() => setRejectId(null)}>Cancel</button>
