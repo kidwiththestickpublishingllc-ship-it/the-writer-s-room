@@ -663,7 +663,7 @@ function StoriesTab() {
   useEffect(() => { load(); }, []);
   async function load() {
     setLoading(true);
-    const { data } = await supabase.from("stories").select("*").order("created_at", { ascending: false });
+    const { data } = await supabase.from("stories").select("*, writers(email, name)").order("created_at", { ascending: false });
     setItems(data ?? []);
     setLoading(false);
   }
@@ -749,7 +749,7 @@ function StoriesTab() {
                   <td><span className={`adm-status ${s.is_published ? "adm-status-approved" : "adm-status-pending"}`}>{s.is_published ? "Published" : "Pending"}</span></td>
                   <td style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     {!s.is_published && (
-                      <button className="adm-btn adm-btn-approve" onClick={() => approveStory(s.id, s.author_email ?? "", s.title, s.slug)}>Publish</button>
+                      <button className="adm-btn adm-btn-approve" onClick={() => approveStory(s.id, (s as any).writers?.email ?? "", s.title, s.slug)}>Publish</button>
                     )}
                                                             
                     {s.is_published && (
@@ -761,7 +761,7 @@ function StoriesTab() {
                     {rejectId === s.id && (
                       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                         <input value={rejectNote} onChange={e => setRejectNote(e.target.value)} placeholder="Reason (optional)" style={{ fontSize: 11, padding: "4px 8px", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 4, color: "var(--text-main)", width: 160 }} />
-                        <button className="adm-btn adm-btn-reject" onClick={() => rejectStory(s.id, s.author_email ?? "", s.title)}>Confirm</button>
+                        <button className="adm-btn adm-btn-reject" onClick={() => rejectStory(s.id, (s as any).writers?.email ?? "", s.title)}>Confirm</button>
                         <button className="adm-btn" onClick={() => setRejectId(null)}>Cancel</button>
                       </div>
                     )}
