@@ -668,22 +668,23 @@ function StoriesTab() {
     setLoading(false);
   }
   async function approveStory(id: string, authorEmail: string, title: string, slug?: string) {
-    await supabase.from("stories").update({ is_published: true }).eq("id", id);
-    
-    // Email 1 — story approved
-    await fetch("/api/email", {
+    const { error: publishError } = await supabase.from("stories").update({ is_published: true }).eq("id", id);
+    if (publishError) { alert(`❌ Publish failed: ${publishError.message}`); return; }
+
+    // Email 1 — story approved (to writer)
+    const r1 = await fetch("/api/email", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "story-approved", to: authorEmail, data: { title } }),
     });
-    
-    // Email 2 — social share nudge
+
+    // Email 2 — social share nudge (to writer)
     const { data: writer } = await supabase
       .from('writers')
       .select('name')
       .eq('email', authorEmail)
       .single();
-    
-    await fetch("/api/email", {
+
+    const r2 = await fetch("/api/email", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         type: "story-live-share",
@@ -692,6 +693,23 @@ function StoriesTab() {
         data: { title, slug: slug ?? '' }
       }),
     });
+
+    // Email 3 — admin confirmation
+    const r3 = await fetch("/api/email", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "admin-message",
+        to: "kidwiththestickpublishingllc@gmail.com",
+        name: "TTL Admin",
+        data: { message: `✅ "${title}" has been published. Author: ${authorEmail}. Emails fired: approved=${r1.ok}, share=${r2.ok}.` }
+      }),
+    });
+
+    const allOk = r1.ok && r2.ok && r3.ok;
+    alert(allOk
+      ? `✅ "${title}" published! Emails sent to writer and admin.`
+      : `⚠️ Published but some emails may have failed. approved=${r1.ok}, share=${r2.ok}, admin=${r3.ok}`
+    );
     load();
   }
   async function rejectStory(id: string, authorEmail: string, title: string) {
