@@ -122,10 +122,18 @@ TTL respects your moral rights as an author. We will not:
 
 This agreement remains in effect for as long as your Content is hosted on TTL. Upon removal of your Content, the license granted in Section 2 terminates automatically, except for archival copies retained for legal compliance.
 
-8. REPRESENTATION
+8. CONTENT EDITS AND READER-PURCHASED CHAPTERS
+
+You retain full control to edit, add, and remove your own work through the Writer's Room, and you agree to exercise this control honestly and in good faith. You understand that readers may spend Ink to unlock paid chapters. Once any reader has unlocked a paid chapter:
+(a) You grant that reader permanent access to that chapter;
+(b) You may continue to edit, revise, or improve the chapter at any time;
+(c) You may NOT delete the chapter or restore it to a locked state, as doing so would remove content a reader has already paid for.
+
+You agree not to use editing or deletion to mislead readers, withdraw content readers have purchased, or otherwise act in bad faith toward the readership or the platform. TTL may decline to remove or may preserve content as necessary to honor reader purchases and protect the integrity of the platform.
+
+9. REPRESENTATION
 
 By signing below, you confirm that you have read, understood, and agree to this Copyright Agreement in its entirety. You affirm that you hold the copyright to all Content you submit to TTL and have the authority to grant the license described herein. Your typed name constitutes a legally binding electronic signature.`;
-
 // ── Styles ───────────────────────────────────────────────────
 
 const STYLES = `
