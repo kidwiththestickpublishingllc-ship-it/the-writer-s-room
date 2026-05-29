@@ -771,6 +771,7 @@ export default function WriterDashboard() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [earnings, setEarnings] = useState<Earning[]>([]);
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
+  const [lockedChapterIds, setLockedChapterIds] = useState<Set<string>>(new Set());
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [saving, setSaving] = useState(false);
@@ -1031,6 +1032,72 @@ if (docxChapters.length > 0 && storyData?.id) {
     setSelectedChapter(ch);
     setEditTitle(ch.title);
     setEditContent(ch.content ?? '');
+  };
+
+  // Load which chapters have been unlocked by paying readers (hard-lock from deletion)
+  useEffect(() => {
+    async function loadLocks() {
+      if (chapters.length === 0) { setLockedChapterIds(new Set()); return; }
+      const ids = chapters.map(c => c.id);
+      const { data } = await supabase
+        .from('chapter_unlocks')
+        .select('chapter_id')
+        .in('chapter_id', ids);
+      setLockedChapterIds(new Set((data ?? []).map((r: any) => r.chapter_id)));
+    }
+    loadLocks();
+  }, [chapters]);
+
+  // Add a new blank chapter at the next number
+  const addChapter = async () => {
+    if (!stories[0]) { showToast('Create a story first.', 'error'); return; }
+    setSaving(true);
+    try {
+      const nextNum = chapters.length > 0 ? Math.max(...chapters.map(c => c.chapter_number)) + 1 : 1;
+      const { data, error } = await supabase
+        .from('chapters')
+        .insert({
+          story_id: stories[0].id,
+          chapter_number: nextNum,
+          title: `Chapter ${nextNum}`,
+          content: '',
+          is_free: nextNum === 1,
+          ink_cost: nextNum === 1 ? 0 : 25,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      if (data) {
+        setChapters(prev => [...prev, data]);
+        selectChapter(data);
+        showToast('New chapter added! Write away.');
+      }
+    } catch {
+      showToast('Failed to add chapter.', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Delete a chapter — blocked if a reader has paid to unlock it
+  const deleteChapter = async (ch: Chapter) => {
+    if (lockedChapterIds.has(ch.id)) {
+      showToast('This chapter has been purchased by readers and cannot be deleted.', 'error');
+      return;
+    }
+    if (!window.confirm(`Delete "${ch.title}"? This cannot be undone.`)) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('chapters').delete().eq('id', ch.id);
+      if (error) throw error;
+      setChapters(prev => prev.filter(c => c.id !== ch.id));
+      if (selectedChapter?.id === ch.id) setSelectedChapter(null);
+      showToast('Chapter deleted.');
+    } catch {
+      showToast('Failed to delete chapter.', 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Save chapter
@@ -1567,10 +1634,15 @@ if (docxChapters.length > 0 && storyData?.id) {
             {/* ── CHAPTERS ── */}
             {tab === 'chapters' && (
               <div className="fade-up">
-                <div className="hq-page-header">
-                  <span className="hq-page-eyebrow">Content</span>
-                  <h1 className="hq-page-title">My Chapters</h1>
-                  <p className="hq-page-sub">Click any chapter to edit its content.</p>
+                <div className="hq-page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
+                  <div>
+                    <span className="hq-page-eyebrow">Content</span>
+                    <h1 className="hq-page-title">My Chapters</h1>
+                    <p className="hq-page-sub">Click any chapter to edit. Add or remove chapters anytime — chapters readers have purchased stay protected.</p>
+                  </div>
+                  <button className="btn-primary" disabled={saving} onClick={addChapter}>
+                    + New Chapter
+                  </button>
                 </div>
 
                 {chapters.length > 0 ? (
@@ -1578,21 +1650,35 @@ if (docxChapters.length > 0 && storyData?.id) {
                     {/* Chapter list */}
                     <div className="chapter-list-panel">
                       <div className="chapter-list-header">Chapters — {chapters.length} total</div>
-                      {chapters.map(ch => (
-                        <button
-                          key={ch.id}
-                          className={`chapter-list-item${selectedChapter?.id === ch.id ? ' active' : ''}`}
-                          onClick={() => selectChapter(ch)}
-                        >
-                          <span className="chapter-num">{ch.chapter_number}</span>
-                          <span style={{ flex: 1, textAlign: 'left', fontSize: 11, lineHeight: 1.4 }}>
-                            {ch.title.length > 40 ? ch.title.slice(0, 40) + '…' : ch.title}
-                          </span>
-                          <span className={`badge ${ch.is_free ? 'badge-free' : 'badge-locked'}`} style={{ fontSize: 8 }}>
-                            {ch.is_free ? 'Free' : `${ch.ink_cost}✒`}
-                          </span>
-                        </button>
-                      ))}
+                      {chapters.map(ch => {
+                        const isLocked = lockedChapterIds.has(ch.id);
+                        return (
+                          <div key={ch.id} style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
+                            <button
+                              className={`chapter-list-item${selectedChapter?.id === ch.id ? ' active' : ''}`}
+                              onClick={() => selectChapter(ch)}
+                              style={{ borderBottom: 'none', flex: 1 }}
+                            >
+                              <span className="chapter-num">{ch.chapter_number}</span>
+                              <span style={{ flex: 1, textAlign: 'left', fontSize: 11, lineHeight: 1.4 }}>
+                                {ch.title.length > 36 ? ch.title.slice(0, 36) + '…' : ch.title}
+                              </span>
+                              <span className={`badge ${ch.is_free ? 'badge-free' : 'badge-locked'}`} style={{ fontSize: 8 }}>
+                                {ch.is_free ? 'Free' : `${ch.ink_cost}✒`}
+                              </span>
+                            </button>
+                            {isLocked ? (
+                              <span title="Readers have purchased this chapter — it can't be deleted. You can still edit it." style={{ padding: '0 12px', fontSize: 13, color: 'var(--text-dim)', cursor: 'not-allowed', flexShrink: 0 }}>🔒</span>
+                            ) : (
+                              <button
+                                onClick={() => deleteChapter(ch)}
+                                title="Delete chapter"
+                                style={{ padding: '0 12px', background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', fontSize: 13, flexShrink: 0 }}
+                              >✕</button>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
 
                     {/* Editor */}
@@ -1609,6 +1695,11 @@ if (docxChapters.length > 0 && storyData?.id) {
                             {selectedChapter.is_free ? 'Free' : `${selectedChapter.ink_cost} Ink to unlock`}
                           </span>
                         </div>
+                        {lockedChapterIds.has(selectedChapter.id) && (
+                          <div style={{ margin: '0 24px', padding: '10px 14px', background: 'rgba(201,168,76,0.08)', border: '1px solid var(--border-gold)', borderRadius: 8, fontSize: 12, color: 'var(--gold-light)' }}>
+                            🔒 Readers have purchased this chapter. You can edit and improve it freely, but it can't be deleted — paying readers keep permanent access.
+                          </div>
+                        )}
                         <div className="editor-body">
                           <div className="editor-field">
                             <label className="editor-label">Chapter Title</label>
