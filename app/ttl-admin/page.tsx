@@ -1472,6 +1472,26 @@ function MembersTab() {
     setSelected((p: any) => ({ ...p, ink_balance: (p.ink_balance ?? 0) + amt }));
     setInkAmount(""); setSaving(false);
   }
+  async function deleteMember() {
+    if (!selected) return;
+    if (!window.confirm(`Permanently delete "${selected.full_name ?? selected.email}"? This removes their profile AND their login account. This cannot be undone.`)) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/delete-member", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selected.id, email: selected.email }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error ?? "Delete failed");
+      setItems(prev => prev.filter(m => m.id !== selected.id));
+      setSelected(null);
+      alert("Member fully deleted — profile and login removed.");
+    } catch (e: any) {
+      alert(`Delete failed: ${e.message}`);
+    }
+    setSaving(false);
+  }
   return (
     <div style={{ display: "grid", gridTemplateColumns: selected ? "1fr 340px" : "1fr", gap: 20 }}>
       <div className="adm-table-wrap">
@@ -1511,6 +1531,16 @@ function MembersTab() {
           <div style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 8 }}>Send Message</div>
           <textarea value={msg} onChange={e => setMsg(e.target.value)} placeholder="Write a message..." rows={4} style={{ width: "100%", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 6, padding: "10px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit", resize: "vertical" as const, boxSizing: "border-box" as const }} />
           <button className="adm-btn adm-btn-approve" disabled={saving || !msg.trim()} style={{ marginTop: 8, width: "100%", justifyContent: "center" }} onClick={async () => { setSaving(true); await fetch("/api/email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "admin-message", to: selected.email, name: selected.full_name, data: { message: msg } }) }); setMsg(""); setSaving(false); }}>{saving ? "Sending…" : "Send Message"}</button>
+          <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid rgba(248,113,113,0.2)" }}>
+            <div style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "#f87171", marginBottom: 8 }}>Danger Zone</div>
+            <button
+              onClick={deleteMember}
+              disabled={saving}
+              style={{ width: "100%", padding: "10px", borderRadius: 6, border: "1px solid rgba(248,113,113,0.4)", background: "rgba(248,113,113,0.1)", color: "#f87171", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer" }}
+            >
+              {saving ? "Deleting…" : "🗑 Delete Member Permanently"}
+            </button>
+          </div>
         </div>
       )}
     </div>
