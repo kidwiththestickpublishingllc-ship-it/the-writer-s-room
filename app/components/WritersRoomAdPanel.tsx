@@ -6,6 +6,8 @@ declare global {
 }
 
 const EXO_ZONE_ID = '5938672'
+const FOX_COVER_SRC = '/images/fox-cover.mp4'
+const FOX_STORY_LINK = 'https://read.the-tiniest-library.com/reading-room/stories/fox-vs-the-world/chapters/1'
 
 // Each ad in the rotation. The ExoClick slide is marked with `exo: true`
 // so it renders the live ad slot instead of a house-ad layout.
@@ -54,6 +56,12 @@ const ADS = [
     cta: 'Enter The Red Room →',
     href: 'https://redroom.the-tiniest-library.com',
     accent: '#9B2335',
+  },
+  {
+    cover: true,
+    src: FOX_COVER_SRC,
+    link: FOX_STORY_LINK,
+    accent: '#FF6B3D',
   },
 ] as any[]
 
@@ -172,7 +180,7 @@ export default function WritersRoomAdPanel() {
       </div>
 
       {/* ── House-ad slide content (hidden on the ExoClick slide) ── */}
-      {!ad.exo && (
+      {!ad.exo && !ad.cover && (
         <>
           <span style={{
             display: 'inline-block',
@@ -233,6 +241,14 @@ export default function WritersRoomAdPanel() {
             }}>{ad.cta}</a>
         </>
       )}
+
+      {/* Fox cover slot */}
+      <div style={{ display: ad.cover ? 'flex' : 'none', flexDirection: 'column', flex: 1, width: '100%', gap: 12 }}>
+        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.22em', color: '#FF6B3D', border: '1px solid rgba(255,107,61,0.45)', borderRadius: 20, padding: '3px 10px', alignSelf: 'flex-start' }}>NOW IN THE LIBRARY</span>
+        <a href={ad.cover ? ad.link : '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'block', borderRadius: 10, overflow: 'hidden', lineHeight: 0 }}>
+          <video src={ad.cover ? ad.src : ''} autoPlay muted loop playsInline style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 10 }} />
+        </a>
+      </div>
 
       {/* Dot indicators */}
       <div style={{ display: 'flex', gap: 5 }}>
