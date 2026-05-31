@@ -1225,6 +1225,12 @@ function WritersTab() {
                           >
                             {reminding === w.id ? "Sending…" : "🔔 Remind"}
                           </button>
+                          <button
+                            className="adm-btn adm-btn-reject"
+                            onClick={() => deleteWriter(w.id, w.name)}
+                          >
+                            🗑 Delete
+                          </button>
                         </div>
                       {w.slug && (
                           <div style={{ display: "flex", gap: 5 }}>
