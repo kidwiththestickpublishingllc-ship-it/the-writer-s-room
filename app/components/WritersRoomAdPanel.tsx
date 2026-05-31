@@ -248,7 +248,7 @@ export default function WritersRoomAdPanel() {
       <div style={{ display: ad.cover ? 'flex' : 'none', flexDirection: 'column', flex: 1, width: '100%', gap: 12 }}>
         <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.22em', color: '#FF6B3D', border: '1px solid rgba(255,107,61,0.45)', borderRadius: 20, padding: '3px 10px', alignSelf: 'flex-start' }}>NOW IN THE LIBRARY</span>
         <a href={ad.cover ? ad.link : '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'block', borderRadius: 10, overflow: 'hidden', lineHeight: 0 }}>
-          <video src={ad.cover ? ad.src : ''} autoPlay muted loop playsInline style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 10 }} />
+          <video src={ad.cover ? ad.src : ''} autoPlay muted loop playsInline style={{ width: '100%', height: 360, objectFit: 'cover', display: 'block', borderRadius: 10 }} />
         </a>
       </div>
 
