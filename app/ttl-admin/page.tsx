@@ -1227,7 +1227,18 @@ function WritersTab() {
                           </button>
                           <button
                             className="adm-btn adm-btn-reject"
-                            onClick={() => deleteWriter(w.id, w.name)}
+                            onClick={async () => {
+                              if (!window.confirm(`Delete "${w.name}"? This permanently removes their profile, all their stories, and chapters. This cannot be undone.`)) return;
+                              const res = await fetch("/api/delete-writer", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ id: w.id, name: w.name }),
+                              });
+                              const result = await res.json();
+                              if (!res.ok) { alert(`Delete failed: ${result.error}`); return; }
+                              alert(`"${w.name}" deleted — ${result.stories} stories, ${result.chapters} chapters removed.`);
+                              load();
+                            }}
                           >
                             🗑 Delete
                           </button>
