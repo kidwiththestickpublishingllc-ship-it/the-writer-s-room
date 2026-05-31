@@ -939,6 +939,37 @@ function WritersTab() {
     await supabase.from("writers").update({ is_founding_author: !current }).eq("id", id);
     load();
   }
+  async function deleteWriter(id: string, name: string) {
+    if (!window.confirm(`Delete "${name}"? This permanently removes their profile, all their stories, and chapters. This cannot be undone.`)) return;
+    try {
+      const { data: writerRow } = await supabase.from("writers").select("email, user_id").eq("id", id).single();
+      const authorId = (writerRow as any)?.user_id ?? id;
+      const { data: stories } = await supabase.from("stories").select("id").or(`author_id.eq.${id},author_id.eq.${authorId}`);
+      const storyIds = (stories ?? []).map((s: any) => s.id);
+      let chapterCount = 0;
+      if (storyIds.length > 0) {
+        const { data: chs } = await supabase.from("chapters").select("id").in("story_id", storyIds);
+        chapterCount = (chs ?? []).length;
+        await supabase.from("chapters").delete().in("story_id", storyIds);
+        await supabase.from("stories").delete().in("id", storyIds);
+      }
+      const { error } = await supabase.from("writers").delete().eq("id", id);
+      if (error) throw error;
+      await fetch("/api/email", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "admin-message",
+          to: "kidwiththestickpublishingllc@gmail.com",
+          name: "TTL Admin",
+          data: { message: `🗑️ Writer deleted: "${name}" (${(writerRow as any)?.email ?? "no email"}). Removed ${storyIds.length} story(ies) and ${chapterCount} chapter(s).` }
+        }),
+      });
+      alert(`"${name}" deleted — ${storyIds.length} stories, ${chapterCount} chapters removed.`);
+      load();
+    } catch (e: any) {
+      alert(`Delete failed: ${e.message ?? "unknown error"}`);
+    }
+  }
 
   async function saveNote(id: string) {
     setSavingNote(true);
