@@ -1,6 +1,14 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
+declare global {
+  interface Window { AdProvider?: any[] }
+}
+
+const EXO_ZONE_ID = '5938672'
+
+// Each ad in the rotation. The ExoClick slide is marked with `exo: true`
+// so it renders the live ad slot instead of a house-ad layout.
 const ADS = [
   {
     eyebrow: 'FEATURED SPONSOR',
@@ -17,6 +25,11 @@ const ADS = [
     cta: 'Advertise With Us →',
     href: 'mailto:hello@the-tiniest-library.com?subject=Writers Room Sponsorship',
     accent: '#C9A84C',
+  },
+  // ── ExoClick rotating slide ──
+  {
+    exo: true,
+    accent: '#A78BFA',
   },
   {
     eyebrow: 'THE READING ROOM',
@@ -42,24 +55,32 @@ const ADS = [
     href: 'https://redroom.the-tiniest-library.com',
     accent: '#9B2335',
   },
-]
+] as any[]
 
 const SHELF_LINES = [0, 1, 2, 3]
 
 export default function WritersRoomAdPanel() {
   const [idx, setIdx] = useState(0)
+  const initialized = useRef(false)
 
   useEffect(() => {
     const t = setInterval(() => setIdx(i => (i + 1) % ADS.length), 5000)
-    const script = document.createElement('script');
-    script.src = 'https://a.magsrv.com/ad-provider.js';
-    script.async = true;
-    script.type = 'application/javascript';
-    document.head.appendChild(script);
-    return () => {
-      clearInterval(t);
-      document.head.removeChild(script);
+
+    // Load ExoClick provider once and serve.
+    if (!initialized.current) {
+      initialized.current = true
+      if (!document.querySelector('script[src="https://a.magsrv.com/ad-provider.js"]')) {
+        const script = document.createElement('script')
+        script.src = 'https://a.magsrv.com/ad-provider.js'
+        script.async = true
+        script.type = 'application/javascript'
+        document.body.appendChild(script)
+      }
+      window.AdProvider = window.AdProvider || []
+      window.AdProvider.push({ serve: {} })
     }
+
+    return () => clearInterval(t)
   }, [])
 
   const ad = ADS[idx]
@@ -107,75 +128,111 @@ export default function WritersRoomAdPanel() {
         transition: 'background 0.6s ease',
       }} />
 
-      {/* Eyebrow */}
-      <span style={{
-        display: 'inline-block',
-        fontSize: 9,
-        fontWeight: 700,
-        letterSpacing: '0.22em',
-        color: ad.accent,
-        border: `1px solid ${ad.accent}44`,
-        borderRadius: 20,
-        padding: '3px 10px',
-        fontFamily: 'var(--font-inter, sans-serif)',
-        alignSelf: 'flex-start',
-        transition: 'all 0.6s ease',
-      }}>{ad.eyebrow}</span>
-
-      {/* Headline */}
+      {/* ── ExoClick slot: always mounted, only visible on its slide ── */}
       <div style={{
-        fontSize: 28,
-        fontWeight: 300,
-        lineHeight: 1.15,
-        color: '#f0ece2',
-        fontFamily: 'var(--font-playfair, serif)',
-        whiteSpace: 'pre-line',
-        transition: 'all 0.3s ease',
-      }}>{ad.headline}</div>
-
-      {/* Body */}
-      <p style={{
-        fontSize: 13,
-        lineHeight: 1.75,
-        color: 'rgba(240,236,226,0.55)',
-        fontFamily: 'var(--font-inter, sans-serif)',
-        margin: 0,
+        display: ad.exo ? 'flex' : 'none',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
         flex: 1,
-      }}>{ad.body}</p>
-
-      {/* Shelf line above CTA */}
-      <div style={{
-        height: 1,
-        background: `linear-gradient(90deg, ${ad.accent}44, transparent)`,
-        transition: 'background 0.6s ease',
-      }} />
-
-      {/* CTA */}
-      <a href={ad.href}
-        target={ad.href.startsWith('http') ? '_blank' : '_self'}
-        rel="noopener noreferrer"
-        style={{
-          display: 'inline-block',
-          padding: '9px 20px',
-          borderRadius: 999,
-          background: 'transparent',
-          border: `1px solid ${ad.accent}66`,
-          color: ad.accent,
-          fontSize: 11,
+        width: '100%',
+        gap: 14,
+      }}>
+        <span style={{
+          fontSize: 9,
           fontWeight: 700,
-          textDecoration: 'none',
-          letterSpacing: '0.08em',
+          letterSpacing: '0.22em',
+          color: '#A78BFA',
+          border: '1px solid rgba(167,139,250,0.4)',
+          borderRadius: 20,
+          padding: '3px 10px',
           fontFamily: 'var(--font-inter, sans-serif)',
-          alignSelf: 'flex-start',
-          transition: 'all 0.3s ease',
-        }}>{ad.cta}</a>
-{/* ExoClick Ad */}
-      <div style={{ textAlign: 'center', margin: '8px 0' }}>
-        <ins className="eas6a97888e2" data-zoneid="5907002"></ins>
-        <script dangerouslySetInnerHTML={{
-          __html: `(AdProvider = window.AdProvider || []).push({"serve": {}});`
-        }} />
+        }}>SPONSORED</span>
+        <div style={{
+          padding: 2,
+          background: 'linear-gradient(120deg, #6D28D9, #A78BFA, #C4B5FD, #A78BFA, #6D28D9)',
+          backgroundSize: '300% 300%',
+          animation: 'wrAdwinShift 6s ease infinite, wrAdwinPulse 2.8s ease-in-out infinite',
+        }}>
+          <div style={{ background: '#0d0817', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <ins className="eas6a97888e2" data-zoneid={EXO_ZONE_ID} style={{ display: 'block', width: 300, height: 500 }} />
+          </div>
+        </div>
+        <style>{`
+          @keyframes wrAdwinPulse {
+            0%,100% { box-shadow: 0 0 0 1px rgba(167,139,250,0.55), 0 0 18px rgba(167,139,250,0.40), 0 0 42px rgba(167,139,250,0.20); }
+            50% { box-shadow: 0 0 0 1px rgba(196,181,253,0.75), 0 0 30px rgba(167,139,250,0.65), 0 0 72px rgba(167,139,250,0.35); }
+          }
+          @keyframes wrAdwinShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+        `}</style>
       </div>
+
+      {/* ── House-ad slide content (hidden on the ExoClick slide) ── */}
+      {!ad.exo && (
+        <>
+          <span style={{
+            display: 'inline-block',
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '0.22em',
+            color: ad.accent,
+            border: `1px solid ${ad.accent}44`,
+            borderRadius: 20,
+            padding: '3px 10px',
+            fontFamily: 'var(--font-inter, sans-serif)',
+            alignSelf: 'flex-start',
+            transition: 'all 0.6s ease',
+          }}>{ad.eyebrow}</span>
+
+          <div style={{
+            fontSize: 28,
+            fontWeight: 300,
+            lineHeight: 1.15,
+            color: '#f0ece2',
+            fontFamily: 'var(--font-playfair, serif)',
+            whiteSpace: 'pre-line',
+            transition: 'all 0.3s ease',
+          }}>{ad.headline}</div>
+
+          <p style={{
+            fontSize: 13,
+            lineHeight: 1.75,
+            color: 'rgba(240,236,226,0.55)',
+            fontFamily: 'var(--font-inter, sans-serif)',
+            margin: 0,
+            flex: 1,
+          }}>{ad.body}</p>
+
+          <div style={{
+            height: 1,
+            background: `linear-gradient(90deg, ${ad.accent}44, transparent)`,
+            transition: 'background 0.6s ease',
+          }} />
+
+          <a href={ad.href}
+            target={ad.href.startsWith('http') ? '_blank' : '_self'}
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-block',
+              padding: '9px 20px',
+              borderRadius: 999,
+              background: 'transparent',
+              border: `1px solid ${ad.accent}66`,
+              color: ad.accent,
+              fontSize: 11,
+              fontWeight: 700,
+              textDecoration: 'none',
+              letterSpacing: '0.08em',
+              fontFamily: 'var(--font-inter, sans-serif)',
+              alignSelf: 'flex-start',
+              transition: 'all 0.3s ease',
+            }}>{ad.cta}</a>
+        </>
+      )}
 
       {/* Dot indicators */}
       <div style={{ display: 'flex', gap: 5 }}>
