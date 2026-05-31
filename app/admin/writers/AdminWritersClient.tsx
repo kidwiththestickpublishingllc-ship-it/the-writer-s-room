@@ -54,6 +54,40 @@ export default function AdminWritersClient({ writers: initial }: { writers: Writ
     setLoading(null)
   }
 
+  async function deleteWriter(id: string, name: string) {
+    if (!window.confirm(`Delete "${name}"? This permanently removes their profile, all their stories, and chapters. This cannot be undone.`)) return;
+    setLoading(id);
+    try {
+      const { data: writerRow } = await supabase.from('writers').select('email').eq('id', id).single();
+      const { data: stories } = await supabase.from('stories').select('id, title').eq('author_id', id);
+      const storyIds = (stories ?? []).map(s => s.id);
+      let chapterCount = 0;
+      if (storyIds.length > 0) {
+        const { data: chs } = await supabase.from('chapters').select('id').in('story_id', storyIds);
+        chapterCount = (chs ?? []).length;
+        await supabase.from('chapters').delete().in('story_id', storyIds);
+        await supabase.from('stories').delete().eq('author_id', id);
+      }
+      const { error } = await supabase.from('writers').delete().eq('id', id);
+      if (error) throw error;
+      await fetch('/api/email', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'admin-message',
+          to: 'kidwiththestickpublishingllc@gmail.com',
+          name: 'TTL Admin',
+          data: { message: `🗑️ Writer deleted: "${name}" (${(writerRow as any)?.email ?? 'no email'}). Removed ${storyIds.length} story(ies) and ${chapterCount} chapter(s).` }
+        }),
+      });
+      setWriters(prev => prev.filter(w => w.id !== id));
+      alert(`"${name}" deleted — ${storyIds.length} stories, ${chapterCount} chapters removed. Record emailed to you.`);
+    } catch (e: any) {
+      alert(`Delete failed: ${e.message ?? 'unknown error'}`);
+    } finally {
+      setLoading(null);
+    }
+  }
+
   async function handleSignOut() {
     await supabase.auth.signOut()
     window.location.href = '/admin/login'
@@ -85,11 +119,11 @@ export default function AdminWritersClient({ writers: initial }: { writers: Writ
                 onApprove={() => setApproved(writer.id, true)}
                 onReject={() => setApproved(writer.id, false)}
                 onToggleFounding={() => setFoundingAuthor(writer.id, !writer.is_founding_author)}
+                onDelete={() => deleteWriter(writer.id, writer.name)}
               />
             ))}
           </section>
         )}
-
         {pending.length === 0 && (
           <div style={s.emptyState}>
             <span style={s.emptyIcon}>✦</span>
@@ -108,6 +142,7 @@ export default function AdminWritersClient({ writers: initial }: { writers: Writ
                 onApprove={() => setApproved(writer.id, true)}
                 onReject={() => setApproved(writer.id, false)}
                 onToggleFounding={() => setFoundingAuthor(writer.id, !writer.is_founding_author)}
+                onDelete={() => deleteWriter(writer.id, writer.name)}
               />
             ))}
           </section>
@@ -117,12 +152,13 @@ export default function AdminWritersClient({ writers: initial }: { writers: Writ
   )
 }
 
-function WriterRow({ writer, loading, onApprove, onReject, onToggleFounding }: {
+function WriterRow({ writer, loading, onApprove, onReject, onToggleFounding, onDelete }: {
   writer: Writer
   loading: string | null
   onApprove: () => void
   onReject: () => void
   onToggleFounding: () => void
+  onDelete: () => void
 }) {
   const isLoading = loading === writer.id
   const date = new Date(writer.created_at).toLocaleDateString('en-US', {
@@ -167,6 +203,13 @@ function WriterRow({ writer, loading, onApprove, onReject, onToggleFounding }: {
           disabled={loading === writer.id + '-founding'}
         >
           {writer.is_founding_author ? '★ Founding' : '☆ Founding'}
+        </button>
+        <button
+          style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid rgba(200,60,60,0.5)', background: 'transparent', color: '#e06666', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+          onClick={onDelete}
+          disabled={isLoading}
+        >
+          {isLoading ? '…' : '🗑 Delete'}
         </button>
       </div>
     </div>
