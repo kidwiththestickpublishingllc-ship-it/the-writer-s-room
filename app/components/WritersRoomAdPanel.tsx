@@ -72,7 +72,9 @@ export default function WritersRoomAdPanel() {
   const initialized = useRef(false)
 
   useEffect(() => {
-    const t = setInterval(() => setIdx(i => (i + 1) % ADS.length), 5000)
+    const current = ADS[idx]
+    const delay = current && current.cover ? 8000 : 5000
+    const t = setTimeout(() => setIdx(i => (i + 1) % ADS.length), delay)
 
     // Load ExoClick provider once and serve.
     if (!initialized.current) {
@@ -88,8 +90,8 @@ export default function WritersRoomAdPanel() {
       window.AdProvider.push({ serve: {} })
     }
 
-    return () => clearInterval(t)
-  }, [])
+    return () => clearTimeout(t)
+  }, [idx])
 
   const ad = ADS[idx]
 
