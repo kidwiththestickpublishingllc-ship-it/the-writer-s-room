@@ -981,11 +981,11 @@ function WritersTab() {
   }
 
   // Pipeline: what stage is this writer at?
-  function pipelineStatus(w: any) {
+ function pipelineStatus(w: any) {
     const hasProfile = w.bio && w.photo_url && w.genres?.length > 0;
     const emailSent = !!w.onboarding_email_sent_at;
 
-    // Founding authors are active once approved — they're known, vetted members.
+    // Founding authors are active once approved — known, vetted members.
     if (w.is_approved && w.is_founding_author) {
       return { label: "✅ Active", color: "var(--green)", bg: "var(--green-dim)", border: "rgba(74,222,128,0.3)" };
     }
