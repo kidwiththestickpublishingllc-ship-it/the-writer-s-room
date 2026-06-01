@@ -985,6 +985,10 @@ function WritersTab() {
     const hasProfile = w.bio && w.photo_url && w.genres?.length > 0;
     const emailSent = !!w.onboarding_email_sent_at;
 
+    // Founding authors are active once approved — they're known, vetted members.
+    if (w.is_approved && w.is_founding_author) {
+      return { label: "✅ Active", color: "var(--green)", bg: "var(--green-dim)", border: "rgba(74,222,128,0.3)" };
+    }
     if (!w.is_approved) {
       return { label: "Not Approved", color: "var(--text-faint)", bg: "rgba(255,255,255,0.05)", border: "var(--ink-border)" };
     }
