@@ -63,6 +63,17 @@ const ADS = [
     link: FOX_STORY_LINK,
     accent: '#FF6B3D',
   },
+  {
+    storyCard: true,
+    coverImg: 'https://dgymtdkxusdsgxmjirfl.supabase.co/storage/v1/object/public/story-media/covers/4a4614c9-9e60-42bc-bce6-e20b50403bdf-1780194081951.png',
+    eyebrow: 'NOW LIVE IN THE READING ROOM',
+    headline: 'Back To Strangers',
+    sub: 'A slow-burn romance by Sergio Lastre.',
+    cta: 'Read Now →',
+    link: 'https://read.the-tiniest-library.com/reading-room/stories/back-to-strangers-1780194244958/chapters/1',
+    accent: '#1E3A8A',
+    textColor: '#ffffff',
+  },
 ] as any[]
 
 const SHELF_LINES = [0, 1, 2, 3]
@@ -182,7 +193,7 @@ export default function WritersRoomAdPanel() {
       </div>
 
       {/* ── House-ad slide content (hidden on the ExoClick slide) ── */}
-      {!ad.exo && !ad.cover && (
+      {!ad.exo && !ad.cover && !ad.storyCard && (
         <>
           <span style={{
             display: 'inline-block',
@@ -244,14 +255,25 @@ export default function WritersRoomAdPanel() {
         </>
       )}
 
-      {/* Fox cover slot */}
+{/* Fox cover slot */}
       <div style={{ display: ad.cover ? 'flex' : 'none', flexDirection: 'column', flex: 1, width: '100%', gap: 12 }}>
         <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.22em', color: '#FF6B3D', border: '1px solid rgba(255,107,61,0.45)', borderRadius: 20, padding: '3px 10px', alignSelf: 'flex-start' }}>NOW IN THE LIBRARY</span>
         <a href={ad.cover ? ad.link : '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'block', borderRadius: 10, overflow: 'hidden', lineHeight: 0 }}>
           <video src={ad.cover ? ad.src : ''} autoPlay muted loop playsInline style={{ maxWidth: '100%', maxHeight: 380, width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto', borderRadius: 10 }} />
         </a>
       </div>
-
+      {/* Story card slot (Sergio — dark blue / white) */}
+      {ad.storyCard && (
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, width: '100%', gap: 12 }}>
+          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.22em', color: ad.textColor, border: `1px solid ${ad.textColor}66`, borderRadius: 20, padding: '3px 10px', alignSelf: 'flex-start', fontFamily: 'var(--font-inter, sans-serif)' }}>{ad.eyebrow}</span>
+          <a href={ad.link} target="_blank" rel="noopener noreferrer" style={{ display: 'block', borderRadius: 10, overflow: 'hidden', lineHeight: 0 }}>
+            <img src={ad.coverImg} alt={ad.headline} style={{ maxWidth: '100%', maxHeight: 300, width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto', borderRadius: 10 }} />
+          </a>
+          <div style={{ fontSize: 24, fontWeight: 400, lineHeight: 1.15, color: ad.textColor, fontFamily: 'var(--font-playfair, serif)', textAlign: 'center' }}>{ad.headline}</div>
+          <p style={{ fontSize: 13, lineHeight: 1.6, color: `${ad.textColor}cc`, fontFamily: 'var(--font-inter, sans-serif)', margin: 0, textAlign: 'center' }}>{ad.sub}</p>
+          <a href={ad.link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '9px 20px', borderRadius: 999, background: ad.textColor, border: `1px solid ${ad.textColor}`, color: ad.accent, fontSize: 11, fontWeight: 700, textDecoration: 'none', letterSpacing: '0.08em', fontFamily: 'var(--font-inter, sans-serif)', alignSelf: 'center', transition: 'all 0.3s ease' }}>{ad.cta}</a>
+        </div>
+      )}
       {/* Dot indicators */}
       <div style={{ display: 'flex', gap: 5 }}>
         {ADS.map((a, i) => (
