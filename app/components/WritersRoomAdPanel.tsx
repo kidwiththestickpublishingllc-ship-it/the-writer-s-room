@@ -59,11 +59,17 @@ const ADS = [
     href: 'https://redroom.the-tiniest-library.com',
     accent: '#9B2335',
   },
-  {
+ {
     cover: true,
     src: FOX_COVER_SRC,
     link: FOX_STORY_LINK,
     accent: '#FF6B3D',
+  },
+  {
+    cover: true,
+    src: SPIRIT_COVER_SRC,
+    link: SPIRIT_STORY_LINK,
+    accent: '#9B2335',
   },
   {
     storyCard: true,
