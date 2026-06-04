@@ -8,6 +8,8 @@ declare global {
 const EXO_ZONE_ID = '5938672'
 const FOX_COVER_SRC = '/images/fox-cover.mp4'
 const FOX_STORY_LINK = 'https://read.the-tiniest-library.com/reading-room/stories/fox-vs-the-world/chapters/1'
+const SPIRIT_COVER_SRC = 'https://dgymtdkxusdsgxmjirfl.supabase.co/storage/v1/object/public/story-media/covers/Where%20The%20Spirit%20Moves%20You.mp4'
+const SPIRIT_STORY_LINK = 'https://read.the-tiniest-library.com/reading-room/stories/when-the-spirit-moves-you-1780530480755/chapters/1'
 
 // Each ad in the rotation. The ExoClick slide is marked with `exo: true`
 // so it renders the live ad slot instead of a house-ad layout.
