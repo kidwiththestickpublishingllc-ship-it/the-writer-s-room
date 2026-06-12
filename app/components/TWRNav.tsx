@@ -363,7 +363,15 @@ export function TWRNav() {
             </div>
             <div className="twr-shared-divider" />
             {user ? (
-              <a href="/dashboard" className="twr-shared-auth-btn">My Dashboard →</a>
+              <>
+                <a href="/dashboard" className="twr-shared-auth-btn">My Dashboard →</a>
+                <button
+                  className="twr-shared-link"
+                  onClick={async () => { await supabase.auth.signOut(); window.location.href = "/"; }}
+                >
+                  Sign Out
+                </button>
+              </>
             ) : (
               <a href="/apply" className="twr-shared-link twr-shared-link-apply">Apply Now →</a>
             )}
