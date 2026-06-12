@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+
 import { supabase } from "@/lib/supabase";
 
 // =========================
@@ -319,15 +319,7 @@ const TWR_NAV_STYLES = `
 const SPOTS_LEFT = 87;
 
 export function TWRNav() {
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+  
 
   return (
     <>
@@ -362,19 +354,14 @@ export function TWRNav() {
               <span>{SPOTS_LEFT} Spots Left</span>
             </div>
             <div className="twr-shared-divider" />
-            {user ? (
-              <>
-                <a href="/dashboard" className="twr-shared-auth-btn">My Dashboard →</a>
-                <button
-                  className="twr-shared-link"
-                  onClick={async () => { await supabase.auth.signOut(); window.location.href = "/"; }}
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <a href="/apply" className="twr-shared-link twr-shared-link-apply">Apply Now →</a>
-            )}
+            <a href="/apply" className="twr-shared-link twr-shared-link-apply">Apply Now →</a>
+            <a href="/login" className="twr-shared-auth-btn">Sign In</a>
+            <button
+              className="twr-shared-link"
+              onClick={async () => { await supabase.auth.signOut(); window.location.href = "/"; }}
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </nav>
