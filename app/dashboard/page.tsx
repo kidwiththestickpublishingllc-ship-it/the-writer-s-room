@@ -1187,6 +1187,7 @@ if (docxChapters.length > 0 && storyData?.id) {
   const unpaidTotal = earnings.filter(e => !e.payout_id).reduce((s, e) => s + Number(e.writer_usd), 0);
   const totalUnlocks = earnings.length;
   const totalInkEarned = earnings.reduce((s, e) => s + e.ink_spent, 0);
+  const writerPct = (writer as any)?.tier === 'tier1' ? 80 : 70;
 
   if (loading) {
     return (
@@ -1406,7 +1407,7 @@ if (docxChapters.length > 0 && storyData?.id) {
               <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: 20, marginBottom: 32 }}>
                 <p style={{ fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.7)", marginBottom: 12 }}>How Ink Pays You</p>
                 <div style={{ display: "flex", gap: 24, flexWrap: "wrap" as const }}>
-                  <div><div style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 300, color: "var(--gold)" }}>70%</div><div style={{ fontSize: 11, color: "var(--text-muted)" }}>per chapter unlock</div></div>
+                  <div><div style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 300, color: "var(--gold)" }}>{writerPct}%</div><div style={{ fontSize: 11, color: "var(--text-muted)" }}>per chapter unlock</div></div>
                   <div><div style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 300, color: "#4ade80" }}>100%</div><div style={{ fontSize: 11, color: "var(--text-muted)" }}>of every tip</div></div>
                   <div><div style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 300, color: "var(--text)" }}>$0</div><div style={{ fontSize: 11, color: "var(--text-muted)" }}>minimum payout</div></div>
                 </div>
@@ -1746,7 +1747,7 @@ if (docxChapters.length > 0 && storyData?.id) {
                 <div className="hq-page-header">
                   <span className="hq-page-eyebrow">Money</span>
                   <h1 className="hq-page-title">Earnings</h1>
-                  <p className="hq-page-sub">Every time a reader unlocks your chapter, you earn 70%.</p>
+                  <p className="hq-page-sub">Every time a reader unlocks your chapter, you earn {writerPct}%.</p>
                 </div>
 
                 <div className="hq-stats" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
@@ -1786,8 +1787,8 @@ if (docxChapters.length > 0 && storyData?.id) {
                             <th>Chapter</th>
                             <th>Ink Spent</th>
                             <th>Gross</th>
-                            <th>Your Cut (70%)</th>
-                            <th>TTL (30%)</th>
+                            <th>Your Cut ({writerPct}%)</th>
+                            <th>TTL ({100 - writerPct}%)</th>
                             <th>Status</th>
                           </tr>
                         </thead>
@@ -1885,11 +1886,11 @@ if (docxChapters.length > 0 && storyData?.id) {
                     </div>
                     <div className="payout-info-row">
                       <span className="payout-info-label">Your cut</span>
-                      <span className="payout-info-val" style={{ color: 'var(--green)' }}>70% of every unlock</span>
+                      <span className="payout-info-val" style={{ color: 'var(--green)' }}>{writerPct}% of every unlock</span>
                     </div>
                     <div className="payout-info-row">
                       <span className="payout-info-label">TTL platform fee</span>
-                      <span className="payout-info-val">30%</span>
+                      <span className="payout-info-val">{100 - writerPct}%</span>
                     </div>
                     <div className="payout-info-row">
                       <span className="payout-info-label">Tip jar</span>
