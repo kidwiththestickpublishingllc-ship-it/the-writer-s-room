@@ -769,6 +769,7 @@ export default function WriterDashboard() {
   const [writer, setWriter] = useState<Writer | null>(null);
   const [stories, setStories] = useState<Story[]>([]);
   const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [currentStoryId, setCurrentStoryId] = useState<string>('');
   const [earnings, setEarnings] = useState<Earning[]>([]);
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [lockedChapterIds, setLockedChapterIds] = useState<Set<string>>(new Set());
@@ -975,6 +976,7 @@ if (docxChapters.length > 0 && storyData?.id) {
 
         if (storiesData && storiesData.length > 0) {
           setStories(storiesData);
+          setCurrentStoryId(storiesData[0].id);
 
           // Get chapters for first story
           const { data: chaptersData } = await supabase
@@ -1034,6 +1036,16 @@ if (docxChapters.length > 0 && storyData?.id) {
     setEditContent(ch.content ?? '');
   };
 
+  // Reload chapters when the writer switches story in My Chapters
+  useEffect(() => {
+    if (!currentStoryId) return;
+    supabase.from('chapters').select('*').eq('story_id', currentStoryId).order('chapter_number')
+      .then(({ data }) => {
+        setChapters(data ?? []);
+        if (data && data.length > 0) { selectChapter(data[0]); }
+        else { setSelectedChapter(null); setEditTitle(''); setEditContent(''); }
+      });
+  }, [currentStoryId]);
   // Load which chapters have been unlocked by paying readers (hard-lock from deletion)
   useEffect(() => {
     async function loadLocks() {
@@ -1050,14 +1062,14 @@ if (docxChapters.length > 0 && storyData?.id) {
 
   // Add a new blank chapter at the next number
   const addChapter = async () => {
-    if (!stories[0]) { showToast('Create a story first.', 'error'); return; }
+    if (!currentStoryId) { showToast('Create or select a story first.', 'error'); return; }
     setSaving(true);
     try {
       const nextNum = chapters.length > 0 ? Math.max(...chapters.map(c => c.chapter_number)) + 1 : 1;
       const { data, error } = await supabase
         .from('chapters')
         .insert({
-          story_id: stories[0].id,
+          story_id: currentStoryId,
           chapter_number: nextNum,
           title: `Chapter ${nextNum}`,
           content: '',
@@ -1640,6 +1652,16 @@ if (docxChapters.length > 0 && storyData?.id) {
                     <span className="hq-page-eyebrow">Content</span>
                     <h1 className="hq-page-title">My Chapters</h1>
                     <p className="hq-page-sub">Click any chapter to edit. Add or remove chapters anytime — chapters readers have purchased stay protected.</p>
+                    {stories.length > 1 && (
+                      <select
+                        value={currentStoryId}
+                        onChange={e => setCurrentStoryId(e.target.value)}
+                        className="editor-input"
+                        style={{ marginTop: 12, maxWidth: 340 }}
+                      >
+                        {stories.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+                      </select>
+                    )}
                   </div>
                   <button className="btn-primary" disabled={saving} onClick={addChapter}>
                     + New Chapter
