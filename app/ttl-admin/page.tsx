@@ -220,7 +220,7 @@ function AdsTab() {
 // Protected by Supabase auth
 // =========================
 
-type Tab = "applications" | "stories" | "writers" | "agreements" | "ink" | "media" | "payouts" | "members" | "world";
+type Tab = "applications" | "stories" | "writers" | "agreements" | "ink" | "media" | "payouts" | "members" | "world" | "comics";
 
 type Application = {
   id: string;
@@ -279,6 +279,159 @@ type Agreement = {
   document_version: string;
   signed_at: string;
 };
+
+type ComicSubmission = {
+  id: string;
+  series_id: string;
+  creator_id: string;
+  creator_name: string | null;
+  series_title: string | null;
+  is_adult: boolean;
+  submission_status: string;
+  submitted_at: string;
+  rejection_reason: string | null;
+  comic_series?: {
+    slug: string;
+    title: string;
+    type: string;
+    genre: string;
+    publish_status: string;
+    creator_name: string | null;
+  } | null;
+};
+
+function ComicsTab() {
+  const [items, setItems] = useState<ComicSubmission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"pending" | "approved" | "rejected" | "all">("pending");
+  const [rejectId, setRejectId] = useState<string | null>(null);
+  const [rejectNote, setRejectNote] = useState("");
+
+  useEffect(() => { load(); }, []);
+
+  async function load() {
+    setLoading(true);
+    const { data } = await supabase
+      .from("comic_submissions")
+      .select("*, comic_series(slug, title, type, genre, publish_status, creator_name)")
+      .order("submitted_at", { ascending: false });
+    setItems(data ?? []);
+    setLoading(false);
+  }
+
+  async function approve(sub: ComicSubmission) {
+    // 1. Flip the series to published
+    const { error: pubErr } = await supabase
+      .from("comic_series")
+      .update({ publish_status: "published" })
+      .eq("id", sub.series_id);
+    if (pubErr) { alert(`Publish failed: ${pubErr.message}`); return; }
+
+    // 2. Mark submission approved
+    await supabase
+      .from("comic_submissions")
+      .update({ submission_status: "approved", reviewed_at: new Date().toISOString() })
+      .eq("id", sub.id);
+
+    // 3. Admin confirmation email (mirrors story-approved admin-message pattern)
+    await fetch("/api/email", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "admin-message",
+        to: "kidwiththestickpublishingllc@gmail.com",
+        name: "TTL Admin",
+        data: { message: `✅ Comic "${sub.series_title}" approved and published to The Galleria.` }
+      }),
+    });
+
+    alert(`✅ "${sub.series_title}" is now live on The Galleria.`);
+    load();
+  }
+
+  async function reject(sub: ComicSubmission) {
+    await supabase
+      .from("comic_series")
+      .update({ publish_status: "rejected" })
+      .eq("id", sub.series_id);
+    await supabase
+      .from("comic_submissions")
+      .update({ submission_status: "rejected", reviewed_at: new Date().toISOString(), rejection_reason: rejectNote || null })
+      .eq("id", sub.id);
+    setRejectId(null); setRejectNote("");
+    load();
+  }
+
+  const filtered = items.filter(i => filter === "all" ? true : i.submission_status === filter);
+  const pendingCount = items.filter(i => i.submission_status === "pending").length;
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+        {(["pending", "approved", "rejected", "all"] as const).map(f => (
+          <button key={f} onClick={() => setFilter(f)} style={{
+            fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase",
+            padding: "6px 14px", borderRadius: 999, cursor: "pointer", transition: "all 0.2s",
+            background: filter === f ? "var(--gold-glow)" : "transparent",
+            border: filter === f ? "1px solid var(--gold-dim)" : "1px solid var(--ink-border)",
+            color: filter === f ? "var(--gold-light)" : "var(--text-faint)",
+          }}>
+            {f}{f === "pending" && pendingCount > 0 ? ` (${pendingCount})` : ""}
+          </button>
+        ))}
+      </div>
+      <div className="adm-table-wrap">
+        <div className="adm-table-header">
+          <span className="adm-table-title">Comic Submissions</span>
+          <span className="adm-table-count">{filtered.length} records</span>
+        </div>
+        {loading ? <div className="adm-loading">Loading…</div> : filtered.length === 0 ? (
+          <div className="adm-empty"><div className="adm-empty-title">No comic submissions.</div></div>
+        ) : (
+          <table>
+            <thead><tr><th>Series</th><th>Creator</th><th>Type</th><th>Genre</th><th>Wing</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              {filtered.map(sub => {
+                const s = sub.comic_series;
+                return (
+                  <tr key={sub.id}>
+                    <td>
+                      <div className="adm-cell-name">{sub.series_title ?? s?.title ?? "Untitled"}</div>
+                      <div className="adm-cell-sub">{s?.slug ?? "—"}</div>
+                    </td>
+                    <td>{sub.creator_name ?? s?.creator_name ?? "—"}</td>
+                    <td><span style={{ fontSize: 10, color: "var(--text-faint)" }}>{s?.type ?? "—"}</span></td>
+                    <td><span style={{ fontSize: 10, color: "var(--text-faint)" }}>{s?.genre ?? "—"}</span></td>
+                    <td><span style={{ fontSize: 10, color: sub.is_adult ? "#c84444" : "var(--blue-bright)" }}>{sub.is_adult ? "18+ Veil" : "Galleria"}</span></td>
+                    <td>{new Date(sub.submitted_at).toLocaleDateString()}</td>
+                    <td><span className={`adm-status ${sub.submission_status === "approved" ? "adm-status-approved" : sub.submission_status === "rejected" ? "adm-status-rejected" : "adm-status-pending"}`}>{sub.submission_status}</span></td>
+                    <td style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {sub.submission_status === "pending" && (
+                        <>
+                          <button className="adm-btn adm-btn-approve" onClick={() => approve(sub)}>Approve</button>
+                          {rejectId !== sub.id && <button className="adm-btn adm-btn-reject" onClick={() => setRejectId(sub.id)}>Reject</button>}
+                        </>
+                      )}
+                      {rejectId === sub.id && (
+                        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                          <input value={rejectNote} onChange={e => setRejectNote(e.target.value)} placeholder="Reason (optional)" style={{ fontSize: 11, padding: "4px 8px", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 4, color: "var(--text-main)", width: 160 }} />
+                          <button className="adm-btn adm-btn-reject" onClick={() => reject(sub)}>Confirm</button>
+                          <button className="adm-btn" onClick={() => setRejectId(null)}>Cancel</button>
+                        </div>
+                      )}
+                      {s?.slug && (
+                        <a href={`https://artists.the-tiniest-library.com/galleria/comics/${s.slug}`} target="_blank" rel="noopener noreferrer" className="adm-btn">Preview →</a>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;500;600;700&display=swap');
@@ -1795,7 +1948,7 @@ export default function AdminDashboard() {
   const [session, setSession] = useState<any>(null);
   const [checking, setChecking] = useState(true);
   const [tab, setTab] = useState<Tab>("applications");
-  const [counts, setCounts] = useState({ applications: 0, stories: 0, writers: 0, agreements: 0, media: 0, members: 0, world: 0 });
+  const [counts, setCounts] = useState({ applications: 0, stories: 0, writers: 0, agreements: 0, media: 0, members: 0, world: 0, comics: 0 });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -1808,7 +1961,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!session) return;
     async function loadCounts() {
-      const [apps, stories, writers, agreements, media, members, glossary, characters, locations] = await Promise.all([
+      const [apps, stories, writers, agreements, media, members, glossary, characters, locations, comics] = await Promise.all([
         supabase.from("applications").select("id", { count: "exact" }).eq("status", "pending"),
         supabase.from("stories").select("id", { count: "exact" }).eq("is_published", false),
         supabase.from("writers").select("id", { count: "exact" }),
@@ -1818,6 +1971,7 @@ export default function AdminDashboard() {
         supabase.from("glossary").select("id", { count: "exact" }).eq("is_approved", false),
         supabase.from("characters").select("id", { count: "exact" }).eq("is_approved", false),
         supabase.from("story_locations").select("id", { count: "exact" }).eq("is_approved", false),
+        supabase.from("comic_submissions").select("id", { count: "exact" }).eq("submission_status", "pending"),
       ]);
       setCounts({
         applications: apps.count ?? 0,
@@ -1827,6 +1981,7 @@ export default function AdminDashboard() {
         media: media.count ?? 0,
         members: members.count ?? 0,
         world: (glossary.count ?? 0) + (characters.count ?? 0) + (locations.count ?? 0),
+        comics: comics.count ?? 0,
       });
     }
     loadCounts();
@@ -1845,6 +2000,7 @@ export default function AdminDashboard() {
     { key: "world" as Tab, label: "World Content", count: counts.world, countColor: "green" },
     { key: "payouts" as Tab, label: "Payouts", count: 0, countColor: "" },
     { key: "members" as Tab, label: "Members", count: counts.members, countColor: "green" },
+    { key: "comics" as Tab, label: "Comics", count: counts.comics, countColor: "" },
   ];
   const TAB_TITLES: Record<Tab, string> = {
     applications: "Applications",
@@ -1856,6 +2012,7 @@ export default function AdminDashboard() {
     world: "World Content",
     payouts: "Payout Requests",
     members: "Members",
+    comics: "Comic Submissions",
   };
 
   return (
@@ -1909,6 +2066,7 @@ export default function AdminDashboard() {
             {tab === "agreements" && <AgreementsTab />}
             {tab === "ink" && <InkTab />}
             {tab === "world" && <WorldContentTab />}
+            {tab === "comics" && <ComicsTab />}
           </div>
         </main>
       </div>
