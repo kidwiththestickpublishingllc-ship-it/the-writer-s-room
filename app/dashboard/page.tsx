@@ -779,6 +779,9 @@ export default function WriterDashboard() {
   const [payoutMethod, setPayoutMethod] = useState('');
   const [payoutHandle, setPayoutHandle] = useState('');
   const [requesting, setRequesting] = useState(false);
+  const [stripeOnboarded, setStripeOnboarded] = useState(false);
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const [stripeChecked, setStripeChecked] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
     // Profile edit state
@@ -1161,6 +1164,42 @@ if (docxChapters.length > 0 && storyData?.id) {
       showToast('Failed to update profile.', 'error');
     } finally {
       setSaving(false);
+    }
+  };
+
+const checkStripeStatus = async () => {
+    if (stripeChecked) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const res = await fetch("/api/stripe/connect-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access_token: session.access_token }),
+      });
+      const data = await res.json();
+      setStripeOnboarded(data.onboarded ?? false);
+      setStripeChecked(true);
+    } catch {}
+  };
+
+  const handleStripeOnboard = async () => {
+    setStripeLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const res = await fetch("/api/stripe/connect-onboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access_token: session.access_token }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else showToast("Could not start Stripe onboarding.", "error");
+    } catch {
+      showToast("Stripe onboarding failed.", "error");
+    } finally {
+      setStripeLoading(false);
     }
   };
 
@@ -1854,8 +1893,26 @@ if (docxChapters.length > 0 && storyData?.id) {
 
                 <div className="payout-grid">
                   <div className="payout-card">
-                    <div className="payout-balance">${unpaidTotal.toFixed(2)}</div>
-                    <div className="payout-balance-label">Available to withdraw</div>
+                    {!stripeOnboarded && (
+                      <div style={{ margin: "16px 0", padding: "16px", background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 8 }}>
+                        <div style={{ fontSize: 13, color: "var(--text)", marginBottom: 10, fontWeight: 600 }}>
+                          Set up direct payments to get paid automatically
+                        </div>
+                        <button
+                          className="btn-primary"
+                          style={{ width: "100%", justifyContent: "center" }}
+                          onClick={() => { checkStripeStatus(); handleStripeOnboard(); }}
+                          disabled={stripeLoading}
+                        >
+                          {stripeLoading ? "Loading…" : "Set Up Payments with Stripe →"}
+                        </button>
+                      </div>
+                    )}
+                    {stripeOnboarded && (
+                      <div style={{ margin: "16px 0", padding: "12px 16px", background: "rgba(0,200,100,0.06)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 8, fontSize: 13, color: "#00c864" }}>
+                        ✓ Stripe payments connected — payouts go directly to your bank
+                      </div>
+                    )}
 
                     <div style={{ marginBottom: 12 }}>
                       <label className="editor-label">Payout Method</label>
