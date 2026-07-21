@@ -1559,9 +1559,14 @@ function PayoutAdminTab() {
   }
 
 async function markProcessed(id: string) {
+    const ref = reference[id] ?? '';
     await supabase
       .from("payout_requests")
-      .update({ status: "completed", processed_at: new Date().toISOString() })
+      .update({ 
+        status: "completed", 
+        processed_at: new Date().toISOString(),
+        notes: ref,
+      })
       .eq("id", id);
     setRequests(prev => prev.filter(r => r.id !== id));
   }
@@ -1617,13 +1622,26 @@ async function markProcessed(id: string) {
                 {r.payout_email} · {new Date(r.requested_at).toLocaleDateString()}
               </div>
             </div>
-            <button
-              onClick={() => markProcessed(r.id)}
-              style={{ fontSize: 11, fontWeight: 700, padding: "6px 14px",
-                background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.4)",
-                color: "#00c864", borderRadius: 6, cursor: "pointer" }}>
-              Mark Processed ✓
-            </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end" }}>
+              <input
+                placeholder="Reference / Txn ID (required)"
+                value={reference[r.id] ?? ''}
+                onChange={e => setReference(prev => ({ ...prev, [r.id]: e.target.value }))}
+                style={{ fontSize: 11, padding: "5px 10px", background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(201,168,76,0.3)", borderRadius: 6, color: "var(--text)",
+                  width: 220 }}
+              />
+              <button
+                onClick={() => markProcessed(r.id)}
+                disabled={!reference[r.id]?.trim()}
+                style={{ fontSize: 11, fontWeight: 700, padding: "6px 14px",
+                  background: reference[r.id]?.trim() ? "rgba(0,200,100,0.1)" : "rgba(255,255,255,0.04)",
+                  border: `1px solid ${reference[r.id]?.trim() ? "rgba(0,200,100,0.4)" : "rgba(255,255,255,0.1)"}`,
+                  color: reference[r.id]?.trim() ? "#00c864" : "var(--text-dim)",
+                  borderRadius: 6, cursor: reference[r.id]?.trim() ? "pointer" : "not-allowed" }}>
+                Mark Processed ✓
+              </button>
+            </div>
           </div>
         ))}
       </div>
