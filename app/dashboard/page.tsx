@@ -975,6 +975,8 @@ if (docxChapters.length > 0 && storyData?.id) {
         setEditWebsite(writerData.website_url ?? '');
         setEditPayoutMethod(writerData.payout_method ?? '');
         setEditPayoutHandle(writerData.payout_handle ?? '');
+        setPayoutMethod(writerData.payout_method ?? '');
+        setPayoutHandle(writerData.payout_handle ?? '');
 
         // Get stories by this writer
         const { data: storiesData } = await supabase
