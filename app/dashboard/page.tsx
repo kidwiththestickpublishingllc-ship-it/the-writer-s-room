@@ -1151,6 +1151,8 @@ if (docxChapters.length > 0 && storyData?.id) {
   const saveProfile = async () => {
     if (!writer) return;
     setSaving(true);
+    console.log('Saving profile for writer.id:', writer.id);
+    console.log('payout_method:', editPayoutMethod, 'payout_handle:', editPayoutHandle);
     try {
       const { error } = await supabase
         .from('writers')
