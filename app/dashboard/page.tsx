@@ -790,6 +790,8 @@ export default function WriterDashboard() {
   const [editTwitter, setEditTwitter] = useState('');
   const [editInstagram, setEditInstagram] = useState('');
   const [editWebsite, setEditWebsite] = useState('');
+  const [editPayoutMethod, setEditPayoutMethod] = useState('');
+  const [editPayoutHandle, setEditPayoutHandle] = useState('');
 // Story submission state
   const [storyTitle, setStoryTitle] = useState('');
   const [storyRoom, setStoryRoom] = useState<'reading-room' | 'red-room'>('reading-room');
@@ -969,6 +971,8 @@ if (docxChapters.length > 0 && storyData?.id) {
         setEditTwitter(writerData.twitter_url ?? '');
         setEditInstagram(writerData.instagram_url ?? '');
         setEditWebsite(writerData.website_url ?? '');
+        setEditPayoutMethod(writerData.payout_method ?? '');
+        setEditPayoutHandle(writerData.payout_handle ?? '');
 
         // Get stories by this writer
         const { data: storiesData } = await supabase
@@ -1154,6 +1158,8 @@ if (docxChapters.length > 0 && storyData?.id) {
           twitter_url: editTwitter || null,
           instagram_url: editInstagram || null,
           website_url: editWebsite || null,
+          payout_method: editPayoutMethod || null,
+          payout_handle: editPayoutHandle || null,
         })
         .eq('id', writer.id);
 
@@ -2080,6 +2086,40 @@ const checkStripeStatus = async () => {
                     </div>
                   </div>
 
+                 <div className="hq-divider" />
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 300, color: 'var(--text)', marginBottom: 8 }}>
+                    Payment Method
+                  </div>
+                  <p style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 20 }}>
+                    Set up once — we'll send your earnings here when you request a payout.
+                  </p>
+                  <div className="editor-field">
+                    <label className="editor-label">Payout Method</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                      {['Zelle', 'PayPal', 'Venmo', 'Stripe'].map(m => (
+                        <button key={m}
+                          onClick={() => setEditPayoutMethod(m)}
+                          style={{ padding: '10px', border: `2px solid ${editPayoutMethod === m ? 'var(--gold)' : 'var(--border)'}`,
+                            background: editPayoutMethod === m ? 'rgba(201,168,76,0.1)' : 'transparent',
+                            color: editPayoutMethod === m ? 'var(--gold-light)' : 'var(--text-dim)',
+                            borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {editPayoutMethod && (
+                    <div className="editor-field">
+                      <label className="editor-label">
+                        {editPayoutMethod === 'Zelle' ? 'Zelle Phone or Email' :
+                         editPayoutMethod === 'PayPal' ? 'PayPal Email' :
+                         editPayoutMethod === 'Venmo' ? 'Venmo Username' : 'Stripe Email'}
+                      </label>
+                      <input className="editor-input" value={editPayoutHandle}
+                        onChange={e => setEditPayoutHandle(e.target.value)}
+                        placeholder={editPayoutMethod === 'Venmo' ? '@username' : 'email or phone'} />
+                    </div>
+                  )}
                  <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
                     <button className="btn-primary" disabled={saving} onClick={saveProfile}>
                       {saving ? 'Saving…' : 'Save Profile ✓'}
