@@ -1560,6 +1560,9 @@ function PayoutAdminTab() {
 
 async function markProcessed(id: string) {
     const ref = reference[id] ?? '';
+    const req = requests.find(r => r.id === id);
+    if (!req) return;
+
     await supabase
       .from("payout_requests")
       .update({ 
@@ -1568,6 +1571,26 @@ async function markProcessed(id: string) {
         notes: ref,
       })
       .eq("id", id);
+
+    // Send receipt email to writer
+    try {
+      await fetch("/api/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "payout-processed",
+          to: req.payout_email,
+          name: req.payout_email,
+          data: {
+            amount: `$${Number(req.amount).toFixed(2)}`,
+            method: req.payout_method,
+            handle: req.payout_email,
+            reference: ref,
+          }
+        }),
+      });
+    } catch (err) { console.error("Payout email failed:", err); }
+
     setRequests(prev => prev.filter(r => r.id !== id));
   }
 
