@@ -1211,7 +1211,8 @@ const checkStripeStatus = async () => {
     }
     setRequesting(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const sessionResult = await supabase.auth.getSession();
+      const session = sessionResult.data.session;
       if (!session) { showToast('Not signed in.', 'error'); setRequesting(false); return; }
       // Insert payout request — you'd wire this to Stripe/PayPal etc.
       const { error } = await supabase
