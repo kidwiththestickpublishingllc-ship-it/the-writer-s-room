@@ -1589,7 +1589,24 @@ async function markProcessed(id: string) {
           }
         }),
       });
-    } catch (err) { console.error("Payout email failed:", err); }
+} catch (err) { console.error("Payout email failed:", err); }
+
+    // Admin receipt
+    try {
+      await fetch("/api/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "admin-message",
+          to: "kidwiththestickpublishingllc@gmail.com",
+          name: "Daniel",
+          data: {
+            subject: `Payout sent — $${Number(req.amount).toFixed(2)} via ${req.payout_method}`,
+            message: `Payout of $${Number(req.amount).toFixed(2)} marked as processed.\n\nSent to: ${req.payout_email}\nMethod: ${req.payout_method}\nReference: ${ref}\nDate: ${new Date().toLocaleDateString()}`,
+          }
+        }),
+      });
+    } catch (err) { console.error("Admin receipt email failed:", err); }
 
     setRequests(prev => prev.filter(r => r.id !== id));
   }
