@@ -1226,8 +1226,9 @@ const checkStripeStatus = async () => {
       showToast('Payout requested! We\'ll process it within 2-3 business days.');
       setPayoutHandle('');
       setPayoutMethod('');
-    } catch {
-      showToast('Payout request failed. Please try again.', 'error');
+    } catch (err: any) {
+      console.error('Payout error:', err);
+      showToast(err.message ?? 'Payout request failed. Please try again.', 'error');
     } finally {
       setRequesting(false);
     }
