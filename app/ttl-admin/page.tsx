@@ -1518,6 +1518,7 @@ function InkTab() {
 function PayoutAdminTab() {
   const [owed, setOwed] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
   const [method, setMethod] = useState<Record<string, string>>({});
@@ -1547,8 +1548,22 @@ function PayoutAdminTab() {
       const nameMap: Record<string, string> = {};
       (writers ?? []).forEach((w: any) => { nameMap[w.id] = w.name; });
       setHistory((payouts ?? []).map((p: any) => ({ ...p, writer_name: nameMap[p.writer_id] ?? "Unknown" })));
+      const { data: payoutReqs } = await supabase
+        .from("payout_requests")
+        .select("*")
+        .eq("status", "pending")
+        .order("requested_at", { ascending: false });
+      setRequests(payoutReqs ?? []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
+  }
+
+async function markProcessed(id: string) {
+    await supabase
+      .from("payout_requests")
+      .update({ status: "completed", processed_at: new Date().toISOString() })
+      .eq("id", id);
+    setRequests(prev => prev.filter(r => r.id !== id));
   }
 
   async function markPaid(w: any) {
@@ -1579,6 +1594,36 @@ function PayoutAdminTab() {
           <div key={s.label} style={{ background: "var(--ink2)", border: "1px solid var(--border)", borderRadius: 10, padding: 16 }}>
             <div style={{ fontSize: 11, color: "var(--text-dim)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>{s.label}</div>
             <div style={{ fontSize: 24, fontWeight: 700, color: s.color }}>{s.val}</div>
+          </div>
+        ))}
+      </div>
+      {/* PENDING PAYOUT REQUESTS */}
+      <div style={{ marginBottom: 32 }}>
+        <h3 style={{ color: "var(--text)", fontSize: 16, marginBottom: 14 }}>
+          Pending Payout Requests ({requests.length})
+        </h3>
+        {requests.length === 0 && (
+          <p style={{ color: "var(--text-dim)", fontSize: 13 }}>No pending requests.</p>
+        )}
+        {requests.map((r: any) => (
+          <div key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "12px 16px", marginBottom: 8, background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(201,168,76,0.2)", borderRadius: 8 }}>
+            <div>
+              <div style={{ fontSize: 13, color: "var(--text)", fontWeight: 600 }}>
+                ${Number(r.amount).toFixed(2)} via {r.payout_method}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>
+                {r.payout_email} · {new Date(r.requested_at).toLocaleDateString()}
+              </div>
+            </div>
+            <button
+              onClick={() => markProcessed(r.id)}
+              style={{ fontSize: 11, fontWeight: 700, padding: "6px 14px",
+                background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.4)",
+                color: "#00c864", borderRadius: 6, cursor: "pointer" }}>
+              Mark Processed ✓
+            </button>
           </div>
         ))}
       </div>
