@@ -431,6 +431,8 @@ type Writer = {
   twitter_url: string | null;
   instagram_url: string | null;
   website_url: string | null;
+  payout_method: string | null;
+  payout_handle: string | null;
 };
 
 // =========================
