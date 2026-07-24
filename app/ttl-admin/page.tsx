@@ -1619,7 +1619,39 @@ async function markProcessed(id: string) {
     try {
       const { data, error } = await supabase.rpc("pay_writer", { p_writer_id: w.id, p_method: m, p_reference: ref });
       if (error) throw error;
-      if (data && (data as any).ok === false) alert((data as any).error ?? "Payout failed");
+      if (data && (data as any).ok === false) { alert((data as any).error ?? "Payout failed"); return; }
+      // Send receipt email to writer
+      try {
+        await fetch("/api/email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "payout-processed",
+            to: w.email,
+            name: w.name,
+            data: {
+              amount: `$${w.unpaid_owed.toFixed(2)}`,
+              method: m,
+              handle: ref,
+              reference: ref,
+            }
+          }),
+        });
+        // Admin receipt
+        await fetch("/api/email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "admin-message",
+            to: "kidwiththestickpublishingllc@gmail.com",
+            name: "Daniel",
+            data: {
+              subject: `Payout sent — $${w.unpaid_owed.toFixed(2)} to ${w.name} via ${m}`,
+              message: `Payout of $${w.unpaid_owed.toFixed(2)} marked as processed.\n\nWriter: ${w.name}\nEmail: ${w.email}\nMethod: ${m}\nReference: ${ref}\nDate: ${new Date().toLocaleDateString()}`,
+            }
+          }),
+        });
+      } catch (emailErr) { console.error("Receipt email failed:", emailErr); }
       await loadAll();
     } catch (err) { console.error(err); alert("Payout failed. Check console."); }
     finally { setProcessing(null); }
