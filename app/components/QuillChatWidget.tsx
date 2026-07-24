@@ -508,6 +508,7 @@ const SUGGESTIONS = ["How do I submit?", "Copyright?", "How does Ink work?", "Fo
 
 export default function QuillChatWidget() {
   const [open, setOpen] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -576,12 +577,27 @@ export default function QuillChatWidget() {
         type="button"
         onClick={handleOpen}
         className={`quill-fab ${open ? "quill-fab-hidden" : ""}`}
+        style={{ display: hidden ? "none" : undefined }}
         aria-label="Open Quill chat"
         suppressHydrationWarning
       >
         <QuillBook onClick={handleOpen} />
         <span className="quill-fab-label">QUILL</span>
         <span className="quill-fab-hint">~ tap to open ~</span>
+        <button
+            type="button"
+            onClick={e => { e.stopPropagation(); setHidden(true); }}
+            style={{
+              position: 'absolute', top: 6, right: 6,
+              width: 18, height: 18, borderRadius: '50%',
+              background: '#9b6dff', border: 'none',
+              color: '#fff', fontSize: 10, fontWeight: 700,
+              cursor: 'pointer', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              zIndex: 10, lineHeight: 1,
+            }}
+            aria-label="Hide Quill"
+          >✕</button>
         {unread > 0 && (
           <span style={{
             position: 'absolute', top: -4, right: -4,
