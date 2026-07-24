@@ -1625,6 +1625,25 @@ async function markProcessed(id: string) {
     finally { setProcessing(null); }
   }
 
+async function payViaPayPal(w: any) {
+    if (!window.confirm(`Send $${w.unpaid_owed.toFixed(2)} to ${w.email} via PayPal? This cannot be undone.`)) return;
+    setProcessing(w.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { alert("Not signed in"); return; }
+      const res = await fetch("/api/paypal/payout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access_token: session.access_token, writer_id: w.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert("PayPal payout failed: " + data.error); return; }
+      alert(`✓ $${w.unpaid_owed.toFixed(2)} sent via PayPal! Batch ID: ${data.batch_id}`);
+      await loadAll();
+    } catch (err) { console.error(err); alert("PayPal payout failed."); }
+    finally { setProcessing(null); }
+  }
+ 
   const totalOwed = owed.reduce((s: number, w: any) => s + w.unpaid_owed, 0);
   const totalPaid = history.reduce((s: number, p: any) => s + Number(p.amount_usd), 0);
 
@@ -1706,6 +1725,7 @@ async function markProcessed(id: string) {
             <input placeholder="Method (PayPal, Wise, Bank...)" value={method[w.id] ?? ""} onChange={e => setMethod({ ...method, [w.id]: e.target.value })} style={{ flex: "1 1 150px", padding: "8px 12px", background: "var(--ink3)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", fontSize: 13, outline: "none" }} />
             <input placeholder="Reference / txn ID" value={reference[w.id] ?? ""} onChange={e => setReference({ ...reference, [w.id]: e.target.value })} style={{ flex: "1 1 150px", padding: "8px 12px", background: "var(--ink3)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", fontSize: 13, outline: "none" }} />
             <button onClick={() => markPaid(w)} disabled={processing === w.id} style={{ padding: "8px 16px", background: "#22c55e", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>{processing === w.id ? "Processing..." : "Mark $" + w.unpaid_owed.toFixed(2) + " Paid"}</button>
+            <button onClick={() => payViaPayPal(w)} disabled={processing === w.id} style={{ padding: "8px 16px", background: "#003087", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>{processing === w.id ? "Processing..." : "PayPal $" + w.unpaid_owed.toFixed(2)}</button>
           </div>
         </div>
       ))}
