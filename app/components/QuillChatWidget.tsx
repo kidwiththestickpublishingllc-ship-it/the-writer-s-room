@@ -211,6 +211,7 @@ const WIDGET_STYLES = `
     border-bottom: 1px solid var(--ink-border);
     display: flex; align-items: center; justify-content: space-between;
     background: var(--ink-surface2);
+    position: relative;
   }
 
   .quill-header-left { display: flex; align-items: center; gap: 12px; }
@@ -597,7 +598,15 @@ export default function QuillChatWidget() {
               </div>
             </div>
           </div>
-          <button type="button" onClick={handleClose} className="quill-close">✕</button>
+          <button type="button" onClick={handleClose} style={{
+            position: "absolute", top: 12, right: 12,
+            width: 28, height: 28, borderRadius: "50%",
+            background: "rgba(155,109,255,0.15)",
+            border: "1px solid rgba(155,109,255,0.4)",
+            color: "#9b6dff", fontSize: 14, fontWeight: 700,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", lineHeight: 1, padding: 0,
+          }}>✕</button>
         </div>
 
         <div className="quill-messages">
