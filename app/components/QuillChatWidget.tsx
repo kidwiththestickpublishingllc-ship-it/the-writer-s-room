@@ -242,14 +242,15 @@ const WIDGET_STYLES = `
   @keyframes quillPulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
 
   .quill-close {
-    font-family: 'Syne', sans-serif;
-    font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 300;
     color: var(--text-dim); border: 1px solid var(--ink-border);
-    background: var(--ink-surface); padding: 6px 12px;
-    border-radius: 6px; cursor: pointer; transition: all 0.2s;
+    background: var(--ink-surface); border-radius: 50%;
+    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+    padding: 0; line-height: 1;
   }
-
-  .quill-close:hover { color: var(--text-main); border-color: var(--quill-dim); }
+  .quill-close:hover { color: var(--text-main); border-color: var(--quill-dim); background: rgba(155,109,255,0.1); }
 
   .quill-messages {
     flex: 1; overflow-y: auto; padding: 20px;
@@ -596,7 +597,7 @@ export default function QuillChatWidget() {
               </div>
             </div>
           </div>
-          <button type="button" onClick={handleClose} className="quill-close">Close ✕</button>
+          <button type="button" onClick={handleClose} className="quill-close">✕</button>
         </div>
 
         <div className="quill-messages">
