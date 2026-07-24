@@ -14,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <QuillChatWidget />
+        <WritersTour />
       </body>
     </html>
   );
