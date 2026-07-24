@@ -1560,15 +1560,18 @@ function PayoutAdminTab() {
 
 async function markProcessed(id: string) {
     const ref = reference[id] ?? '';
+    const adminNote = reference[`note_${id}`] ?? '';
     const req = requests.find(r => r.id === id);
     if (!req) return;
 
     await supabase
       .from("payout_requests")
       .update({ 
-        status: "completed", 
+        status: "paid", 
         processed_at: new Date().toISOString(),
         notes: ref,
+        admin_note: adminNote || null,
+        reviewed_by: "kidwiththestickpublishingllc@gmail.com",
       })
       .eq("id", id);
 
@@ -1693,45 +1696,193 @@ async function payViaPayPal(w: any) {
           </div>
         ))}
       </div>
-      {/* PENDING PAYOUT REQUESTS */}
-      <div style={{ marginBottom: 32 }}>
-        <h3 style={{ color: "var(--text)", fontSize: 16, marginBottom: 14 }}>
-          Pending Payout Requests ({requests.length})
-        </h3>
+      {/* PENDING PAYOUT REQUESTS — Banking Grade */}
+      <div style={{ marginBottom: 40 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <h3 style={{ color: "var(--text)", fontSize: 16, margin: 0 }}>
+            Payout Requests
+            <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, padding: "2px 8px",
+              background: "rgba(201,168,76,0.15)", color: "var(--gold-light)", borderRadius: 4 }}>
+              {requests.length} pending
+            </span>
+          </h3>
+        </div>
+
         {requests.length === 0 && (
-          <p style={{ color: "var(--text-dim)", fontSize: 13 }}>No pending requests.</p>
+          <p style={{ color: "var(--text-dim)", fontSize: 13, padding: "20px 0" }}>No pending requests.</p>
         )}
+
         {requests.map((r: any) => (
-          <div key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "12px 16px", marginBottom: 8, background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(201,168,76,0.2)", borderRadius: 8 }}>
-            <div>
-              <div style={{ fontSize: 13, color: "var(--text)", fontWeight: 600 }}>
-                ${Number(r.amount).toFixed(2)} via {r.payout_method}
+          <div key={r.id} style={{
+            marginBottom: 12, background: "var(--ink2)",
+            border: r.on_hold ? "1px solid rgba(255,160,0,0.4)" : "1px solid var(--border)",
+            borderRadius: 10, overflow: "hidden",
+          }}>
+            {/* Status bar */}
+            <div style={{
+              height: 3,
+              background: r.status === "on_hold" ? "#ff9800"
+                : r.status === "processing" ? "#3b82f6"
+                : r.status === "failed" ? "#ef4444"
+                : "rgba(201,168,76,0.4)",
+            }} />
+
+            <div style={{ padding: "16px 18px" }}>
+              {/* Header row */}
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: "var(--gold-light)" }}>
+                      ${Number(r.amount).toFixed(2)}
+                    </span>
+                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em",
+                      textTransform: "uppercase", padding: "2px 8px", borderRadius: 4,
+                      background: r.status === "on_hold" ? "rgba(255,152,0,0.15)" : "rgba(255,255,255,0.06)",
+                      color: r.status === "on_hold" ? "#ff9800" : "var(--text-dim)",
+                      border: r.status === "on_hold" ? "1px solid rgba(255,152,0,0.3)" : "1px solid var(--border)",
+                    }}>
+                      {r.status === "on_hold" ? "🔒 On Hold" : r.status ?? "pending"}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--text-dim)" }}>
+                    via <strong style={{ color: "var(--text)" }}>{r.payout_method}</strong>
+                    {" · "}{r.payout_email}
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--text-faint)", marginTop: 3 }}>
+                    Requested {new Date(r.requested_at).toLocaleDateString()} at {new Date(r.requested_at).toLocaleTimeString()}
+                  </div>
+                  {r.notes && (
+                    <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 6,
+                      padding: "6px 10px", background: "rgba(255,255,255,0.04)",
+                      borderLeft: "2px solid var(--gold-dim)", borderRadius: 2 }}>
+                      Writer note: {r.notes}
+                    </div>
+                  )}
+                </div>
+
+                {/* Action buttons */}
+                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  <button
+                    onClick={async () => {
+                      const newHold = !r.on_hold;
+                      const reason = newHold ? window.prompt("Hold reason (shown to writer):") : null;
+                      if (newHold && !reason) return;
+                      await supabase.from("payout_requests").update({
+                        on_hold: newHold,
+                        hold_reason: reason ?? null,
+                        status: newHold ? "on_hold" : "pending",
+                      }).eq("id", r.id);
+                      if (newHold) {
+                        await fetch("/api/email", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            type: "admin-message",
+                            to: r.payout_email,
+                            name: "Writer",
+                            data: {
+                              subject: `Your payout request is on hold — The Tiniest Library`,
+                              message: `Your payout request of $${Number(r.amount).toFixed(2)} has been placed on hold.\n\nReason: ${reason}\n\nPlease contact us at hello@the-tiniest-library.com if you have questions.`,
+                            }
+                          }),
+                        });
+                      }
+                      await loadAll();
+                    }}
+                    style={{ fontSize: 10, fontWeight: 700, padding: "5px 10px",
+                      background: r.on_hold ? "rgba(255,152,0,0.1)" : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${r.on_hold ? "rgba(255,152,0,0.4)" : "var(--border)"}`,
+                      color: r.on_hold ? "#ff9800" : "var(--text-dim)",
+                      borderRadius: 6, cursor: "pointer" }}>
+                    {r.on_hold ? "Remove Hold" : "🔒 Hold"}
+                  </button>
+                  <button
+                    onClick={async () => {
+                      const reason = window.prompt("Rejection reason (sent to writer):");
+                      if (!reason) return;
+                      await supabase.from("payout_requests").update({
+                        status: "failed",
+                        failure_reason: reason,
+                        failed_at: new Date().toISOString(),
+                      }).eq("id", r.id);
+                      await fetch("/api/email", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          type: "admin-message",
+                          to: r.payout_email,
+                          name: "Writer",
+                          data: {
+                            subject: `Payout request update — The Tiniest Library`,
+                            message: `Your payout request of $${Number(r.amount).toFixed(2)} could not be processed.\n\nReason: ${reason}\n\nPlease update your payment details in your dashboard or contact hello@the-tiniest-library.com.`,
+                          }
+                        }),
+                      });
+                      await loadAll();
+                    }}
+                    style={{ fontSize: 10, fontWeight: 700, padding: "5px 10px",
+                      background: "rgba(239,68,68,0.08)",
+                      border: "1px solid rgba(239,68,68,0.3)",
+                      color: "#ef4444", borderRadius: 6, cursor: "pointer" }}>
+                    ✕ Reject
+                  </button>
+                </div>
               </div>
-              <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>
-                {r.payout_email} · {new Date(r.requested_at).toLocaleDateString()}
-              </div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end" }}>
-              <input
-                placeholder="Reference / Txn ID (required)"
-                value={reference[r.id] ?? ''}
-                onChange={e => setReference(prev => ({ ...prev, [r.id]: e.target.value }))}
-                style={{ fontSize: 11, padding: "5px 10px", background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(201,168,76,0.3)", borderRadius: 6, color: "var(--text)",
-                  width: 220 }}
-              />
-              <button
-                onClick={() => markProcessed(r.id)}
-                disabled={!reference[r.id]?.trim()}
-                style={{ fontSize: 11, fontWeight: 700, padding: "6px 14px",
-                  background: reference[r.id]?.trim() ? "rgba(0,200,100,0.1)" : "rgba(255,255,255,0.04)",
-                  border: `1px solid ${reference[r.id]?.trim() ? "rgba(0,200,100,0.4)" : "rgba(255,255,255,0.1)"}`,
-                  color: reference[r.id]?.trim() ? "#00c864" : "var(--text-dim)",
-                  borderRadius: 6, cursor: reference[r.id]?.trim() ? "pointer" : "not-allowed" }}>
-                Mark Processed ✓
-              </button>
+
+              {/* Admin note + reference + approve row */}
+              {!r.on_hold && r.status !== "failed" && (
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
+                  <div style={{ flex: "1 1 200px" }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em",
+                      textTransform: "uppercase", color: "var(--text-faint)", marginBottom: 4 }}>
+                      Reference / Txn ID *
+                    </div>
+                    <input
+                      placeholder="e.g. ZELLE-20240724-001"
+                      value={reference[r.id] ?? ''}
+                      onChange={e => setReference(prev => ({ ...prev, [r.id]: e.target.value }))}
+                      style={{ width: "100%", fontSize: 12, padding: "7px 10px",
+                        background: "rgba(255,255,255,0.05)",
+                        border: "1px solid rgba(201,168,76,0.3)", borderRadius: 6,
+                        color: "var(--text)", outline: "none" }}
+                    />
+                  </div>
+                  <div style={{ flex: "1 1 200px" }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em",
+                      textTransform: "uppercase", color: "var(--text-faint)", marginBottom: 4 }}>
+                      Admin Note (sent to writer)
+                    </div>
+                    <input
+                      placeholder="Optional note to writer..."
+                      value={reference[`note_${r.id}`] ?? ''}
+                      onChange={e => setReference(prev => ({ ...prev, [`note_${r.id}`]: e.target.value }))}
+                      style={{ width: "100%", fontSize: 12, padding: "7px 10px",
+                        background: "rgba(255,255,255,0.05)",
+                        border: "1px solid var(--border)", borderRadius: 6,
+                        color: "var(--text)", outline: "none" }}
+                    />
+                  </div>
+                  <button
+                    onClick={() => markProcessed(r.id)}
+                    disabled={!reference[r.id]?.trim()}
+                    style={{ fontSize: 11, fontWeight: 700, padding: "8px 18px",
+                      background: reference[r.id]?.trim() ? "rgba(0,200,100,0.12)" : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${reference[r.id]?.trim() ? "rgba(0,200,100,0.5)" : "var(--border)"}`,
+                      color: reference[r.id]?.trim() ? "#00c864" : "var(--text-dim)",
+                      borderRadius: 6, cursor: reference[r.id]?.trim() ? "pointer" : "not-allowed",
+                      whiteSpace: "nowrap", flexShrink: 0 }}>
+                    ✓ Mark Processed
+                  </button>
+                </div>
+              )}
+
+              {/* Hold reason display */}
+              {r.on_hold && r.hold_reason && (
+                <div style={{ fontSize: 12, color: "#ff9800", padding: "8px 12px",
+                  background: "rgba(255,152,0,0.06)", borderRadius: 6, marginTop: 8 }}>
+                  Hold reason: {r.hold_reason}
+                </div>
+              )}
             </div>
           </div>
         ))}
