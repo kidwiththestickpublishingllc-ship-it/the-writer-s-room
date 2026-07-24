@@ -243,15 +243,25 @@ const WIDGET_STYLES = `
   @keyframes quillPulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
 
   .quill-close {
-    width: 28px; height: 28px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; font-weight: 300;
-    color: var(--text-dim); border: 1px solid var(--ink-border);
-    background: var(--ink-surface); border-radius: 50%;
-    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
-    padding: 0; line-height: 1;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid var(--ink-border);
+    background: var(--ink-surface2);
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    padding: 0;
   }
-  .quill-close:hover { color: var(--text-main); border-color: var(--quill-dim); background: rgba(155,109,255,0.1); }
+  .quill-close:hover {
+    border-color: var(--quill-dim);
+    color: #9b6dff;
+  }
 
   .quill-messages {
     flex: 1; overflow-y: auto; padding: 20px;
@@ -598,15 +608,9 @@ export default function QuillChatWidget() {
               </div>
             </div>
           </div>
-          <button type="button" onClick={handleClose} style={{
-            position: "absolute", top: 12, right: 12,
-            width: 28, height: 28, borderRadius: "50%",
-            background: "rgba(155,109,255,0.15)",
-            border: "1px solid rgba(155,109,255,0.4)",
-            color: "#9b6dff", fontSize: 14, fontWeight: 700,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", lineHeight: 1, padding: 0,
-          }}>✕</button>
+          <button type="button" onClick={handleClose} className="quill-close" aria-label="Close">
+            ✕
+          </button>
         </div>
 
         <div className="quill-messages">
