@@ -46,11 +46,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Writer has no PayPal set up" }, { status: 400 });
     }
 
+    console.log("PayPal payout - writer_id received:", writer_id);
     const { data: earnings } = await admin
       .from("writer_earnings")
       .select("id, writer_usd")
       .eq("writer_id", writer_id)
       .is("payout_id", null);
+    console.log("PayPal payout - earnings found:", earnings?.length ?? 0);
 
     if (!earnings || earnings.length === 0) {
       return NextResponse.json({ error: "No unpaid earnings" }, { status: 400 });
