@@ -1,6 +1,7 @@
 "use client";
 
 
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 // =========================
@@ -319,7 +320,13 @@ const TWR_NAV_STYLES = `
 const SPOTS_LEFT = 87;
 
 export function TWRNav() {
-  
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserEmail(session?.user?.email ?? null);
+    });
+  }, []);
 
   return (
     <>
@@ -355,6 +362,9 @@ export function TWRNav() {
             </div>
             <div className="twr-shared-divider" />
             <a href="/apply" className="twr-shared-link twr-shared-link-apply">Apply Now →</a>
+            {userEmail === "kidwiththestickpublishingllc@gmail.com" && (
+              <a href="/ttl-admin" className="twr-shared-link" style={{ color: "#C9A84C", fontWeight: 700 }}>Admin ⚙</a>
+            )}
             <a href="/login" className="twr-shared-auth-btn">Sign In</a>
             <button
               className="twr-shared-link"
