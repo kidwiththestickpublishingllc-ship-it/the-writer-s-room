@@ -1679,6 +1679,26 @@ async function payViaPayPal(w: any) {
     finally { setProcessing(null); }
   }
  
+async function payViaWise(w: any) {
+    if (!window.confirm(`Send $${w.unpaid_owed.toFixed(2)} to ${w.email} via Wise? This cannot be undone.`)) return;
+    setProcessing(w.id);
+    try {
+      const sessionResult = await supabase.auth.getSession();
+      const session = sessionResult.data.session;
+      if (!session) { alert("Not signed in"); return; }
+      const res = await fetch("/api/wise/payout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access_token: session.access_token, writer_id: w.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert("Wise payout failed: " + data.error); return; }
+      alert(`✓ $${w.unpaid_owed.toFixed(2)} sent via Wise! Transfer ID: ${data.transfer_id}`);
+      await loadAll();
+    } catch (err) { console.error(err); alert("Wise payout failed."); }
+    finally { setProcessing(null); }
+  }
+
   const totalOwed = owed.reduce((s: number, w: any) => s + w.unpaid_owed, 0);
   const totalPaid = history.reduce((s: number, p: any) => s + Number(p.amount_usd), 0);
 
@@ -1909,6 +1929,7 @@ async function payViaPayPal(w: any) {
             <input placeholder="Reference / txn ID" value={reference[w.id] ?? ""} onChange={e => setReference({ ...reference, [w.id]: e.target.value })} style={{ flex: "1 1 150px", padding: "8px 12px", background: "var(--ink3)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", fontSize: 13, outline: "none" }} />
             <button onClick={() => markPaid(w)} disabled={processing === w.id} style={{ padding: "8px 16px", background: "#22c55e", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>{processing === w.id ? "Processing..." : "Mark $" + w.unpaid_owed.toFixed(2) + " Paid"}</button>
             <button onClick={() => payViaPayPal(w)} disabled={processing === w.id} style={{ padding: "8px 16px", background: "#003087", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>{processing === w.id ? "Processing..." : "PayPal $" + w.unpaid_owed.toFixed(2)}</button>
+            <button onClick={() => payViaWise(w)} disabled={processing === w.id} style={{ padding: "8px 16px", background: "#00b9ff", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>{processing === w.id ? "Processing..." : "Wise $" + w.unpaid_owed.toFixed(2)}</button>
           </div>
         </div>
       ))}
