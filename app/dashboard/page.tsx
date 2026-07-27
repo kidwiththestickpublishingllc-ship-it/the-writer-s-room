@@ -426,6 +426,7 @@ type Earning = {
 type Writer = {
   id: string;
   name: string;
+  email: string | null;
   bio: string | null;
   photo_url: string | null;
   twitter_url: string | null;
@@ -1102,6 +1103,46 @@ if (docxChapters.length > 0 && storyData?.id) {
     }
   };
 
+// Delete a story — blocked if any chapter has paid unlocks
+  const deleteStory = async () => {
+    if (!currentStoryId) { showToast('No story selected.', 'error'); return; }
+    const story = stories.find(s => s.id === currentStoryId);
+    if (!story) return;
+    // Check for paid unlocks
+    const { data: unlocks } = await supabase
+      .from('chapter_unlocks')
+      .select('id')
+      .in('chapter_id', chapters.map(c => c.id))
+      .limit(1);
+    if (unlocks && unlocks.length > 0) {
+      // Has paid unlocks — request deletion instead
+      if (!window.confirm(`"${story.title}" has readers who paid to unlock chapters. This will request deletion — Daniel will review and approve.\n\nSend deletion request?`)) return;
+      await fetch('/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'admin-message',
+          to: 'kidwiththestickpublishingllc@gmail.com',
+          name: 'Daniel',
+          data: {
+            subject: `Story deletion request — ${story.title}`,
+            message: `Writer ${writer?.name} (${writer?.email}) has requested deletion of "${story.title}".\n\nThis story has paid unlocks. Please review and delete manually if approved.\n\nStory ID: ${currentStoryId}`,
+          }
+        }),
+      });
+      showToast('Deletion request sent. Daniel will review and approve.', 'success');
+      return;
+    }
+    // No paid unlocks — delete directly
+    if (!window.confirm(`Delete "${story.title}" and all its chapters? This cannot be undone.`)) return;
+    await supabase.from('chapters').delete().eq('story_id', currentStoryId);
+    await supabase.from('stories').delete().eq('id', currentStoryId);
+    setStories(prev => prev.filter(s => s.id !== currentStoryId));
+    setCurrentStoryId('');
+    setChapters([]);
+    showToast('Story deleted.');
+  };
+
   // Delete a chapter — blocked if a reader has paid to unlock it
   const deleteChapter = async (ch: Chapter) => {
     if (lockedChapterIds.has(ch.id)) {
@@ -1718,9 +1759,19 @@ const checkStripeStatus = async () => {
                       </select>
                     )}
                   </div>
-                  <button className="btn-primary" disabled={saving} onClick={addChapter}>
+               
+                    <button className="btn-primary" disabled={saving} onClick={addChapter}>
                     + New Chapter
                   </button>
+                  {currentStoryId && (
+                    <button
+                      onClick={deleteStory}
+                      style={{ padding: "8px 16px", background: "rgba(239,68,68,0.1)",
+                        border: "1px solid rgba(239,68,68,0.4)", color: "#ef4444",
+                        borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                      🗑 Delete Story
+                    </button>
+                  )}
                 </div>
 
                 {chapters.length > 0 ? (
