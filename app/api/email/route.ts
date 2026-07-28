@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
                   </div>
 
                   <a href="${DASHBOARD_URL}" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;margin-bottom:16px;">
-                    Go to Your Dashboard →
+                    Enter The Writer's HQ →
                   </a>
                   <br>
                   <a href="${DASHBOARD_URL}?tab=submit" style="display:inline-block;background:transparent;color:#C9A84C;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;border:1px solid rgba(201,168,76,0.4);margin-bottom:32px;">
@@ -258,7 +258,7 @@ case "writer-onboarding-phase-2": {
     <p style="font-size:15px;font-style:italic;color:rgba(240,236,226,0.5);margin:0 0 32px;">Your writer dashboard is live and ready.</p>
     <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 32px;">Your application has been approved and your writer account is active. Everything you need to start publishing on TTL is below.</p>
     <div style="text-align:center;margin:0 0 40px;">
-      <a href="https://write.the-tiniest-library.com/dashboard?welcome=true" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:16px 40px;border-radius:6px;text-decoration:none;">Go to Your Dashboard →</a>
+      <a href="https://write.the-tiniest-library.com/dashboard?welcome=true" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:16px 40px;border-radius:6px;text-decoration:none;">Enter The Writer's HQ →</a>
       <p style="font-size:11px;color:rgba(240,236,226,0.3);margin:12px 0 0;">Your profile, stories, earnings and agreements — all in one place.</p>
     </div>
     <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-radius:8px;padding:24px;margin-bottom:28px;">
@@ -415,7 +415,7 @@ case "writer-reminder": {
                     </p>
                   </div>
                   <a href="${DASHBOARD_URL}" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;margin-bottom:32px;">
-                    Go to Your Dashboard →
+                    Enter The Writer's HQ →
                   </a>
                   <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;">
                     <p style="font-size:12px;color:rgba(240,236,226,0.3);margin:0;">You keep your copyright. Always. · The Tiniest Library</p>
@@ -546,7 +546,7 @@ case "writer-reminder": {
                     </p>
                   </div>
                   <a href="${DASHBOARD_URL}" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;margin-bottom:16px;">
-                    Go to Your Dashboard →
+                    Enter The Writer's HQ →
                   </a>
                 </div>
               </div>
