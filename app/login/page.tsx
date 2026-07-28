@@ -288,9 +288,9 @@ export default function WritersRoomLogin() {
     if (!email) { setError('Please enter your email address.'); return; }
     setLoading(true); setError(''); setSuccess('');
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://write.the-tiniest-library.com/auth/reset-password',
-      });
+     const { error } = await supabase.auth.resetPasswordForEmail(email, {
+  redirectTo: 'https://write.the-tiniest-library.com/auth/reset-password',
+});
       if (error) throw error;
       setSuccess('Password reset email sent! Check your inbox.');
     } catch (e: any) {
