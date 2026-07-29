@@ -967,7 +967,10 @@ if (docxChapters.length > 0 && storyData?.id) {
             return;
           }
         }
-
+          if (writerData.first_login) {
+            window.location.href = '/auth/reset-password';
+             return;
+        }
         setWriter(writerData);
         setEditName(writerData.name ?? '');
         setEditBio(writerData.bio ?? '');

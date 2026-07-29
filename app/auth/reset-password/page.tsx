@@ -127,7 +127,9 @@ export default function ResetPassword() {
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
+      await supabase.from('writers').update({ first_login: false }).eq('email', (await supabase.auth.getUser()).data.user?.email ?? '');
       setSuccess('Password updated! Redirecting to your dashboard…');
+      setTimeout(() => { window.location.href = '/dashboard'; }, 1500);
       setTimeout(() => { window.location.href = '/dashboard'; }, 2000);
     } catch (e: any) {
       setError(e.message ?? 'Failed to update password. Please try again.');

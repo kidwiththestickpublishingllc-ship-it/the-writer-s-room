@@ -19,32 +19,33 @@ export async function POST(req: Request) {
     const { data: { users } } = await supabaseAdmin.auth.admin.listUsers()
     const authUser = users.find(u => u.email === email)
 
+    let uid: string
+
     if (!authUser) {
-      return NextResponse.json({ error: 'No auth account found' }, { status: 404 })
+      const { data: created, error: ce } = await supabaseAdmin.auth.admin.createUser({
+        email, password: tempPassword, email_confirm: true
+      })
+      if (ce) return NextResponse.json({ error: ce.message }, { status: 500 })
+      uid = created.user.id
+    } else {
+      uid = authUser.id
+      await supabaseAdmin.auth.admin.updateUserById(uid, {
+        email_confirm: true, password: tempPassword
+      })
     }
-
-    // Confirm email first
-    await supabaseAdmin.auth.admin.updateUserById(authUser.id, {
-      email_confirm: true
-    })
-
-    // Set temp password separately
-    await supabaseAdmin.auth.admin.updateUserById(authUser.id, {
-      password: tempPassword
-    })
 
     // Check if writer record already exists
     const { data: existing } = await supabaseAdmin
       .from('writers')
       .select('id')
-      .eq('user_id', authUser.id)
+      .eq('user_id', uid)
       .maybeSingle()
 
     if (!existing) {
       const { error: insertError } = await supabaseAdmin.from('writers').insert({
         name,
         email,
-        user_id: authUser.id,
+        user_id: uid,
         is_approved: true,
         is_founding_author: false,
         tier: 'tier1',
