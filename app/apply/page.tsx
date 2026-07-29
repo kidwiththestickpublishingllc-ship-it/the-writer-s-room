@@ -29,6 +29,7 @@ type FormData = {
   pen_name: string;
   email: string;
   password: string;
+  confirm_password: string;
   bio: string;
   why_ttl: string;
   genres: string[];
@@ -39,7 +40,7 @@ type FormData = {
 };
 
 const EMPTY_FORM: FormData = {
-  full_name: "", pen_name: "", email: "", password: "", bio: "",
+  full_name: "", pen_name: "", email: "", password: "", confirm_password: "", bio: "",
   why_ttl: "", genres: [], writing_sample: "",
   twitter_url: "", instagram_url: "", website_url: "",
 };
@@ -444,6 +445,8 @@ export default function ApplyPage() {
   const [step, setStep] = useState<Step>(1);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
@@ -458,7 +461,7 @@ export default function ApplyPage() {
   };
 
   const canProceed = {
-    1: form.full_name.trim().length >= 2 && form.email.trim().includes("@") && form.password.trim().length >= 6 && form.bio.trim().length >= 20,
+    1: form.full_name.trim().length >= 2 && form.email.trim().includes("@") && form.password.trim().length >= 8 && form.password === form.confirm_password && form.bio.trim().length >= 20,
     2: form.genres.length >= 1 && form.why_ttl.trim().length >= 30,
     3: form.writing_sample.trim().length >= 100,
     4: true,
@@ -615,7 +618,25 @@ export default function ApplyPage() {
                   </div>
                   <div className="ap-field">
                     <label className="ap-field-label">Create a Password <span className="req">*</span></label>
-                    <input className="ap-input" type="password" placeholder="Minimum 6 characters" value={form.password} onChange={e => update("password", e.target.value)} />
+                    <div style={{ position: "relative" }}>
+                      <input className="ap-input" type={showPassword ? "text" : "password"} placeholder="Minimum 8 characters" value={form.password} onChange={e => update("password", e.target.value)} style={{ paddingRight: 44 }} />
+                      <button type="button" onClick={() => setShowPassword(p => !p)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(240,236,226,0.4)", fontSize: 16 }}>
+                        {showPassword ? "🙈" : "👁"}
+                      </button>
+                    </div>
+                    <label className="ap-field-label" style={{ marginTop: 12 }}>Confirm Password <span className="req">*</span></label>
+                    <div style={{ position: "relative" }}>
+                      <input className="ap-input" type={showConfirm ? "text" : "password"} placeholder="Re-enter your password" value={form.confirm_password} onChange={e => update("confirm_password", e.target.value)} style={{ paddingRight: 44 }} />
+                      <button type="button" onClick={() => setShowConfirm(p => !p)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(240,236,226,0.4)", fontSize: 16 }}>
+                        {showConfirm ? "🙈" : "👁"}
+                      </button>
+                    </div>
+                    {form.password && form.confirm_password && form.password !== form.confirm_password && (
+                      <p style={{ fontSize: 12, color: "#ef4444", marginTop: 6 }}>Passwords do not match.</p>
+                    )}
+                    {form.password && form.confirm_password && form.password === form.confirm_password && form.password.length >= 8 && (
+                      <p style={{ fontSize: 12, color: "#4ade80", marginTop: 6 }}>✓ Passwords match.</p>
+                    )}
                     <p className="ap-field-hint">You'll use this to log into your Writer Dashboard once approved.</p>
                   </div>
                   <div className="ap-field">
