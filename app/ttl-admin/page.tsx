@@ -680,16 +680,24 @@ function ApplicationsTab() {
     async function updateStatus(id: string, status: string, email: string, name: string) {
     await supabase.from("applications").update({ status }).eq("id", id);
     if (status === "approved") {
-      await fetch("/api/invite-writer", {
+      const inviteRes = await fetch("/api/invite-writer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name, createWriter: true }),
+        body: JSON.stringify({ email, name }),
       });
-    await fetch("/api/email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "application-approved", to: email, name }),
-    });
+      const inviteData = await inviteRes.json();
+      const tempPassword = inviteData.tempPassword ?? "";
+
+      await fetch("/api/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          type: "application-approved", 
+          to: email, 
+          name,
+          data: { tempPassword }
+        }),
+      });
     // Phase 2 — Welcome + rules + ink guide
     await fetch("/api/email", {
       method: "POST",
