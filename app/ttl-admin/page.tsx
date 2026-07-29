@@ -680,17 +680,11 @@ function ApplicationsTab() {
     async function updateStatus(id: string, status: string, email: string, name: string) {
     await supabase.from("applications").update({ status }).eq("id", id);
     if (status === "approved") {
-      // Create Supabase auth account via invite
-      await fetch("/api/invite-writer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name }),
-      });
       await fetch("/api/invite-writer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, name, createWriter: true }),
-      }); // Bridge profile — author fills in the rest
+      });
     await fetch("/api/email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
