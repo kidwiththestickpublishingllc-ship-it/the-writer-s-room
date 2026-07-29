@@ -471,7 +471,10 @@ export default function ApplyPage() {
       const { error: authError } = await supabase.auth.signUp({
         email: form.email.trim(),
         password: form.password.trim(),
-        options: { data: { full_name: form.full_name.trim() } }
+        options: { 
+          data: { full_name: form.full_name.trim() },
+          emailRedirectTo: 'https://write.the-tiniest-library.com/auth/callback?next=/dashboard'
+        }
       });
       if (authError && authError.message !== "User already registered") throw new Error(authError.message);
       const { error: dbError } = await supabase
