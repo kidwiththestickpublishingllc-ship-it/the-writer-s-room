@@ -687,8 +687,7 @@ function ApplicationsTab() {
       });
       const inviteData = await inviteRes.json();
       if (!inviteRes.ok) {
-        alert(`Approval failed: ${inviteData.error ?? "Unknown error"}`);
-        return;
+        console.error(`Approval failed: ${inviteData.error ?? "Unknown error"}`);
       }
       const tempPassword = inviteData.tempPassword ?? "";
 
