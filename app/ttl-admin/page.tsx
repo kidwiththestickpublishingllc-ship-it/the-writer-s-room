@@ -686,6 +686,10 @@ function ApplicationsTab() {
         body: JSON.stringify({ email, name }),
       });
       const inviteData = await inviteRes.json();
+      if (!inviteRes.ok) {
+        alert(`Approval failed: ${inviteData.error ?? "Unknown error"}`);
+        return;
+      }
       const tempPassword = inviteData.tempPassword ?? "";
 
       await fetch("/api/email", {
@@ -771,7 +775,12 @@ function ApplicationsTab() {
                         </button>
                         {app.status === "pending" && (
                           <>
-                            <button className="adm-btn adm-btn-approve" onClick={() => updateStatus(app.id, "approved", app.email, app.full_name)}>Approve</button>
+                            <button className="adm-btn adm-btn-approve" onClick={async () => {
+  const btn = document.activeElement as HTMLButtonElement;
+  if (btn) btn.textContent = "Processing...";
+  await updateStatus(app.id, "approved", app.email, app.full_name);
+  if (btn) btn.textContent = "✓ Approved";
+}}>Approve</button>
                             <button className="adm-btn adm-btn-reject" onClick={() => updateStatus(app.id, "rejected", app.email, app.full_name)}>Reject</button>
                           </>
                         )}
