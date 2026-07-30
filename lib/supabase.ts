@@ -1,10 +1,30 @@
 import { createClient } from '@supabase/supabase-js'
+import Cookies from 'js-cookie'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Supabase environment variables are missing.')
+const cookieStorage = {
+  getItem: (key: string) => Cookies.get(key) ?? null,
+  setItem: (key: string, value: string): void => {
+    Cookies.set(key, value, {
+      domain: '.the-tiniest-library.com',
+      sameSite: 'lax',
+      secure: true,
+      expires: 7,
+    });
+  },
+  removeItem: (key: string) => Cookies.remove(key, {
+    domain: '.the-tiniest-library.com',
+  }),
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      storage: cookieStorage,
+      storageKey: 'ttl-auth-token',
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  }
+)
