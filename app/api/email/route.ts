@@ -110,6 +110,7 @@ export async function POST(req: NextRequest) {
 
       // ── 2. Application Approved ──
       case "application-approved": {
+        const tempPassword = data?.tempPassword ?? "";
         await resend.emails.send({
           from: FROM,
           to,
@@ -129,7 +130,10 @@ export async function POST(req: NextRequest) {
                     Hi ${name},
                   </p>
                   <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 32px;">
-                    We're excited to have you. Your application stood out and we'd love to have your voice on TTL. Here's how to get started:
+                    We're excited to have you. Your application stood out and we'd love to have your voice on TTL.<br><br>
+                    <strong style="color:#C9A84C;">Your temporary password:</strong>
+                    <span style="display:block;background:#1a1a1a;border:1px solid rgba(201,168,76,0.4);border-radius:4px;padding:10px 16px;font-family:monospace;font-size:18px;color:#E2C97E;letter-spacing:0.1em;margin:12px 0;">${tempPassword}</span>
+                    Use this to log in. You'll be prompted to set your own password immediately. Here's how to get started:
                   </p>
 
                   <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:24px;margin-bottom:32px;">
