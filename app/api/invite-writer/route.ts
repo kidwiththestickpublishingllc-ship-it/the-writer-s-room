@@ -59,6 +59,15 @@ export async function POST(req: Request) {
         console.error('Writer insert error:', insertError)
         return NextResponse.json({ error: insertError.message }, { status: 500 })
       }
+      await supabaseAdmin.from('profiles').upsert({
+        id: uid,
+        email,
+        full_name: name,
+        is_writer: true,
+        membership_tier: 'free',
+        ink_balance: 50,
+        role: 'writer',
+      }, { onConflict: 'id' })
     } else {
       await supabaseAdmin.from('writers')
         .update({ is_approved: true, tier: 'tier1', first_login: true })
