@@ -10,6 +10,7 @@ import PayoutTab from "@/app/components/PayoutTab";
 import ProfileTab from "@/app/components/ProfileTab";
 import MediaTab from "@/app/components/MediaTab";
 import OverviewTab from "@/app/components/OverviewTab";
+import ChaptersTab from "@/app/components/ChaptersTab";
 
 
 const supabase = createBrowserClient(
@@ -471,6 +472,12 @@ export default function WriterDashboard() {
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [saving, setSaving] = useState(false);
+  const [selectedStory, setSelectedStory] = useState('');
+  const [chapterTitle, setChapterTitle] = useState('');
+  const [chapterContent, setChapterContent] = useState('');
+  const [chapterFree, setChapterFree] = useState(true);
+  const [chapterCost, setChapterCost] = useState(25);
+  const [bulkText, setBulkText] = useState('');
   const [payoutMethod, setPayoutMethod] = useState('');
   const [payoutHandle, setPayoutHandle] = useState('');
   const [requesting, setRequesting] = useState(false);
@@ -1008,8 +1015,7 @@ const checkStripeStatus = async () => {
     );
   }
 
-  if (!writer) return null;
-
+if (!writer) return null;
   return (
     <>
       <style>{STYLES}</style>
@@ -1309,133 +1315,26 @@ const checkStripeStatus = async () => {
             />}
 
             {/* ── CHAPTERS ── */}
-            {tab === 'chapters' && (
-              <div className="fade-up">
-                <div className="hq-page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
-                  <div>
-                    <span className="hq-page-eyebrow">Content</span>
-                    <h1 className="hq-page-title">My Chapters</h1>
-                    <p className="hq-page-sub">Click any chapter to edit. Add or remove chapters anytime — chapters readers have purchased stay protected.</p>
-                    {stories.length > 1 && (
-                      <select
-                        value={currentStoryId}
-                        onChange={e => setCurrentStoryId(e.target.value)}
-                        className="editor-input"
-                        style={{ marginTop: 12, maxWidth: 340 }}
-                      >
-                        {stories.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
-                      </select>
-                    )}
-                  </div>
-               
-                    <button className="btn-primary" disabled={saving} onClick={addChapter}>
-                    + New Chapter
-                  </button>
-                  {currentStoryId && (
-                    <button
-                      onClick={deleteStory}
-                      style={{ padding: "8px 16px", background: "rgba(239,68,68,0.1)",
-                        border: "1px solid rgba(239,68,68,0.4)", color: "#ef4444",
-                        borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                      🗑 Delete Story
-                    </button>
-                  )}
-                </div>
-
-                {chapters.length > 0 ? (
-                  <div className="editor-grid">
-                    {/* Chapter list */}
-                    <div className="chapter-list-panel">
-                      <div className="chapter-list-header">Chapters — {chapters.length} total</div>
-                      {chapters.map(ch => {
-                        const isLocked = lockedChapterIds.has(ch.id);
-                        return (
-                          <div key={ch.id} style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
-                            <button
-                              className={`chapter-list-item${selectedChapter?.id === ch.id ? ' active' : ''}`}
-                              onClick={() => selectChapter(ch)}
-                              style={{ borderBottom: 'none', flex: 1 }}
-                            >
-                              <span className="chapter-num">{ch.chapter_number}</span>
-                              <span style={{ flex: 1, textAlign: 'left', fontSize: 11, lineHeight: 1.4 }}>
-                                {ch.title.length > 36 ? ch.title.slice(0, 36) + '…' : ch.title}
-                              </span>
-                              <span className={`badge ${ch.is_free ? 'badge-free' : 'badge-locked'}`} style={{ fontSize: 8 }}>
-                                {ch.is_free ? 'Free' : `${ch.ink_cost}✒`}
-                              </span>
-                            </button>
-                            {isLocked ? (
-                              <span title="Readers have purchased this chapter — it can't be deleted. You can still edit it." style={{ padding: '0 12px', fontSize: 13, color: 'var(--text-dim)', cursor: 'not-allowed', flexShrink: 0 }}>🔒</span>
-                            ) : (
-                              <button
-                                onClick={() => deleteChapter(ch)}
-                                title="Delete chapter"
-                                style={{ padding: '0 12px', background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', fontSize: 13, flexShrink: 0 }}
-                              >✕</button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Editor */}
-                    {selectedChapter && (
-                      <div className="editor-panel">
-                        <div className="editor-header">
-                          <div>
-                            <div style={{ fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 4 }}>
-                              Chapter {selectedChapter.chapter_number}
-                            </div>
-                            <div className="editor-chapter-title">{selectedChapter.title}</div>
-                          </div>
-                          <span className={`badge ${selectedChapter.is_free ? 'badge-free' : 'badge-locked'}`}>
-                            {selectedChapter.is_free ? 'Free' : `${selectedChapter.ink_cost} Ink to unlock`}
-                          </span>
-                        </div>
-                        {lockedChapterIds.has(selectedChapter.id) && (
-                          <div style={{ margin: '0 24px', padding: '10px 14px', background: 'rgba(201,168,76,0.08)', border: '1px solid var(--border-gold)', borderRadius: 8, fontSize: 12, color: 'var(--gold-light)' }}>
-                            🔒 Readers have purchased this chapter. You can edit and improve it freely, but it can't be deleted — paying readers keep permanent access.
-                          </div>
-                        )}
-                        <div className="editor-body">
-                          <div className="editor-field">
-                            <label className="editor-label">Chapter Title</label>
-                            <input
-                              className="editor-input"
-                              value={editTitle}
-                              onChange={e => setEditTitle(e.target.value)}
-                            />
-                          </div>
-                          <div className="editor-field">
-                            <label className="editor-label">Content</label>
-                            <textarea
-                              className="editor-textarea"
-                              value={editContent}
-                              onChange={e => setEditContent(e.target.value)}
-                              placeholder="Paste or write your chapter content here…"
-                            />
-                          </div>
-                        </div>
-                        <div className="editor-footer">
-                          <span className="editor-char-count">
-                            {editContent.length.toLocaleString()} characters
-                          </span>
-                          <button className="btn-primary" disabled={saving} onClick={saveChapter}>
-                            {saving ? 'Saving…' : 'Save Chapter ✓'}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="empty-state">
-                    <span className="empty-icon">📖</span>
-                    <div className="empty-title">No chapters yet</div>
-                    <p className="empty-sub">Your chapters will appear here once your story is set up.</p>
-                  </div>
-                )}
-              </div>
-            )}
+            {tab === 'chapters' && <ChaptersTab
+              stories={stories}
+              chapters={chapters}
+              selectedStory={selectedStory}
+              chapterTitle={chapterTitle}
+              chapterContent={chapterContent}
+              chapterFree={chapterFree}
+              chapterCost={chapterCost}
+              saving={saving}
+              bulkText={bulkText}
+              onSetSelectedStory={setSelectedStory}
+              onSetChapterTitle={setChapterTitle}
+              onSetChapterContent={setChapterContent}
+              onSetChapterFree={setChapterFree}
+              onSetChapterCost={setChapterCost}
+              onSetBulkText={setBulkText}
+              onSetChapters={setChapters}
+              onSaveChapter={saveChapter}
+              onToast={showToast}
+            />}
 
             {/* ── EARNINGS ── */}
             {tab === 'earnings' && <EarningsTab
