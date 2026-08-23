@@ -1,5 +1,6 @@
 "use client";
 
+import WriterNotificationSystem from "@/app/components/WriterNotificationSystem";
 import QuestionsTab from "@/app/components/QuestionsTab";
 import LettersInbox from "@/app/components/LettersInbox";
 import { useEffect, useState, useCallback } from "react";
@@ -1023,8 +1024,8 @@ if (!writer) return null;
     <>
       <style>{STYLES}</style>
       <TWRNav />
+      <WriterNotificationSystem writerId={writer.id} />
       <div style={{ height: 74 }} />
-
       {showSubmitModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, background: 'rgba(0,0,0,0.75)', overflowY: 'auto' }}>
           <div style={{ width: '100%', minHeight: '100vh', background: '#ffffff', borderTop: '4px solid #C9A84C' }}>
