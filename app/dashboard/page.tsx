@@ -1,5 +1,7 @@
 "use client";
 
+import QuestionsTab from "@/app/components/QuestionsTab";
+import LettersInbox from "@/app/components/LettersInbox";
 import { useEffect, useState, useCallback } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { TWRNav } from "@/app/components/TWRNav";
@@ -403,7 +405,7 @@ const STYLES = `
 // =========================
 // Types
 // =========================
-type Tab = 'overview' | 'chapters' | 'earnings' | 'payout' | 'profile' | 'submit' | 'media' | 'verify' | 'world';
+type Tab = 'overview' | 'chapters' | 'earnings' | 'payout' | 'profile' | 'submit' | 'media' | 'verify' | 'world' | 'questions' | 'letters';
 
 type Story = {
   id: string;
@@ -1297,6 +1299,13 @@ if (!writer) return null;
             <button className={`hq-nav-item${tab === 'verify' ? ' active' : ''}`} onClick={() => setTab('verify')}>
               <span className="hq-nav-icon">🪶</span> Verification
             </button>
+            <div className="hq-nav-section">Community</div>
+            <button className={`hq-nav-item${tab === 'questions' ? ' active' : ''}`} onClick={() => setTab('questions')}>
+              <span className="hq-nav-icon">💬</span> Questions
+            </button>
+            <button className={`hq-nav-item${tab === 'letters' ? ' active' : ''}`} onClick={() => setTab('letters')}>
+              <span className="hq-nav-icon">✉️</span> Letters
+            </button>
           </aside>
 
           {/* Main content */}
@@ -1418,6 +1427,8 @@ if (!writer) return null;
                 <WorldBuildingTab writer={writer} />
               </div>
             )}
+            {tab === 'questions' && <QuestionsTab writerId={writer.id} />}
+            {tab === 'letters' && <LettersInbox writerId={writer.id} writerName={writer.name} />}
             {tab === 'media' && <MediaTab
               writer={writer}
               mediaItems={mediaItems}
