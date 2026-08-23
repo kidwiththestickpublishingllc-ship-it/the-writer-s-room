@@ -666,6 +666,83 @@ case "writer-reminder": {
         break;
       }
 
+      case "tip-received": {
+        const { writerName, amount, totalToday } = data;
+        await resend.emails.send({
+          from: FROM, to,
+          subject: `🪶 You received ${amount} Ink`,
+          html: `
+          <div style="background:#0a0a0f;min-height:100vh;padding:48px 24px;font-family:'Syne',sans-serif;">
+            <div style="max-width:520px;margin:0 auto;">
+              <div style="text-align:center;margin-bottom:32px;">
+                <p style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 12px;">The Tiniest Library</p>
+                <div style="font-size:48px;margin-bottom:16px;">🪶</div>
+                <h1 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#f0ece2;margin:0 0 8px;">A reader tipped you.</h1>
+                <p style="font-size:14px;color:rgba(240,236,226,0.5);margin:0;">Someone just sent Ink your way, ${writerName}.</p>
+              </div>
+              <div style="background:#111118;border:1px solid rgba(201,168,76,0.25);border-radius:14px;padding:32px;text-align:center;margin-bottom:24px;">
+                <p style="font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:rgba(201,168,76,0.6);margin:0 0 8px;">Tip Received</p>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:56px;font-weight:300;color:#C9A84C;line-height:1;margin-bottom:4px;">${amount}</div>
+                <p style="font-size:13px;color:rgba(240,236,226,0.4);margin:0;">Ink</p>
+                ${totalToday > amount ? '<p style="font-size:11px;color:rgba(240,236,226,0.3);margin:16px 0 0;">Total tips today: <span style=\\"color:#C9A84C;\\">' + totalToday + ' Ink</span></p>' : ''}
+              </div>
+              <div style="text-align:center;margin-bottom:32px;">
+                <a href="https://write.the-tiniest-library.com/dashboard" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;">View Your Earnings →</a>
+              </div>
+              <p style="font-size:11px;color:rgba(240,236,226,0.2);text-align:center;margin:0;">The Tiniest Library — Anything But Tiny</p>
+            </div>
+         </div>`
+        });
+        break;
+      }
+
+      case "letter-received": {
+        const { writerName: wName, tipAmount } = data;
+        await resend.emails.send({ from: FROM, to, subject:`✉️ A reader sent you a letter${tipAmount > 0 ? ` (+${tipAmount} Ink)` : ''}`,
+        html:  `
+          <div style="background:#0a0a0f;min-height:100vh;padding:48px 24px;font-family:'Syne',sans-serif;">
+            <div style="max-width:520px;margin:0 auto;">
+              <div style="text-align:center;margin-bottom:32px;">
+                <p style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 12px;">The Tiniest Library</p>
+                <div style="font-size:48px;margin-bottom:16px;">✉️</div>
+                <h1 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#f0ece2;margin:0 0 8px;">A reader wrote to you.</h1>
+                <p style="font-size:14px;color:rgba(240,236,226,0.5);margin:0;">You have a new Reader's Letter waiting, ${wName}.${tipAmount > 0 ? ` They included a ${tipAmount} Ink tip.` : ''}</p>
+              </div>
+              <div style="text-align:center;margin-bottom:32px;">
+                <a href="https://write.the-tiniest-library.com/dashboard" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;">Read the Letter →</a>
+              </div>
+              <p style="font-size:11px;color:rgba(240,236,226,0.2);text-align:center;margin:0;">The Tiniest Library — Anything But Tiny</p>
+            </div>
+          </div>`
+          });
+        break;
+      }
+
+      case "question-received": {
+        const { writerName: qName, storyTitle, questionBody } = data;
+        await resend.emails.send({ from: FROM, to, subject:`💬 A reader asked you a question`,
+        html:  `
+          <div style="background:#0a0a0f;min-height:100vh;padding:48px 24px;font-family:'Syne',sans-serif;">
+            <div style="max-width:520px;margin:0 auto;">
+              <div style="text-align:center;margin-bottom:32px;">
+                <p style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 12px;">The Tiniest Library</p>
+                <div style="font-size:48px;margin-bottom:16px;">💬</div>
+                <h1 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#f0ece2;margin:0 0 8px;">A reader has a question.</h1>
+                <p style="font-size:14px;color:rgba(240,236,226,0.5);margin:0;">From a reader on <em>${storyTitle}</em></p>
+              </div>
+              <div style="background:#111118;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:24px;margin-bottom:24px;">
+                <p style="font-size:15px;color:rgba(240,236,226,0.8);line-height:1.7;margin:0;font-style:italic;">"${questionBody}"</p>
+              </div>
+              <div style="text-align:center;margin-bottom:32px;">
+                <a href="https://write.the-tiniest-library.com/dashboard" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;">Answer the Question →</a>
+              </div>
+              <p style="font-size:11px;color:rgba(240,236,226,0.2);text-align:center;margin:0;">The Tiniest Library — Anything But Tiny</p>
+            </div>
+          </div>`
+          });
+        break;
+      }
+
       default:
         return NextResponse.json({ error: "Unknown email type" }, { status: 400 });      
     }
