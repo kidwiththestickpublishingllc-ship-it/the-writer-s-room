@@ -24,12 +24,10 @@ interface Letter {
   id: string;
   reader_id: string;
   writer_id: string;
-  story_id: string | null;
   tip_amount: number;
   status: string;
   created_at: string;
   letter_messages?: LetterMessage[];
-  stories?: { title: string; slug: string } | null;
 }
 
 interface LetterMessage {
@@ -58,7 +56,7 @@ export default function LettersInbox({ writerId, writerName }: LettersInboxProps
     setLoading(true);
     const { data } = await supabase
       .from("reader_letters")
-      .select("*, stories(title, slug)")
+      .select("*")
       .eq("writer_id", writerId)
       .order("created_at", { ascending: false });
     setLetters((data ?? []) as Letter[]);
@@ -230,11 +228,6 @@ export default function LettersInbox({ writerId, writerName }: LettersInboxProps
                       🪶 {letter.tip_amount} Ink tip
                     </span>
                   )}
-                  {(letter.stories as any)?.title && (
-                    <span style={{ fontFamily: "var(--font-ui)", fontSize: 10, color: "var(--text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      re: {(letter.stories as any).title}
-                    </span>
-                  )}
                 </div>
               </button>
             ))
@@ -257,11 +250,6 @@ export default function LettersInbox({ writerId, writerName }: LettersInboxProps
                 <div style={{ fontFamily: "var(--font-display)", fontSize: 18, color: "var(--text)" }}>
                   Reader's Letter
                 </div>
-                {(currentLetter.stories as any)?.title && (
-                  <div style={{ fontFamily: "var(--font-ui)", fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>
-                    re: {(currentLetter.stories as any).title}
-                  </div>
-                )}
               </div>
               {currentLetter.tip_amount > 0 && (
                 <span style={{
