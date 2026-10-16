@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const { data: writer } = await admin
       .from("writers")
       .select("stripe_account_id, stripe_onboarded")
-      .eq("id", writerId)
+      .eq("user_id", writerId)
       .maybeSingle();
 
     if (!writer?.stripe_account_id) {
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       await admin
         .from("writers")
         .update({ stripe_onboarded: true })
-        .eq("id", writerId);
+        .eq("user_id", writerId);
     }
 
     return NextResponse.json({

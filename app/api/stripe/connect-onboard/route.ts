@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     const { data: writer } = await admin
       .from("writers")
       .select("id, email, stripe_account_id, stripe_onboarded")
-      .eq("id", writerId)
+      .eq("user_id", writerId)
       .maybeSingle();
 
     if (!writer) return NextResponse.json({ error: "Writer not found" }, { status: 404 });
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       await admin
         .from("writers")
         .update({ stripe_account_id: stripeAccountId })
-        .eq("id", writerId);
+        .eq("user_id", writerId);
     }
 
     // Create onboarding link
