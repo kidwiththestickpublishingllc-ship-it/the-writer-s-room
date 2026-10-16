@@ -1,5 +1,7 @@
 "use client";
 
+import StripeConnectCard from "@/app/components/StripeConnectCard";
+
 interface ProfileTabProps {
   editName: string;
   editBio: string;
@@ -77,7 +79,8 @@ export default function ProfileTab({
             ))}
           </div>
         </div>
-        {editPayoutMethod && (
+                {editPayoutMethod === 'Stripe' && <StripeConnectCard />}
+        {editPayoutMethod && editPayoutMethod !== 'Stripe' && (
           <div className="editor-field">
             <label className="editor-label">
               {editPayoutMethod === 'Zelle' ? 'Zelle Phone or Email' :
