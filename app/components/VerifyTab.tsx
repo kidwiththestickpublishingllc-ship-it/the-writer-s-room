@@ -18,11 +18,6 @@ export default function VerifyTab() {
             <button className="payout-method-btn">W-9 — US Based</button>
             <button className="payout-method-btn">W-8BEN — Outside US</button>
           </div>
-          <div className="payout-balance-label">STEP 3 — CONTENT TYPE</div>
-          <label style={{display:"flex",gap:8,alignItems:"flex-start",color:"var(--text-dim)",fontSize:13,marginBottom:24}}>
-            <input type="checkbox" style={{marginTop:2,accentColor:"var(--gold)"}} />
-            I intend to publish adult content on The Red Room. I confirm I am 18 or older.
-          </label>
           <button className="btn-primary" style={{width:"100%"}}>Submit Verification 🕯️</button>
         </div>
         <div className="payout-info-card">

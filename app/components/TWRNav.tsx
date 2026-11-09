@@ -351,7 +351,6 @@ export function TWRNav() {
               <a href="/dashboard" className="twr-shared-link">Dashboard</a>
               <a href="https://read.the-tiniest-library.com/reading-room/how-it-works" className="twr-shared-link">How It Works</a>
               <a href="https://read.the-tiniest-library.com/reading-room" className="twr-shared-link">Reading Room</a>
-              <a href="https://redroom.the-tiniest-library.com" className="twr-shared-link">Red Room</a>
             </div>
           </div>
 
@@ -408,7 +407,6 @@ export function TWRFooter() {
         <a href="/apply" className="twr-shared-footer-btn">Submit Your Story</a>
         <a href="/dashboard" className="twr-shared-footer-btn">Dashboard</a>
         <a href="https://read.the-tiniest-library.com/reading-room" className="twr-shared-footer-btn">Reading Room</a>
-        <a href="https://redroom.the-tiniest-library.com" className="twr-shared-footer-btn">Red Room</a>
         <a href="https://read.the-tiniest-library.com/reading-room/how-it-works" className="twr-shared-footer-btn-primary">How It Works →</a>
       </div>
     </footer>

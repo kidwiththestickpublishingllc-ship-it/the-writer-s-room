@@ -67,14 +67,10 @@ export default function SubmitTab({
             {/* Room selector */}
             <div style={{ marginBottom: 28 }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#888', marginBottom: 12 }}>Which Room?</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderRadius: 8, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', borderRadius: 8, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
                 <button onClick={() => { onSetStoryRoom('reading-room'); onSetStoryGenre(''); }} style={{ padding: '20px', borderRadius: 0, cursor: 'pointer', border: storyRoom === 'reading-room' ? '2px solid #C9A84C' : '1px solid #e5e7eb', background: storyRoom === 'reading-room' ? 'rgba(201,168,76,0.06)' : '#f9fafb', color: storyRoom === 'reading-room' ? '#8a6510' : '#6b7280', fontFamily: 'var(--font-ui)', fontSize: 14, textAlign: 'left' as const }}>
                   <div style={{ fontWeight: 700, marginBottom: 4 }}>📚 The Reading Room</div>
                   <div style={{ fontSize: 12, opacity: 0.8 }}>All ages. Literary fiction, sci-fi, romance, horror and more.</div>
-                </button>
-                <button onClick={() => { onSetStoryRoom('red-room'); onSetStoryGenre(''); }} style={{ padding: '20px', borderRadius: 0, cursor: 'pointer', border: storyRoom === 'red-room' ? '2px solid #e05555' : '1px solid #e5e7eb', background: storyRoom === 'red-room' ? 'rgba(200,68,68,0.06)' : '#f9fafb', color: storyRoom === 'red-room' ? '#e05555' : '#6b7280', fontFamily: 'var(--font-ui)', fontSize: 14, textAlign: 'left' as const }}>
-                  <div style={{ fontWeight: 700, marginBottom: 4 }}>🔴 The Red Room</div>
-                  <div style={{ fontSize: 12, opacity: 0.8 }}>18+ only. Adult fiction with verified age gate.</div>
                 </button>
               </div>
             </div>

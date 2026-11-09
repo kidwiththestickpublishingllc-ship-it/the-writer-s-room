@@ -51,14 +51,7 @@ const ADS = [
     href: 'https://read.the-tiniest-library.com/reading-room/buy-ink',
     accent: '#6495ED',
   },
-  {
-    eyebrow: 'THE RED ROOM',
-    headline: 'Write Adult\nFiction?',
-    body: 'The Red Room has a shelf for you. Dark romance, erotica, taboo — all genres welcome. 18+ only.',
-    cta: 'Enter The Red Room →',
-    href: 'https://redroom.the-tiniest-library.com',
-    accent: '#9B2335',
-  },
+
  {
     cover: true,
     src: FOX_COVER_SRC,

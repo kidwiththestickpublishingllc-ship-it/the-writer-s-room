@@ -26,7 +26,7 @@ WRITER HQ DASHBOARD:
 
 STORY SUBMISSION:
 - Writers submit stories via dashboard → Submit Story tab
-- Choose room: The Reading Room (general fiction) or The Red Room (18+ adult fiction)
+- Choose room: The Reading Room (prose) or The Galleria (comics, manga, webtoons)
 - Choose format: Serial (ongoing chapters) or Standalone (complete story)
 - Admin reviews and approves before going live
 - Writers get email notification on approval

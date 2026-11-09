@@ -7,7 +7,6 @@ export default function VerifyPage() {
   const [fullName, setFullName] = useState("");
   const [country, setCountry] = useState("");
   const [taxForm, setTaxForm] = useState("");
-  const [isAdult, setIsAdult] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -33,7 +32,7 @@ export default function VerifyPage() {
           full_legal_name: fullName,
           country,
           tax_form_type: taxForm,
-          is_adult_content_creator: isAdult,
+          is_adult_content_creator: false,
           verification_status: "pending",
           submitted_at: new Date().toISOString(),
         }]);
@@ -232,26 +231,6 @@ export default function VerifyPage() {
               ))}
             </div>
           </div>
-
-          <div style={cardStyle}>
-            <p style={{ color: "#C9A84C", fontSize: "12px", fontWeight: 600, margin: "0 0 16px", letterSpacing: "0.05em" }}>
-              STEP 3 — CONTENT TYPE
-            </p>
-            <label style={{ display: "flex", alignItems: "flex-start", gap: "12px", cursor: "pointer" }}>
-              <input
-                type="checkbox"
-                checked={isAdult}
-                onChange={e => setIsAdult(e.target.checked)}
-                style={{ marginTop: "2px", accentColor: "#C9A84C" }}
-              />
-              <span style={{ color: "#888", fontSize: "13px", lineHeight: 1.6 }}>
-                I intend to publish adult content on The Red Room.
-                I confirm I am 18 years of age or older and understand
-                that additional identity verification may be required.
-              </span>
-            </label>
-          </div>
-
           {error && (
             <div style={{
               background: "rgba(220,38,38,0.1)",

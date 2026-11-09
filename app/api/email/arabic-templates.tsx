@@ -176,13 +176,7 @@ export function arabicOnboardingEmail(name: string): string {
             </p>
           </div>
 
-          <div style="background:rgba(139,0,0,0.08);border:1px solid rgba(139,0,0,0.2);border-radius:8px;padding:20px;margin-bottom:32px;">
-            <p style="font-size:13px;color:rgba(240,236,226,0.6);line-height:1.8;margin:0;text-align:right;">
-              🖤 <strong style="color:#cc4444;">The Red Room</strong> — غرفة المحتوى للبالغين (+١٨)<br>
-              إذا كنت تكتب في هذا الجنس يمكنك نشره هناك أيضاً.<br>
-              لا رقابة. لا حذف. صوتك كاملاً.
-            </p>
-          </div>
+
 
           <div style="text-align:center;margin-bottom:32px;">
             <a href="https://write.the-tiniest-library.com/dashboard"

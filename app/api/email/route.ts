@@ -308,7 +308,7 @@ case "writer-onboarding-phase-2": {
       <a href="https://write.the-tiniest-library.com/dashboard?welcome=true&tab=submit" style="display:inline-block;background:transparent;color:#C9A84C;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;border-radius:6px;text-decoration:none;border:1px solid rgba(201,168,76,0.4);">Submit Your First Story →</a>
     </div>
     <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;text-align:center;">
-      <p style="font-size:11px;color:rgba(240,236,226,0.25);margin:0 0 8px;letter-spacing:0.1em;">Reading Room · Writer's Room · Red Room</p>
+      <p style="font-size:11px;color:rgba(240,236,226,0.25);margin:0 0 8px;letter-spacing:0.1em;">Reading Room · Creators Room · The Galleria</p>
       <p style="font-size:11px;color:rgba(240,236,226,0.2);margin:0;">Questions? <a href="mailto:hello@the-tiniest-library.com" style="color:rgba(201,168,76,0.5);">hello@the-tiniest-library.com</a></p>
       <p style="font-size:10px;color:rgba(240,236,226,0.15);margin:12px 0 0;">You keep your copyright. Always. · The Tiniest Library</p>
     </div>
