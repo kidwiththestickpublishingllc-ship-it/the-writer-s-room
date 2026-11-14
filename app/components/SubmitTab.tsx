@@ -15,6 +15,26 @@ const RED_ROOM_GENRES = [
   "Adult Fantasy", "Taboo Fiction",
 ];
 
+const STYLES = `
+  .sub-fork { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+  .sub-fork-card { display: block; padding: 20px 22px; border-radius: 12px; text-decoration: none; color: inherit; transition: transform 0.15s, box-shadow 0.15s; }
+  .sub-fork-card.story { border: 1px solid rgba(201,168,76,0.45); background: rgba(201,168,76,0.06); }
+  .sub-fork-card.comic {
+    border: 1px solid rgba(20,241,217,0.45);
+    background: linear-gradient(135deg, #0a0420, #1a0b3a);
+    color: #F2ECFF;
+    box-shadow: inset 0 0 0 1px rgba(255,20,147,0.15);
+  }
+  .sub-fork-card.comic:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(180,122,255,0.25); }
+  .sub-fork-kicker { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px; }
+  .sub-fork-card.story .sub-fork-kicker { color: var(--gold, #C9A84C); }
+  .sub-fork-card.comic .sub-fork-kicker { color: #14F1D9; }
+  .sub-fork-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+  .sub-fork-text { font-size: 13px; line-height: 1.55; opacity: 0.85; margin: 0; }
+  .sub-fork-go { display: inline-block; margin-top: 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #FF69B4; }
+  @media (max-width: 720px) { .sub-fork { grid-template-columns: 1fr; } }
+`;
+
 interface SubmitTabProps {
   storyTitle: string;
   storyRoom: 'reading-room' | 'red-room';
@@ -50,8 +70,22 @@ export default function SubmitTab({
     <div className="fade-up">
       <div className="hq-page-header">
         <span className="hq-page-eyebrow">Publish</span>
-        <h1 className="hq-page-title">Submit Your Story</h1>
+        <h1 className="hq-page-title">Submit Your Work</h1>
         <p className="hq-page-sub">Fill in all details below. You have full editorial control before submission.</p>
+      </div>
+      <style>{STYLES}</style>
+      <div className="sub-fork">
+        <div className="sub-fork-card story">
+          <div className="sub-fork-kicker">The Reading Room</div>
+          <div className="sub-fork-title">📖 A Story</div>
+          <p className="sub-fork-text">Novels, serials and short stories. Open the form below to set up your story, then add chapters in My Chapters.</p>
+        </div>
+        <a className="sub-fork-card comic" href="https://artists.the-tiniest-library.com/galleria/studio" target="_blank" rel="noopener noreferrer">
+          <div className="sub-fork-kicker">The Galleria</div>
+          <div className="sub-fork-title">🎨 A Comic</div>
+          <p className="sub-fork-text">Comics, manga and webtoons. Create your series, upload your pages and submit for review in The Galleria Studio.</p>
+          <span className="sub-fork-go">Open the Studio →</span>
+        </a>
       </div>
       <button className="btn-primary" onClick={() => { onSetShowSubmitModal(true); setTimeout(() => { document.getElementById('submit-modal-overlay')?.scrollTo({ top: 0 }); }, 50); }} style={{ marginBottom: 24 }}>
         Open Full Submission Form →
