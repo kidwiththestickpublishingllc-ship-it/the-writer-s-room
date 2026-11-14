@@ -37,12 +37,19 @@ type FormData = {
   twitter_url: string;
   instagram_url: string;
   website_url: string;
+  applicant_type: "writer" | "artist" | "both";
+  portfolio_url: string;
+  art_roles: string[];
+  open_to_collab: boolean;
 };
+
+const ART_ROLES = ["Full pages (pencils to colour)", "Penciler", "Inker", "Colorist", "Letterer", "Cover artist"];
 
 const EMPTY_FORM: FormData = {
   full_name: "", pen_name: "", email: "", password: "", confirm_password: "", bio: "",
   why_ttl: "", genres: [], writing_sample: "",
   twitter_url: "", instagram_url: "", website_url: "",
+  applicant_type: "writer", portfolio_url: "", art_roles: [], open_to_collab: false,
 };
 
 const STYLES = `
@@ -58,6 +65,39 @@ const STYLES = `
     --text-main: #f0ece2; --text-dim: rgba(232,228,218,0.5);
     --text-faint: rgba(232,228,218,0.25);
   }
+
+  .ap-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .ap-type-btn {
+    text-align: left; padding: 14px 16px; border-radius: 8px; cursor: pointer; font-family: inherit;
+    border: 1px solid var(--gold-dim, rgba(201,168,76,0.35)); background: transparent; color: var(--text-main, inherit);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .ap-type-btn.selected { border: 2px solid var(--gold, #C9A84C); background: var(--gold-glow, rgba(201,168,76,0.08)); }
+  .ap-type-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .ap-type-desc { font-size: 12px; line-height: 1.5; color: var(--text-faint, inherit); }
+  .ap-check { display: flex; gap: 10px; align-items: flex-start; margin-top: 18px; font-size: 13px; line-height: 1.5; color: var(--text-dim, inherit); cursor: pointer; }
+  .ap-check input { margin-top: 3px; accent-color: var(--gold, #C9A84C); }
+  @media (max-width: 640px) { .ap-type-grid { grid-template-columns: 1fr; } }
+
+  /* ── The Galleria skin, for anyone who draws ── */
+  .ap-root.artist {
+    --gold: #14F1D9;
+    --gold-light: #7FF8EA;
+    --gold-dim: rgba(20,241,217,0.35);
+    --gold-glow: rgba(20,241,217,0.08);
+    --text-main: #F2ECFF;
+    --text-dim: rgba(242,236,255,0.8);
+    --text-faint: rgba(242,236,255,0.58);
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(180,122,255,0.22), transparent 60%),
+      radial-gradient(900px 500px at -10% 40%, rgba(255,20,147,0.14), transparent 60%),
+      #0a0420 !important;
+    color: var(--text-main);
+  }
+  .ap-root.artist .ap-btn-primary { background: linear-gradient(135deg, #14F1D9, #B47AFF) !important; color: #0a0420 !important; border: none !important; }
+  .ap-root.artist .ap-genre-btn.selected { border-color: #FF1493 !important; color: #FF69B4 !important; background: rgba(255,20,147,0.08) !important; }
+  .ap-root.artist .ap-type-btn.selected { border-color: #FF1493; background: rgba(255,20,147,0.08); }
+  .ap-root.artist .ap-check input { accent-color: #FF1493; }
 
   .ap-root {
     min-height: 100vh; background: var(--ink-bg);
@@ -450,7 +490,7 @@ export default function ApplyPage() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
-  const update = (field: keyof FormData, value: string | string[]) =>
+  const update = (field: keyof FormData, value: string | string[] | boolean) =>
     setForm(f => ({ ...f, [field]: value }));
 
   const toggleGenre = (g: string) => {
@@ -460,10 +500,15 @@ export default function ApplyPage() {
     update("genres", next);
   };
 
+  const writes = form.applicant_type !== "artist";
+  const draws = form.applicant_type !== "writer";
+  const toggleRole = (r: string) =>
+    update("art_roles", form.art_roles.includes(r) ? form.art_roles.filter(x => x !== r) : [...form.art_roles, r]);
+
   const canProceed = {
     1: form.full_name.trim().length >= 2 && form.email.trim().includes("@") && form.bio.trim().length >= 20,
-    2: form.genres.length >= 1 && form.why_ttl.trim().length >= 30,
-    3: form.writing_sample.trim().length >= 100,
+    2: form.genres.length >= 1 && form.why_ttl.trim().length >= 30 && (!draws || form.art_roles.length >= 1),
+    3: (!writes || form.writing_sample.trim().length >= 100) && (!draws || /^https?:\/\/\S+\.\S+/.test(form.portfolio_url.trim())),
     4: true,
   }[step];
 
@@ -493,6 +538,10 @@ export default function ApplyPage() {
           twitter_url: form.twitter_url.trim() || null,
           instagram_url: form.instagram_url.trim() || null,
           website_url: form.website_url.trim() || null,
+          applicant_type: form.applicant_type,
+          portfolio_url: form.portfolio_url.trim() || null,
+          art_roles: form.art_roles.length ? form.art_roles : null,
+          open_to_collab: form.open_to_collab,
           status: "pending",
         });
       if (dbError) throw new Error(dbError.message);
@@ -520,7 +569,7 @@ export default function ApplyPage() {
     return (
       <>
         <style>{STYLES}</style>
-        <div className="ap-root">
+        <div className={`ap-root${form.applicant_type !== "writer" ? " artist" : ""}`}>
           <TWRNav />
           <div style={{ height: 74 }} />
           <div className="ap-success">
@@ -565,14 +614,14 @@ export default function ApplyPage() {
   return (
     <>
       <style>{STYLES}</style>
-      <div className="ap-root">
+      <div className={`ap-root${form.applicant_type !== "writer" ? " artist" : ""}`}>
         <TWRNav />
         <div style={{ height: 74 }} />
 
         {/* HERO */}
         <div className="ap-hero">
           <span className="ap-hero-eyebrow">The Tiniest Library — Creator Application</span>
-          <h1 className="ap-hero-title">Apply to<br /><em>Write</em> for TTL</h1>
+          <h1 className="ap-hero-title">Apply to<br /><em>{draws ? (writes ? "Create" : "Draw") : "Write"}</em> for TTL</h1>
           <p className="ap-hero-sub">
             The Tiniest Library is looking for independent writers and artists with a voice worth hearing. Tell us who you are, what you write, and why TTL feels like home. Every application is read by a human.
           </p>
@@ -599,6 +648,22 @@ export default function ApplyPage() {
                 <div>
                   <h2 className="ap-section-title">About You</h2>
                   <p className="ap-section-sub">Tell us who you are. This information helps us understand you as a creator and person.</p>
+
+                  <div className="ap-field">
+                    <label className="ap-field-label">I'm applying as <span className="req">*</span></label>
+                    <div className="ap-type-grid">
+                      {([
+                        ["writer", "Writer", "Novels, serials and short stories. You publish in the Reading Room."],
+                        ["artist", "Artist", "Comics, manga and webtoons. You publish in The Galleria."],
+                        ["both", "Both", "You write and draw. You publish in both."],
+                      ] as const).map(([value, name, desc]) => (
+                        <button key={value} type="button" className={`ap-type-btn${form.applicant_type === value ? " selected" : ""}`} onClick={() => update("applicant_type", value)}>
+                          <div className="ap-type-name">{name}</div>
+                          <div className="ap-type-desc">{desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
                   <div className="ap-field-row">
                     <div className="ap-field">
@@ -646,7 +711,7 @@ export default function ApplyPage() {
 
                   <div className="ap-nav-btns">
                     <button className="ap-btn-primary" disabled={!canProceed} onClick={() => setStep(2)}>
-                      Continue to Writing →
+                      Continue to {draws && !writes ? "Your Art" : "Writing"} →
                     </button>
                   </div>
                 </div>
@@ -655,11 +720,26 @@ export default function ApplyPage() {
               {/* ── STEP 2: Your Writing ── */}
               {step === 2 && (
                 <div>
-                  <h2 className="ap-section-title">Your Writing</h2>
-                  <p className="ap-section-sub">Tell us about what you write and why TTL is the right home for your work.</p>
+                  <h2 className="ap-section-title">{draws && !writes ? "Your Art" : draws ? "Your Work" : "Your Writing"}</h2>
+                  <p className="ap-section-sub">Tell us about what you {draws && !writes ? "make" : "write"} and why TTL is the right home for your work.</p>
+
+                  {draws && (
+                    <div className="ap-field">
+                      <label className="ap-field-label">What You Do on the Page <span className="req">*</span></label>
+                      <p className="ap-field-hint" style={{ marginBottom: 12 }}>Select all that apply.</p>
+                      <div className="ap-genre-grid">
+                        {ART_ROLES.map(r => (
+                          <button key={r} type="button" className={`ap-genre-btn${form.art_roles.includes(r) ? " selected" : ""}`} onClick={() => toggleRole(r)}>
+                            <span className="ap-genre-check">{form.art_roles.includes(r) ? "✓" : ""}</span>
+                            {r}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="ap-field">
-                    <label className="ap-field-label">Genres You Write In <span className="req">*</span></label>
+                    <label className="ap-field-label">Genres You {writes ? "Write" : "Work"} In <span className="req">*</span></label>
                     <p className="ap-field-hint" style={{ marginBottom: 12 }}>Select all that apply — you're not locked to one genre.</p>
                     <div className="ap-genre-grid">
                       {ALL_GENRES.map(g => (
@@ -688,12 +768,16 @@ export default function ApplyPage() {
                       rows={6}
                     />
                     <p className="ap-field-hint">Minimum 30 characters. The most memorable answers are specific and honest.</p>
+                    <label className="ap-check">
+                      <input type="checkbox" checked={form.open_to_collab} onChange={e => update("open_to_collab", e.target.checked)} />
+                      <span>I'm open to teaming up with {writes && !draws ? "an artist who could draw my stories" : draws && !writes ? "writers who need an artist" : "other writers and artists"}.</span>
+                    </label>
                   </div>
 
                   <div className="ap-nav-btns">
                     <button className="ap-btn-ghost" onClick={() => setStep(1)}>← Back</button>
                     <button className="ap-btn-primary" disabled={!canProceed} onClick={() => setStep(3)}>
-                      Continue to Sample →
+                      Continue to {writes ? "Sample" : "Portfolio"} →
                     </button>
                   </div>
                 </div>
@@ -702,7 +786,20 @@ export default function ApplyPage() {
               {/* ── STEP 3: Writing Sample ── */}
               {step === 3 && (
                 <div>
-                  <h2 className="ap-section-title">Writing Sample</h2>
+                  <h2 className="ap-section-title">{writes ? (draws ? "Your Samples" : "Writing Sample") : "Your Portfolio"}</h2>
+                  {draws && (
+                    <>
+                      <p className="ap-section-sub">Link us to your work. This is where we meet your line, your colour and your storytelling.</p>
+                      <div className="ap-field">
+                        <label className="ap-field-label">Portfolio Link <span className="req">*</span></label>
+                        <input className="ap-input" type="url" placeholder="Instagram, ArtStation, Behance, or a shared Drive folder" value={form.portfolio_url} onChange={e => update("portfolio_url", e.target.value)} />
+                        <p className="ap-field-hint">Show at least 3 finished pages or panels. Pages that tell a story in sequence help most. Make sure the link is public.</p>
+                      </div>
+                    </>
+                  )}
+
+                  {writes && (
+                    <>
                   <p className="ap-section-sub">Paste up to 1,500 words from any piece of your writing. This is where we meet your voice.</p>
 
                   <div className="ap-field">
@@ -718,6 +815,8 @@ export default function ApplyPage() {
                     </p>
                     <p className="ap-field-hint">Minimum 100 characters. Any genre, any format. Unfinished is fine.</p>
                   </div>
+                    </>
+                  )}
 
                   <div className="ap-nav-btns">
                     <button className="ap-btn-ghost" onClick={() => setStep(2)}>← Back</button>
@@ -761,9 +860,26 @@ export default function ApplyPage() {
                   <div className="ap-review-section">
                     <div className="ap-review-label">Writing Sample</div>
                     <div className="ap-review-value sample">
-                      {form.writing_sample.slice(0, 300)}{form.writing_sample.length > 300 ? "…" : ""}
+                      {form.writing_sample.slice(0, 300) || "Not needed for an artist application."}{form.writing_sample.length > 300 ? "…" : ""}
                     </div>
                   </div>
+                  <div className="ap-review-section">
+                    <div className="ap-review-label">Applying As</div>
+                    <div className="ap-review-value">
+                      {form.applicant_type === "both" ? "Writer and artist" : form.applicant_type === "artist" ? "Artist" : "Writer"}
+                      {form.open_to_collab ? " · open to teaming up" : ""}
+                    </div>
+                  </div>
+                  {draws && (
+                    <div className="ap-review-section">
+                      <div className="ap-review-label">Art</div>
+                      <div className="ap-review-value">
+                        {form.art_roles.join(", ")}
+                        <br />
+                        <a href={form.portfolio_url} target="_blank" rel="noreferrer">{form.portfolio_url}</a>
+                      </div>
+                    </div>
+                  )}
                   {(form.website_url || form.twitter_url || form.instagram_url) && (
                     <div className="ap-review-section">
                       <div className="ap-review-label">Links</div>
@@ -775,7 +891,7 @@ export default function ApplyPage() {
 
                   <div style={{ padding: "16px 20px", border: "1px solid var(--gold-dim)", borderRadius: 6, background: "var(--gold-glow)", marginTop: 24, marginBottom: 8 }}>
                     <p style={{ fontSize: 11, color: "var(--text-dim)", lineHeight: 1.7 }}>
-                      By submitting this application you confirm all information is accurate and your writing sample is your own original work. If approved, you'll be asked to sign the Plagiarism Clause and Copyright Agreement before publishing.
+                      By submitting this application you confirm all information is accurate and your sample work is your own original work. If approved, you'll be asked to sign the Plagiarism Clause and Copyright Agreement before publishing.
                     </p>
                   </div>
 
