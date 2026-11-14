@@ -232,6 +232,10 @@ type Application = {
   why_ttl: string | null;
   genres: string[];
   writing_sample: string | null;
+  applicant_type?: string | null;
+  portfolio_url?: string | null;
+  art_roles?: string[] | null;
+  open_to_collab?: boolean | null;
   twitter_url: string | null;
   instagram_url: string | null;
   website_url: string | null;
@@ -792,6 +796,9 @@ function ApplicationsTab() {
                         <div className="adm-expand">
                           {app.bio && <><div className="adm-expand-label">Bio</div><div className="adm-expand-text" style={{ marginBottom: 16 }}>{app.bio}</div></>}
                           {app.why_ttl && <><div className="adm-expand-label">Why TTL</div><div className="adm-expand-text" style={{ marginBottom: 16 }}>{app.why_ttl}</div></>}
+                          {app.applicant_type && app.applicant_type !== "writer" && <><div className="adm-expand-label">Applying As</div><div className="adm-expand-text" style={{ marginBottom: 16 }}>{app.applicant_type === "both" ? "Writer and artist" : "Artist"}{app.art_roles?.length ? ` · ${app.art_roles.join(", ")}` : ""}</div></>}
+                          {app.portfolio_url && /^https?:\/\//i.test(app.portfolio_url) && <><div className="adm-expand-label">Portfolio</div><div className="adm-expand-text" style={{ marginBottom: 16 }}><a href={app.portfolio_url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--blue-bright)" }}>{app.portfolio_url}</a></div></>}
+                          {app.open_to_collab && <div className="adm-expand-text" style={{ marginBottom: 16 }}>🤝 Open to teaming up</div>}
                           {app.writing_sample && <><div className="adm-expand-label">Writing Sample</div><div className="adm-expand-sample">{app.writing_sample.slice(0, 600)}{app.writing_sample.length > 600 ? "…" : ""}</div></>}
                           {(app.twitter_url || app.instagram_url || app.website_url) && (
                             <div style={{ marginTop: 12, display: "flex", gap: 12, fontSize: 11, color: "var(--blue-bright)" }}>
