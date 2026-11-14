@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 // =============================================================
-// TTL Writer Agreements
+// TTL Creator Agreements
 // Drop in: app/writers-room/components/WriterAgreements.tsx
 // Usage: import WriterAgreements from "./components/WriterAgreements"
 //        <WriterAgreements />  — renders as a nav button that opens modal flow
@@ -40,7 +40,7 @@ You agree that you will not submit Content that:
 
 TTL permits the use of AI tools as writing aids, subject to the following conditions:
 
-(a) The human writer must be the primary creative force behind the work — the ideas, voice, characters, and narrative must originate with you;
+(a) The human creator must be the primary creative force behind the work — the ideas, voice, characters, and narrative must originate with you;
 (b) AI may be used for editing, brainstorming, grammar correction, and structural suggestions;
 (c) You may not submit work that is predominantly AI-generated and present it as your own human authorship;
 (d) You must be able to discuss and defend your work as a human author at any time TTL requests.
@@ -50,13 +50,13 @@ TTL permits the use of AI tools as writing aids, subject to the following condit
 TTL reserves the right to:
 
 (a) Remove any Content found to be plagiarized without notice or compensation;
-(b) Permanently terminate the account of any writer found to have submitted plagiarized work;
+(b) Permanently terminate the account of any creator found to have submitted plagiarized work;
 (c) Pursue legal remedies in cases of willful copyright infringement;
 (d) Report violations to relevant literary and publishing communities.
 
 5. REPORTING AND INVESTIGATION
 
-If you believe another writer has plagiarized your work, contact TTL at contact@the-tiniest-library.com. TTL will investigate all credible reports and take appropriate action within a reasonable timeframe.
+If you believe another creator has plagiarized your work, contact TTL at contact@the-tiniest-library.com. TTL will investigate all credible reports and take appropriate action within a reasonable timeframe.
 
 6. REPRESENTATION
 
@@ -70,7 +70,7 @@ Effective Date: 2026
 
 1. YOU OWN YOUR WORK
 
-The Tiniest Library believes fundamentally that writers own what they write. By publishing on TTL, you do not transfer, assign, or surrender your copyright. You remain the sole copyright holder of all Content you submit.
+The Tiniest Library believes fundamentally that creators own what they make. By publishing on TTL, you do not transfer, assign, or surrender your copyright. You remain the sole copyright holder of all Content you submit.
 
 2. LICENSE GRANTED TO TTL
 
@@ -124,7 +124,7 @@ This agreement remains in effect for as long as your Content is hosted on TTL. U
 
 8. CONTENT EDITS AND READER-PURCHASED CHAPTERS
 
-You retain full control to edit, add, and remove your own work through the Writer's Room, and you agree to exercise this control honestly and in good faith. You understand that readers may spend Ink to unlock paid chapters. Once any reader has unlocked a paid chapter:
+You retain full control to edit, add, and remove your own work through the Creators Room, and you agree to exercise this control honestly and in good faith. You understand that readers may spend Ink to unlock paid chapters. Once any reader has unlocked a paid chapter:
 (a) You grant that reader permanent access to that chapter;
 (b) You may continue to edit, revise, or improve the chapter at any time;
 (c) You may NOT delete the chapter or restore it to a locked state, as doing so would remove content a reader has already paid for.
@@ -625,7 +625,7 @@ async function generatePDF(
     doc.text(`Email: ${writerEmail}`, margin, y);
     y += 6;
   }
-  doc.text(`Platform: The Tiniest Library — The Writer's Room`, margin, y);
+  doc.text(`Platform: The Tiniest Library — The Creators Room`, margin, y);
   y += 6;
   doc.text(`Document type: ${docType === "plagiarism" ? "Plagiarism Clause v1.0" : "Copyright Agreement v1.0"}`, margin, y);
 
@@ -793,7 +793,7 @@ export default function WriterAgreements() {
             {step === "plagiarism" && (
               <>
                 <div className="wa-header">
-                  <span className="wa-header-eyebrow">The Tiniest Library — Writer Agreement 1 of 2</span>
+                  <span className="wa-header-eyebrow">The Tiniest Library — Creator Agreement 1 of 2</span>
                   <div className="wa-header-title">Plagiarism Clause</div>
                   <div className="wa-header-meta">
                     <span>Version 1.0</span>
@@ -887,7 +887,7 @@ export default function WriterAgreements() {
             {step === "copyright" && (
               <>
                 <div className="wa-header">
-                  <span className="wa-header-eyebrow">The Tiniest Library — Writer Agreement 2 of 2</span>
+                  <span className="wa-header-eyebrow">The Tiniest Library — Creator Agreement 2 of 2</span>
                   <div className="wa-header-title">Copyright Agreement</div>
                   <div className="wa-header-meta">
                     <span>Version 1.0</span>
@@ -964,7 +964,7 @@ export default function WriterAgreements() {
                 <div className="wa-success-icon">✓</div>
                 <div className="wa-success-title">Copyright Agreement Signed</div>
                 <p className="wa-success-sub">
-                  Both agreements are signed and on record. Your PDFs have been downloaded. You're now fully onboarded as a TTL writer.
+                  Both agreements are signed and on record. Your PDFs have been downloaded. You're now fully onboarded as a TTL creator.
                 </p>
                 <div className="wa-success-actions">
                   <button className="wa-btn-download" onClick={() => generatePDF("copyright", name, email, today)}>
@@ -981,7 +981,7 @@ export default function WriterAgreements() {
             {step === "all-done" && (
               <div className="wa-all-done">
                 <div className="wa-stamp">Agreements On File</div>
-                <div className="wa-all-done-title">You're officially a TTL writer.</div>
+                <div className="wa-all-done-title">You're officially a TTL creator.</div>
                 <p className="wa-all-done-sub">
                   Both your Plagiarism Clause and Copyright Agreement are signed, downloaded, and saved to our records. Your work is protected — and so is ours. Welcome to the library.
                 </p>

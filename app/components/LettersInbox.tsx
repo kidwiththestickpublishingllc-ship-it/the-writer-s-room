@@ -3,7 +3,7 @@
 /**
  * LettersInbox.tsx
  * ─────────────────────────────────────────────────────────────────
- * Writer's Room dashboard tab — inbox for Reader's Letters.
+ * Creators Room dashboard tab — inbox for Reader's Letters.
  * Shows all letters sent to this writer with tip amounts.
  * Writer can read and reply to each letter.
  *

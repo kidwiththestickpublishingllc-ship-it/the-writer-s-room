@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
                     <p style="font-size:14px;color:rgba(240,236,226,0.6);line-height:1.7;margin:0;">
                       1. We review your application and writing sample<br>
                       2. You receive an approval or feedback email<br>
-                      3. Approved writers sign agreements and set up their profile<br>
+                      3. Approved creators sign agreements and set up their profile<br>
                       4. Your profile and stories go live in The Reading Room
                     </p>
                   </div>
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
               <div style="max-width:600px;margin:0 auto;background:#0f0f0f;border:1px solid rgba(201,168,76,0.2);border-radius:8px;overflow:hidden;">
                 <div style="height:3px;background:linear-gradient(90deg,transparent,#C9A84C,transparent);"></div>
                 <div style="padding:40px;">
-                  <h2 style="font-family:'Georgia',serif;font-size:24px;font-weight:400;color:#f0ece2;margin:0 0 20px;">New Writer Application</h2>
+                  <h2 style="font-family:'Georgia',serif;font-size:24px;font-weight:400;color:#f0ece2;margin:0 0 20px;">New Creator Application</h2>
                   <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:20px;margin-bottom:24px;">
                     <p style="font-size:13px;color:rgba(240,236,226,0.6);margin:0 0 8px;"><strong style="color:#f0ece2;">Name:</strong> ${name}</p>
                     <p style="font-size:13px;color:rgba(240,236,226,0.6);margin:0 0 8px;"><strong style="color:#f0ece2;">Email:</strong> ${to}</p>
@@ -139,8 +139,8 @@ export async function POST(req: NextRequest) {
                   <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:24px;margin-bottom:32px;">
                     <p style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 16px;">Your next steps</p>
                     <p style="font-size:14px;color:rgba(240,236,226,0.7);line-height:1.8;margin:0;">
-                      1. Log into your writer dashboard<br>
-                      2. Sign your writer agreements<br>
+                      1. Log into your creator dashboard<br>
+                      2. Sign your creator agreements<br>
                       3. Fill out your profile — bio, photo, genres, social links<br>
                       4. Click <strong style="color:#C9A84C;">Submit Story</strong> in the sidebar to upload your manuscript<br>
                       5. Add your chapters one by one in the Chapters tab<br>
@@ -215,7 +215,7 @@ export async function POST(req: NextRequest) {
         });
         break;
       }
-// ── 4. Writer Onboarding Phase 2 ──
+// ── 4. Creator Onboarding Phase 2 ──
 case "writer-onboarding-phase-2": {
   const language = detectWriterLanguage(name, to);
   const firstName = name.split(" ")[0];
@@ -250,7 +250,7 @@ case "writer-onboarding-phase-2": {
     await resend.emails.send({
       from: FROM,
       to,
-      subject: "Your writer dashboard is live — here's everything you need 🕯️",
+      subject: "Your creator dashboard is live — here's everything you need 🕯️",
       html: `<!DOCTYPE html>
 <html>
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Georgia',serif;">
@@ -259,8 +259,8 @@ case "writer-onboarding-phase-2": {
   <div style="padding:48px 40px;">
     <p style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin:0 0 16px;">The Tiniest Library</p>
     <h1 style="font-family:'Georgia',serif;font-size:36px;font-weight:400;color:#f0ece2;margin:0 0 8px;">Welcome to the shelf,<br>${firstName}.</h1>
-    <p style="font-size:15px;font-style:italic;color:rgba(240,236,226,0.5);margin:0 0 32px;">Your writer dashboard is live and ready.</p>
-    <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 32px;">Your application has been approved and your writer account is active. Everything you need to start publishing on TTL is below.</p>
+    <p style="font-size:15px;font-style:italic;color:rgba(240,236,226,0.5);margin:0 0 32px;">Your creator dashboard is live and ready.</p>
+    <p style="font-size:15px;color:rgba(240,236,226,0.75);line-height:1.8;margin:0 0 32px;">Your application has been approved and your creator account is active. Everything you need to start publishing on TTL is below.</p>
     <div style="text-align:center;margin:0 0 40px;">
       <a href="https://write.the-tiniest-library.com/dashboard?welcome=true" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#8a6510);color:#000;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:16px 40px;border-radius:6px;text-decoration:none;">Enter The Writer's HQ →</a>
       <p style="font-size:11px;color:rgba(240,236,226,0.3);margin:12px 0 0;">Your profile, stories, earnings and agreements — all in one place.</p>
@@ -325,7 +325,7 @@ case "writer-reminder": {
   await resend.emails.send({
     from: FROM,
     to,
-    subject: "Your TTL writer dashboard is waiting for you 🕯️",
+    subject: "Your TTL creator dashboard is waiting for you 🕯️",
     html: `
       <!DOCTYPE html>
       <html>

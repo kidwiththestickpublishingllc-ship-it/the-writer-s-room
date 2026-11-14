@@ -112,7 +112,7 @@ export default function PayoutAdmin() {
       <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
 
         <div style={{ marginBottom: "32px" }}>
-          <h1 style={{ color: "#C9A84C", fontSize: "28px", fontWeight: 600, margin: "0 0 8px" }}>Writer Payouts 💰</h1>
+          <h1 style={{ color: "#C9A84C", fontSize: "28px", fontWeight: 600, margin: "0 0 8px" }}>Creator Payouts 💰</h1>
           <p style={{ color: "#666", fontSize: "14px", margin: 0 }}>Live balances from the earnings ledger. Mark paid after you send money manually.</p>
         </div>
 
@@ -120,7 +120,7 @@ export default function PayoutAdmin() {
           {[
             { label: "Owed Right Now", val: `$${totalOwed.toFixed(2)}`, color: "#C9A84C" },
             { label: "Total Paid Out", val: `$${totalPaid.toFixed(2)}`, color: "#22c55e" },
-            { label: "Writers Awaiting", val: String(owed.length), color: "#fff" },
+            { label: "Creators Awaiting", val: String(owed.length), color: "#fff" },
           ].map(stat => (
             <div key={stat.label} style={{ background: "#111122", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "12px", padding: "20px" }}>
               <p style={{ color: "#666", fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 8px" }}>{stat.label}</p>

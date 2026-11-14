@@ -6,7 +6,7 @@ import { TWRNav, TWRFooter } from "@/app/components/TWRNav";
 
 // =========================
 // Route: app/apply/page.tsx
-// TTL Writer Application — /apply
+// TTL Creator Application — /apply
 // =========================
 
 const TTL_SUBMIT_URL = "https://write.the-tiniest-library.com/apply";
@@ -398,9 +398,9 @@ function SidebarInfo({ step }: { step: Step }) {
     2: {
       title: "About your writing",
       items: [
-        { icon: "📖", title: "No minimum experience", sub: "TTL is for emerging writers. We care about voice, not publication history." },
+        { icon: "📖", title: "No minimum experience", sub: "TTL is for emerging writers and artists. We care about voice, not publication history." },
         { icon: "🎭", title: "Multiple genres", sub: "Select every genre you write in — you're not locked to one." },
-        { icon: "🪶", title: "Be honest", sub: "Tell us who you are as a writer. The best applications feel like a real person." },
+        { icon: "🪶", title: "Be honest", sub: "Tell us who you are as a creator. The best applications feel like a real person." },
       ],
     },
     3: {
@@ -528,7 +528,7 @@ export default function ApplyPage() {
             <span className="ap-success-eyebrow">Application Received</span>
             <h1 className="ap-success-title">Welcome to<br />the waiting room.</h1>
             <p className="ap-success-body">
-              Your application has been submitted to The Tiniest Library. We review every application personally — expect to hear from us within 5–7 business days at the email you provided. If approved, you'll receive instructions to sign your writer agreements and set up your author profile.
+              Your application has been submitted to The Tiniest Library. We review every application personally — expect to hear from us within 5–7 business days at the email you provided. If approved, you'll receive instructions to sign your creator agreements and set up your author profile.
             </p>
             <div className="ap-success-details">
               <div className="ap-success-detail-row">
@@ -550,7 +550,7 @@ export default function ApplyPage() {
             </div>
             <div className="ap-success-actions">
               <a href={TTL_WRITERS_ROOM} style={{ fontFamily: "'Syne',sans-serif", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(232,228,218,0.6)", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", padding: "13px 24px", borderRadius: 6, textDecoration: "none", transition: "all 0.2s" }}>
-                ← Back to Writer's Room
+                ← Back to Creators Room
               </a>
               <a href="https://the-reading-room-three.write.the-tiniest-library.com/reading-room" style={{ fontFamily: "'Syne',sans-serif", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 700, color: "#000", background: "linear-gradient(135deg, #C9A84C, #8a6510)", border: "none", padding: "13px 28px", borderRadius: 6, textDecoration: "none" }}>
                 Browse the Reading Room →
@@ -571,10 +571,10 @@ export default function ApplyPage() {
 
         {/* HERO */}
         <div className="ap-hero">
-          <span className="ap-hero-eyebrow">The Tiniest Library — Writer Application</span>
+          <span className="ap-hero-eyebrow">The Tiniest Library — Creator Application</span>
           <h1 className="ap-hero-title">Apply to<br /><em>Write</em> for TTL</h1>
           <p className="ap-hero-sub">
-            The Tiniest Library is looking for independent writers with a voice worth hearing. Tell us who you are, what you write, and why TTL feels like home. Every application is read by a human.
+            The Tiniest Library is looking for independent writers and artists with a voice worth hearing. Tell us who you are, what you write, and why TTL feels like home. Every application is read by a human.
           </p>
           <div className="ap-hero-pills">
             <div className="ap-hero-pill"><span>🏆</span> Founding 100 spots available</div>
@@ -598,7 +598,7 @@ export default function ApplyPage() {
               {step === 1 && (
                 <div>
                   <h2 className="ap-section-title">About You</h2>
-                  <p className="ap-section-sub">Tell us who you are. This information helps us understand you as a writer and person.</p>
+                  <p className="ap-section-sub">Tell us who you are. This information helps us understand you as a creator and person.</p>
 
                   <div className="ap-field-row">
                     <div className="ap-field">
@@ -618,7 +618,7 @@ export default function ApplyPage() {
                   </div>
                   <div className="ap-field">
                     
-                    <p className="ap-field-hint">You'll use this to log into your Writer Dashboard once approved.</p>
+                    <p className="ap-field-hint">You'll use this to log into your Creator Dashboard once approved.</p>
                   </div>
                   <div className="ap-field">
                     <label className="ap-field-label">About Yourself <span className="req">*</span></label>
@@ -798,7 +798,7 @@ export default function ApplyPage() {
               <div className="ap-sidebar-card">
                 <div className="ap-sidebar-card-title">The Founding 100</div>
                 <p style={{ fontSize: 12, color: "var(--text-faint)", lineHeight: 1.7 }}>
-                  The first 100 writers to join TTL receive a permanent Founding Author badge, priority genre placement, and a piece of TTL history. Applications are reviewed in order received.
+                  The first 100 creators to join TTL receive a permanent Founding Author badge, priority genre placement, and a piece of TTL history. Applications are reviewed in order received.
                 </p>
               </div>
             </div>

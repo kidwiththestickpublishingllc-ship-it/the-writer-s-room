@@ -24,7 +24,7 @@ const supabase = createBrowserClient(
 
 // =========================
 // Route: app/dashboard/page.tsx
-// The Writer's Room — Full Writer HQ
+// The Creators Room — Full Creator HQ
 // =========================
 
 const STYLES = `
@@ -1012,7 +1012,7 @@ const checkStripeStatus = async () => {
           <div style={{ height: 74 }} />
           <div className="loading-wrap" style={{ minHeight: '100vh' }}>
             <div className="spinner" />
-            <p className="loading-text">Loading your Writer HQ…</p>
+            <p className="loading-text">Loading your Creator HQ…</p>
           </div>
         </div>
       </>
@@ -1031,7 +1031,7 @@ if (!writer) return null;
           <div style={{ width: '100%', minHeight: '100vh', background: '#ffffff', borderTop: '4px solid #C9A84C' }}>
             <div style={{ padding: '32px 56px 24px', borderBottom: '1px solid rgba(201,168,76,0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 10, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
               <div>
-                <div style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: 6 }}>The Tiniest Library — Writer Submission</div>
+                <div style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: 6 }}>The Tiniest Library — Creator Submission</div>
                 <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 300, color: '#1a1a2e' }}>Submit Your Story</div>
               </div>
               <button onClick={() => setShowSubmitModal(false)} style={{ background: 'none', border: '2px solid #C9A84C', borderRadius: 0, width: 44, height: 44, fontSize: 18, cursor: 'pointer', color: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
@@ -1193,7 +1193,7 @@ if (!writer) return null;
                 <div style={{ fontSize: 48, marginBottom: 16 }}>🕯️</div>
                 <p style={{ fontSize: 11, letterSpacing: "0.28em", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.7)", marginBottom: 12 }}>The Tiniest Library</p>
                 <h1 style={{ fontFamily: "var(--font-display)", fontSize: 36, fontWeight: 300, color: "var(--text)", marginBottom: 8 }}>Welcome to the shelf, {writer?.name.split(" ")[0] ?? "Writer"}.</h1>
-                <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7 }}>Your writer dashboard is live. Here's how to get started in the next 10 minutes.</p>
+                <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7 }}>Your creator dashboard is live. Here's how to get started in the next 10 minutes.</p>
               </div>
               <div style={{ display: "flex", flexDirection: "column" as const, gap: 12, marginBottom: 32 }}>
                 {[
@@ -1244,7 +1244,7 @@ if (!writer) return null;
               <div className="hq-nav-logo">TTL</div>
               <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3 }}>
                 <span className="hq-nav-title">The Tiniest Library</span>
-                <span className="hq-nav-sub">Writer HQ</span>
+                <span className="hq-nav-sub">Creator HQ</span>
               </div>
             </a>
             <div className="hq-nav-right">

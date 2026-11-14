@@ -63,7 +63,7 @@ export default function WriterCommunityFeed() {
 
   return (
     <div style={{ marginTop: 40 }}>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 300, color: "var(--text)", marginBottom: 20 }}>Writer Community</div>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 300, color: "var(--text)", marginBottom: 20 }}>Creator Community</div>
       <div style={{ background: "var(--ink2)", border: "1px solid var(--border-gold)", borderRadius: 12, padding: 20, marginBottom: 24 }}>
         <div style={{ fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase" as const, color: "var(--gold)", marginBottom: 12 }}>Post an Announcement</div>
         <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Share an update with your fellow writers…"

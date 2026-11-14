@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 
 // =========================
 // TWRNav + TWRFooter
-// Shared navigation for all Writer's Room pages.
+// Shared navigation for all Creators Room pages.
 // Usage:
 //   import { TWRNav, TWRFooter } from "@/app/components/TWRNav";
 //   <TWRNav />
@@ -340,7 +340,7 @@ export function TWRNav() {
               <a href="https://www.the-tiniest-library.com" className="twr-shared-logo">TTL</a>
               <div className="twr-shared-brand-text">
                 <a href="https://www.the-tiniest-library.com" className="twr-shared-brand-main">The Tiniest Library</a>
-                <a href="https://write.the-tiniest-library.com" className="twr-shared-brand-sub">The Writer's Room</a>
+                <a href="https://write.the-tiniest-library.com" className="twr-shared-brand-sub">The Creators Room</a>
               </div>
             </div>
 
@@ -385,7 +385,7 @@ export function TWRFooter() {
         <a href="https://www.the-tiniest-library.com" className="twr-shared-footer-logo">TTL</a>
         <div>
           <div className="twr-shared-footer-name">The Tiniest Library</div>
-          <div className="twr-shared-footer-sub">The Writer's Room</div>
+          <div className="twr-shared-footer-sub">The Creators Room</div>
         </div>
       </div>
 

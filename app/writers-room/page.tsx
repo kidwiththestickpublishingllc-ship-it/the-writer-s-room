@@ -18,16 +18,16 @@ const TOUR_KEY = "twr_tour_completed";
 const MODAL_SLIDES = [
   {
     emoji: "🪶",
-    title: "Welcome to\nThe Writer's Room",
+    title: "Welcome to\nThe Creators Room",
     subtitle: "Guided by Quill",
-    body: "This is where independent writers publish, earn, and build their readership on The Tiniest Library. I'm Quill — your Writer's Guide. Let me show you around.",
+    body: "This is where independent writers and artists publish, earn, and build their readership on The Tiniest Library. I'm Quill — your Writer's Guide. Let me show you around.",
     cta: "Let's go →",
   },
   {
     emoji: "🏆",
     title: "The Founding\n100 Writers",
     subtitle: "Limited Spots Remaining",
-    body: "The first 100 writers to join TTL earn Founding Writer status — a permanent badge on your author profile, priority placement in genre listings, and a piece of TTL history.",
+    body: "The first 100 creators to join TTL earn Founding Creator status — a permanent badge on your author profile, priority placement in genre listings, and a piece of TTL history.",
     highlight: "Spots are going fast. Apply before they're gone.",
     cta: "Got it →",
   },
@@ -44,7 +44,7 @@ const MODAL_SLIDES = [
     title: "Earn Through\nInk",
     subtitle: "Real Revenue, Real Readers",
     body: "Readers buy Ink packs starting at $1 and spend it to unlock your chapters and tip you directly. Every Ink transaction on your work sends revenue straight to you via Stripe.",
-    highlight: "No ads. No algorithm tax. Just readers supporting writers they love.",
+    highlight: "No ads. No algorithm tax. Just readers supporting creators they love.",
     cta: "Nice →",
   },
   {
@@ -59,8 +59,8 @@ const MODAL_SLIDES = [
     emoji: "✍️",
     title: "Your Author\nProfile",
     subtitle: "Build Your Readership",
-    body: "Your author profile is your home on TTL. Readers follow you, tip you, and return for every new chapter. Fill it out in The Writer's Room — it displays live in The Reading Room.",
-    highlight: "Ready for a quick tour of The Writer's Room?",
+    body: "Your author profile is your home on TTL. Readers follow you, tip you, and return for every new chapter. Fill it out in The Creators Room — it displays live in The Reading Room.",
+    highlight: "Ready for a quick tour of The Creators Room?",
     cta: "Show me around →",
     isFinal: true,
   },
@@ -83,7 +83,7 @@ type SpotlightRect = {
 };
 
 const SPOTLIGHT_STEPS: SpotlightStep[] = [
-  { id: "twr-founding", target: "[data-tour-writer='twr-founding']", title: "The Founding 100", body: "This banner tracks how many founding spots are left. Once 100 writers join, this program closes permanently. Claim your spot now.", position: "bottom" },
+  { id: "twr-founding", target: "[data-tour-writer='twr-founding']", title: "The Founding 100", body: "This banner tracks how many founding spots are left. Once 100 creators join, this program closes permanently. Claim your spot now.", position: "bottom" },
   { id: "twr-why", target: "[data-tour-writer='twr-why']", title: "Why Publish on TTL", body: "Three reasons every writer should know — you keep your copyright, you earn through Ink, and you build a real fanbase. No gatekeepers. No algorithms.", position: "bottom" },
   { id: "twr-how", target: "[data-tour-writer='twr-how']", title: "How It Works", body: "Four simple steps — submit your story, get published, earn Ink revenue, and grow your audience. The whole process is free and reviewed personally.", position: "bottom" },
   { id: "twr-ink", target: "[data-tour-writer='twr-ink']", title: "The Ink Economy", body: "This section explains exactly how money flows to you. Readers buy Ink, spend it on your chapters, and tip you directly. Revenue goes through Stripe to your account.", position: "top" },
@@ -1009,13 +1009,13 @@ const STEPS = [
   { num: "01", title: "Submit Your Story", text: "Fill out the submission form with your story, genre, and a short description. We review every submission personally.", badge: "Free" },
   { num: "02", title: "Get Published", text: "Approved stories appear in the Reading Room and Browse All Stories pages, searchable by genre and author.", badge: "Fast" },
   { num: "03", title: "Earn Ink Revenue", text: "Readers spend Ink to unlock your chapters and tip you directly. Revenue goes through Stripe to your account.", badge: "Real Revenue" },
-  { num: "04", title: "Grow Your Audience", text: "Your author profile page builds over time. Readers follow you, return for new chapters, and tip the writers they love.", badge: "Ongoing" },
+  { num: "04", title: "Grow Your Audience", text: "Your author profile page builds over time. Readers follow you, return for new chapters, and tip the creators they love.", badge: "Ongoing" },
 ];
 
 const RULES = [
-  { icon: "✅", title: "All experience levels welcome", text: "First-time writers and published authors both belong here. There's no gatekeeping based on credentials or follower count." },
+  { icon: "✅", title: "All experience levels welcome", text: "First-time writers, artists and published authors both belong here. There's no gatekeeping based on credentials or follower count." },
   { icon: "✅", title: "Original work only", text: "All submissions must be your own original work. You retain copyright but warrant that you own the rights to what you submit." },
-  { icon: "✅", title: "One piece per month minimum", text: "Founding writers commit to at least one piece per month. Serials can be shorter chapters published on a regular schedule." },
+  { icon: "✅", title: "One piece per month minimum", text: "Founding creators commit to at least one piece per month. Serials can be shorter chapters published on a regular schedule." },
   { icon: "✅", title: "All genres accepted", text: "We publish across all 24 TTL genres — from Horror Mystery to Children's Literature to Adult 18+ — each with its own dedicated space." },
   { icon: "🚫", title: "No plagiarism or AI-only content", text: "Work that is entirely AI-generated without meaningful human authorship will not be accepted. Human stories, always." },
   { icon: "🚫", title: "No hate speech or harmful content", text: "Content that targets individuals or groups with harassment, hate, or abuse is not permitted regardless of genre or framing." },
@@ -1025,13 +1025,13 @@ const FAQS = [
   { q: "Is it free to submit my writing?", a: "Yes, completely free. There is no submission fee, no membership cost, and no hidden charges to publish on The Tiniest Library. You earn money; you don't spend it to join." },
   { q: "Do I give up my copyright when I publish here?", a: "No. You keep 100% of your copyright. Publishing on TTL grants us a non-exclusive licence to display your work on the platform, but ownership of your work remains entirely yours. You can publish the same work elsewhere, adapt it, or take it down at any time." },
   { q: "What genres do you accept?", a: "We publish across all 24 TTL genres including Fan Fiction, Horror, Fantasy, Romance, Sci-Fi, Literary Fiction, YA, Children's Literature, LGBTQ+ Fiction, Psychological Fiction, Historical Fiction, Contemporary Fiction, Serialised Fiction, and more. If it's a story, there's a home for it here." },
-  { q: "How does the Ink system work?", a: "Ink is our reader currency. Readers buy Ink packs starting at $1 for 100 Ink and use it to unlock stories (25 Ink per chapter) or tip writers directly from their author cards. When readers spend Ink on your work, a portion of that revenue is paid out to you via Stripe." },
+  { q: "How does the Ink system work?", a: "Ink is our reader currency. Readers buy Ink packs starting at $1 for 100 Ink and use it to unlock stories (25 Ink per chapter) or tip creators directly from their author cards. When readers spend Ink on your work, a portion of that revenue is paid out to you via Stripe." },
   { q: "How long does the review process take?", a: "We review every submission personally and aim to respond within 5–10 business days. Founding writer applications may be reviewed faster given the limited spots available." },
   { q: "Can I submit a work in progress or serialised story?", a: "Absolutely. Serials are one of the most popular formats on TTL. You can publish chapter by chapter on whatever schedule suits you. Readers can follow your author profile to be notified when new chapters drop." },
   { q: "What happens if my submission isn't accepted?", a: "If your submission isn't accepted, we'll let you know and you're welcome to revise and resubmit. Not every rejection is a no forever — sometimes it's a matter of timing, format, or fit. We try to give useful feedback where we can." },
   { q: "Can I publish work that's already been published elsewhere?", a: "In most cases, yes — as long as you hold the rights to it and any prior publication agreement doesn't prohibit it. If you're unsure, check the terms of your previous publication before submitting." },
   { q: "Is there a word count minimum or maximum?", a: "We don't enforce strict word count limits. Flash fiction, short stories, novellas, and full novels all have a place here. For serialised work, chapters can be as short or as long as your story requires." },
-  { q: "What is a Founding Writer?", a: "The first 100 writers to join The Tiniest Library earn Founding Writer status. This includes permanent recognition on your author profile, a founding badge, priority placement in genre listings, and a small piece of TTL history. There are a limited number of spots remaining." },
+  { q: "What is a Founding Writer?", a: "The first 100 creators to join The Tiniest Library earn Founding Creator status. This includes permanent recognition on your author profile, a founding badge, priority placement in genre listings, and a small piece of TTL history. There are a limited number of spots remaining." },
 ];
 
 // =========================
@@ -1043,14 +1043,14 @@ interface NavigateProps { onNavigate: (page: string) => void; }
 function PageSubmissionGuidelines({ onBack }: BackProps) {
   return (
     <div className="twr-subpage">
-      <button className="twr-subpage-back" onClick={onBack}>← Back to The Writer's Room</button>
+      <button className="twr-subpage-back" onClick={onBack}>← Back to The Creators Room</button>
       <span className="twr-subpage-eyebrow">How to submit</span>
       <h1 className="twr-subpage-title">Submission<br />Guidelines</h1>
       <p className="twr-subpage-intro">Everything you need to know before you submit your writing to The Tiniest Library. We keep the process simple, human, and free.</p>
 
       <div className="twr-content-block">
         <h2 className="twr-content-h2"><span className="twr-content-h2-bar" />Who can submit</h2>
-        <p className="twr-content-p">The Tiniest Library is open to all writers regardless of experience, following, or publishing history. First-time writers are as welcome as traditionally published authors. We do not gatekeep based on credentials.</p>
+        <p className="twr-content-p">The Tiniest Library is open to all writers and artists regardless of experience, following, or publishing history. First-time writers and artists are as welcome as traditionally published authors. We do not gatekeep based on credentials.</p>
         <p className="twr-content-p">You must be the original author of the work you submit and hold the rights to publish it here. If your work has been published elsewhere, check that your previous agreement permits simultaneous or republication before submitting.</p>
       </div>
 
@@ -1098,18 +1098,18 @@ function PageSubmissionGuidelines({ onBack }: BackProps) {
             Click <strong>Apply to Join</strong> on this page. You'll be taken to our submission form on The Tiniest Library website where you can provide your story, genre, a short description, and any relevant links. We review every submission personally and aim to respond within <strong>5–10 business days</strong>.
           </p>
         </div>
-        <p className="twr-content-p">There is no submission fee. Founding writer status is awarded to the first 100 writers to join — spots are limited and going fast.</p>
+        <p className="twr-content-p">There is no submission fee. Founding creator status is awarded to the first 100 creators to join — spots are limited and going fast.</p>
       </div>
 
       <div className="twr-content-block">
         <h2 className="twr-content-h2"><span className="twr-content-h2-bar twr-content-h2-bar-quill" />Founding writer commitment</h2>
-        <p className="twr-content-p">Founding writers commit to publishing at least one piece per month. For serialised stories, individual chapters count — there's no minimum word count per chapter. This helps us build an active, living library rather than a static archive.</p>
+        <p className="twr-content-p">Founding creators commit to publishing at least one piece per month. For serialised stories, individual chapters count — there's no minimum word count per chapter. This helps us build an active, living library rather than a static archive.</p>
         <p className="twr-content-p">If life happens and you need a break, just let us know. We're human too.</p>
       </div>
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
         <a href="/apply" target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
-        <button className="twr-btn-ghost" onClick={onBack}>Back to Writer's Room</button>
+        <button className="twr-btn-ghost" onClick={onBack}>Back to Creators Room</button>
       </div>
     </div>
   );
@@ -1122,10 +1122,10 @@ function PageFAQs({ onBack }: BackProps) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   return (
     <div className="twr-subpage">
-      <button className="twr-subpage-back" onClick={onBack}>← Back to The Writer's Room</button>
+      <button className="twr-subpage-back" onClick={onBack}>← Back to The Creators Room</button>
       <span className="twr-subpage-eyebrow">Questions & answers</span>
       <h1 className="twr-subpage-title">Tiniest<br />FAQs</h1>
-      <p className="twr-subpage-intro">Everything writers ask us most. If your question isn't here, use the Contact page and we'll get back to you personally.</p>
+      <p className="twr-subpage-intro">Everything writers and artists ask us most. If your question isn't here, use the Contact page and we'll get back to you personally.</p>
       <div className="twr-faq-list">
         {FAQS.map((faq, i) => (
           <div key={i} className={`twr-faq-item${openIdx === i ? ' open' : ''}`}>
@@ -1143,7 +1143,7 @@ function PageFAQs({ onBack }: BackProps) {
       </div>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
         <a href="/apply" target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
-        <button className="twr-btn-ghost" onClick={onBack}>Back to Writer's Room</button>
+        <button className="twr-btn-ghost" onClick={onBack}>Back to Creators Room</button>
       </div>
     </div>
   );
@@ -1155,7 +1155,7 @@ function PageFAQs({ onBack }: BackProps) {
 function PageCopyright({ onBack }: BackProps) {
   return (
     <div className="twr-subpage">
-      <button className="twr-subpage-back" onClick={onBack}>← Back to The Writer's Room</button>
+      <button className="twr-subpage-back" onClick={onBack}>← Back to The Creators Room</button>
       <span className="twr-subpage-eyebrow">Your rights, always</span>
       <h1 className="twr-subpage-title">Keep Your<br />Copyright</h1>
       <p className="twr-subpage-intro">At The Tiniest Library, your work belongs to you — not to us, not to any algorithm, not to the platform. This is a non-negotiable principle of how TTL works.</p>
@@ -1208,7 +1208,7 @@ function PageCopyright({ onBack }: BackProps) {
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
         <a href="/apply" target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
-        <button className="twr-btn-ghost" onClick={onBack}>Back to Writer's Room</button>
+        <button className="twr-btn-ghost" onClick={onBack}>Back to Creators Room</button>
       </div>
     </div>
   );
@@ -1225,7 +1225,7 @@ function PageContact({ onBack }: BackProps) {
 
   return (
     <div className="twr-subpage">
-      <button className="twr-subpage-back" onClick={onBack}>← Back to The Writer's Room</button>
+      <button className="twr-subpage-back" onClick={onBack}>← Back to The Creators Room</button>
       <span className="twr-subpage-eyebrow">Get in touch</span>
       <h1 className="twr-subpage-title">Contact<br />Us</h1>
       <p className="twr-subpage-intro">We read every message personally. Whether you have a question about submitting, your work on the platform, or anything else — reach out and we'll get back to you.</p>
@@ -1272,7 +1272,7 @@ function PageContact({ onBack }: BackProps) {
           </div>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <button className="twr-btn-primary" onClick={handleSubmit}>Send Message →</button>
-            <button className="twr-btn-ghost" onClick={onBack}>Back to Writer's Room</button>
+            <button className="twr-btn-ghost" onClick={onBack}>Back to Creators Room</button>
           </div>
           <p style={{ fontFamily: "'Syne', sans-serif", fontSize: 11, color: 'var(--text-faint)', marginTop: 16, lineHeight: 1.7 }}>
             We aim to respond within 2 business days. For urgent submission questions, see the <button style={{ background: 'none', border: 'none', color: 'var(--gold-light)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', padding: 0, textDecoration: 'underline', textUnderlineOffset: '3px' }} onClick={onBack}>Submission Guidelines</button>.
@@ -1294,7 +1294,7 @@ function Footer({ onNavigate }: NavigateProps) {
           <div className="twr-footer-logo">TTL</div>
           <div>
             <div className="twr-footer-brand-main">The Tiniest Library</div>
-            <div className="twr-footer-brand-sub">The Writer's Room</div>
+            <div className="twr-footer-brand-sub">The Creators Room</div>
           </div>
         </div>
         <span className="twr-footer-copy">© {new Date().getFullYear()} The Tiniest Library. All rights reserved.</span>
@@ -1355,7 +1355,7 @@ export default function WritersRoomHome() {
               <div className="twr-hero-inner">
                 <span className="twr-hero-eyebrow">The Tiniest Library — For Writers</span>
                 <h1 className="twr-hero-title">The<br />Writer's<br />Room</h1>
-                <p className="twr-hero-sub">A home for independent writers. Publish your stories, earn through Ink, keep your copyright, and build the readership your work deserves.</p>
+                <p className="twr-hero-sub">A home for independent writers and artists. Publish your stories, earn through Ink, keep your copyright, and build the readership your work deserves.</p>
                 <div className="twr-hero-actions">
                   <a href="/apply" target="_blank" rel="noopener noreferrer" className="twr-btn-primary">Apply to Join →</a>
                   <a href="#how" className="twr-btn-ghost">How it works</a>
@@ -1372,9 +1372,9 @@ export default function WritersRoomHome() {
                 <div className="twr-founding-banner" data-tour-writer="twr-founding">
                   <div className="twr-founding-num">100</div>
                   <div className="twr-founding-content">
-                    <span className="twr-founding-label">Limited — Founding Writer Program</span>
+                    <span className="twr-founding-label">Limited — Founding Creator Program</span>
                     <h2 className="twr-founding-headline">Be one of the first 100.</h2>
-                    <p className="twr-founding-sub">The first 100 writers to join The Tiniest Library receive founding writer status — permanent recognition, priority placement, and a founding badge on their author profile.</p>
+                    <p className="twr-founding-sub">The first 100 creators to join The Tiniest Library receive founding creator status — permanent recognition, priority placement, and a founding badge on their author profile.</p>
                     <div className="twr-founding-spots">
                       {Array.from({ length: 20 }).map((_, i) => (
                         <div key={i} className={`twr-spot-dot${i >= 20 - Math.floor((spotsLeft / 100) * 20) ? '' : ' taken'}`} />
@@ -1456,7 +1456,7 @@ export default function WritersRoomHome() {
                   <div className="twr-ink-panel twr-ink-panel-gold">
                     <div className="twr-ink-label">Reader Currency</div>
                     <div className="twr-ink-num">Ink</div>
-                    <p className="twr-ink-text">Ink is The Tiniest Library's reader currency. Readers purchase Ink packs starting at $1 and use it to unlock stories and tip writers they love. Every Ink transaction on your work sends revenue directly to you via Stripe.</p>
+                    <p className="twr-ink-text">Ink is The Tiniest Library's reader currency. Readers purchase Ink packs starting at $1 and use it to unlock stories and tip creators they love. Every Ink transaction on your work sends revenue directly to you via Stripe.</p>
                     <br />
                     <p className="twr-ink-text">The more readers engage with your stories — unlocking chapters, tipping, returning for new content — the more you earn. No ads. No algorithm tax. Just readers supporting the writing they love.</p>
                   </div>
@@ -1503,7 +1503,7 @@ export default function WritersRoomHome() {
               {/* CTA — data-tour-writer already present */}
               <div className="twr-cta" data-tour-writer="twr-submit">
                 <h2 className="twr-cta-title">Your stories deserve a home.</h2>
-                <p className="twr-cta-sub">100 founding writer spots. No gatekeepers. No algorithms. Just your work, your readers, and real revenue from the people who love what you create.</p>
+                <p className="twr-cta-sub">100 founding creator spots. No gatekeepers. No algorithms. Just your work, your readers, and real revenue from the people who love what you create.</p>
                 <div className="twr-cta-actions">
                   <a href="/apply" target="_blank" rel="noopener noreferrer" className="twr-btn-primary" style={{ fontSize: '11px', padding: '16px 36px' }}>Apply to Join →</a>
                   <a href={TTL_READING_ROOM_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-ghost" style={{ fontSize: '11px', padding: '16px 36px' }}>See the Reading Room</a>

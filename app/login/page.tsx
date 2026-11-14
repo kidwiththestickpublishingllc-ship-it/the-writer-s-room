@@ -11,7 +11,7 @@ const supabase = createBrowserClient(
 
 // =========================
 // Route: app/login/page.tsx
-// The Writer's Room — Login
+// The Creators Room — Login
 // =========================
 
 const STYLES = `
@@ -319,14 +319,14 @@ export default function WritersRoomLogin() {
             <div className="login-brand">
               <div className="login-logo">TWR</div>
               <div>
-                <div className="login-brand-name">The Writer's Room</div>
+                <div className="login-brand-name">The Creators Room</div>
                 <div className="login-brand-sub">The Tiniest Library</div>
               </div>
             </div>
 
             {/* Heading */}
             <span className="login-eyebrow">
-              {mode === 'signin' ? 'Writer Access' : mode === 'signup' ? 'Join the Room' : 'Reset Password'}
+              {mode === 'signin' ? 'Creator Access' : mode === 'signup' ? 'Join the Room' : 'Reset Password'}
             </span>
             <h1 className="login-title">
               {mode === 'signin' ? <>Welcome <em>back.</em></> :
@@ -334,8 +334,8 @@ export default function WritersRoomLogin() {
                <>Reset your <em>password.</em></>}
             </h1>
             <p className="login-sub">
-              {mode === 'signin' ? 'Sign in to access your Writer HQ — chapters, earnings, and payouts.' :
-               mode === 'signup' ? 'Create your writer account to access your dashboard.' :
+              {mode === 'signin' ? 'Sign in to access your Creator HQ — chapters, earnings, and payouts.' :
+               mode === 'signup' ? 'Create your creator account to access your dashboard.' :
                'Enter your email and we\'ll send you a reset link.'}
             </p>
 
@@ -375,7 +375,7 @@ export default function WritersRoomLogin() {
               <button className="login-btn" disabled={loading} onClick={handleSubmit}>
                 {loading ? <span className="spinner" /> : null}
                 {loading ? 'Please wait…' :
-                 mode === 'signin' ? 'Sign In to Writer HQ →' :
+                 mode === 'signin' ? 'Sign In to Creator HQ →' :
                  mode === 'signup' ? 'Create Account →' :
                  'Send Reset Email →'}
               </button>
@@ -408,7 +408,7 @@ export default function WritersRoomLogin() {
           {/* Footer */}
           <div className="login-footer">
             <p className="login-footer-text">
-              Not a writer yet?{' '}
+              Not a creator yet?{' '}
               <a href="/apply" className="login-footer-link">Apply to join TTL →</a>
             </p>
           </div>

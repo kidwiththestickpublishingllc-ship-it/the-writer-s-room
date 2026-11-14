@@ -1,7 +1,7 @@
 "use client";
 
 // app/components/StripeConnectCard.tsx
-// Stripe Connect (Express) onboarding card for the Writer's Room profile tab.
+// Stripe Connect (Express) onboarding card for the Creators Room profile tab.
 // Bank details are collected by Stripe's hosted page — never by TTL.
 
 import React, { useEffect, useState } from "react";

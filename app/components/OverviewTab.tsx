@@ -24,7 +24,7 @@ export default function OverviewTab({
   return (
     <div className="fade-up">
       <div className="hq-page-header">
-        <span className="hq-page-eyebrow">The Writer's Room</span>
+        <span className="hq-page-eyebrow">The Creators Room</span>
         <h1 className="hq-page-title">Good to see you, {writer.name.split(' ')[0]}.</h1>
         <p className="hq-page-sub">Here's how your work is performing.</p>
       </div>
@@ -32,7 +32,7 @@ export default function OverviewTab({
       {stories.length === 0 && (
         <div style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.08), rgba(201,168,76,0.04))", border: "1px solid rgba(201,168,76,0.25)", borderLeft: "4px solid var(--gold)", borderRadius: 12, padding: 28, marginBottom: 32 }}>
           <div style={{ fontSize: 9, letterSpacing: "0.28em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 12 }}>Getting Started</div>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 300, color: "var(--text)", marginBottom: 8 }}>Welcome to your Writer HQ, {writer.name.split(' ')[0]}. 🪶</div>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 300, color: "var(--text)", marginBottom: 8 }}>Welcome to your Creator HQ, {writer.name.split(' ')[0]}. 🪶</div>
           <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.8, marginBottom: 20 }}>You're all set up. Here's how to get your first story published on TTL:</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 24 }}>
             {[
@@ -62,7 +62,7 @@ export default function OverviewTab({
         <div className="hq-stat">
           <span className="hq-stat-label">Total Earned</span>
           <div className="hq-stat-value">${totalEarnings.toFixed(2)}</div>
-          <div className="hq-stat-sub">Lifetime writer earnings</div>
+          <div className="hq-stat-sub">Lifetime creator earnings</div>
         </div>
         <div className="hq-stat">
           <span className="hq-stat-label">Unpaid Balance</span>

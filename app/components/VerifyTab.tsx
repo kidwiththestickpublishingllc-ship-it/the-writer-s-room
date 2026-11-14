@@ -5,7 +5,7 @@ export default function VerifyTab() {
     <div className="fade-up">
       <div className="hq-page-header">
         <span className="hq-page-eyebrow">Account</span>
-        <h1 className="hq-page-title">Writer Verification</h1>
+        <h1 className="hq-page-title">Creator Verification</h1>
         <p className="hq-page-sub">Required before your first payout. You can publish freely while verification is pending.</p>
       </div>
       <div className="payout-grid">

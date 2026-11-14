@@ -868,7 +868,7 @@ function StoriesTab() {
 
     const allOk = r1.ok && r2.ok && r3.ok;
     alert(allOk
-      ? `✅ "${title}" published! Emails sent to writer and admin.`
+      ? `✅ "${title}" published! Emails sent to creator and admin.`
       : `⚠️ Published but some emails may have failed. approved=${r1.ok}, share=${r2.ok}, admin=${r3.ok}`
     );
     load();
@@ -1214,7 +1214,7 @@ function WritersTab() {
         {loading ? (
           <div className="adm-loading">Loading…</div>
         ) : items.length === 0 ? (
-          <div className="adm-empty"><div className="adm-empty-title">No writers yet.</div></div>
+          <div className="adm-empty"><div className="adm-empty-title">No creators yet.</div></div>
         ) : (
           <table>
             <thead>
@@ -1716,7 +1716,7 @@ async function payViaWise(w: any) {
         {[
           { label: "Owed Right Now", val: "$" + totalOwed.toFixed(2), color: "var(--gold-light)" },
           { label: "Total Paid Out", val: "$" + totalPaid.toFixed(2), color: "var(--green)" },
-          { label: "Writers Awaiting", val: String(owed.length), color: "var(--text)" },
+          { label: "Creators Awaiting", val: String(owed.length), color: "var(--text)" },
         ].map(s => (
           <div key={s.label} style={{ background: "var(--ink2)", border: "1px solid var(--border)", borderRadius: 10, padding: 16 }}>
             <div style={{ fontSize: 11, color: "var(--text-dim)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>{s.label}</div>
@@ -1793,7 +1793,7 @@ async function payViaWise(w: any) {
                   <button
                     onClick={async () => {
                       const newHold = !r.on_hold;
-                      const reason = newHold ? window.prompt("Hold reason (shown to writer):") : null;
+                      const reason = newHold ? window.prompt("Hold reason (shown to creator):") : null;
                       if (newHold && !reason) return;
                       await supabase.from("payout_requests").update({
                         on_hold: newHold,
@@ -1826,7 +1826,7 @@ async function payViaWise(w: any) {
                   </button>
                   <button
                     onClick={async () => {
-                      const reason = window.prompt("Rejection reason (sent to writer):");
+                      const reason = window.prompt("Rejection reason (sent to creator):");
                       if (!reason) return;
                       await supabase.from("payout_requests").update({
                         status: "failed",
@@ -1878,10 +1878,10 @@ async function payViaWise(w: any) {
                   <div style={{ flex: "1 1 200px" }}>
                     <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em",
                       textTransform: "uppercase", color: "var(--text-faint)", marginBottom: 4 }}>
-                      Admin Note (sent to writer)
+                      Admin Note (sent to creator)
                     </div>
                     <input
-                      placeholder="Optional note to writer..."
+                      placeholder="Optional note to creator..."
                       value={reference[`note_${r.id}`] ?? ''}
                       onChange={e => setReference(prev => ({ ...prev, [`note_${r.id}`]: e.target.value }))}
                       style={{ width: "100%", fontSize: 12, padding: "7px 10px",

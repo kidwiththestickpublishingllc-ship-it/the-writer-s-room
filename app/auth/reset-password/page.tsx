@@ -148,14 +148,14 @@ export default function ResetPassword() {
             <div className="brand">
               <div className="logo">TWR</div>
               <div>
-                <div className="brand-name">The Writer's Room</div>
+                <div className="brand-name">The Creators Room</div>
                 <div className="brand-sub">The Tiniest Library</div>
               </div>
             </div>
 
             <span className="eyebrow">Account Security</span>
             <h1 className="title">New <em>password.</em></h1>
-            <p className="sub">Choose a strong password for your writer account.</p>
+            <p className="sub">Choose a strong password for your creator account.</p>
 
             {error && <div className="error">⚠ {error}</div>}
             {success && <div className="success">✓ {success}</div>}

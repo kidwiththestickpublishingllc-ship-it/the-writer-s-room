@@ -3,7 +3,7 @@
 /**
  * QuestionsTab.tsx
  * ─────────────────────────────────────────────────────────────────
- * Writer's Room dashboard tab — shows all reader questions across
+ * Creators Room dashboard tab — shows all reader questions across
  * all of the writer's stories. Writer can answer directly.
  *
  * Place at: app/components/QuestionsTab.tsx (the-writers-room)

@@ -3,7 +3,7 @@
 /**
  * WriterNotificationSystem.tsx
  * ─────────────────────────────────────────────────────────────────
- * Real-time notification toasts for the Writer's Room dashboard.
+ * Real-time notification toasts for the Creators Room dashboard.
  * Subscribes to the notifications table via Supabase Realtime.
  * Plays branded sounds and shows animated toasts.
  *

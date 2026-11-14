@@ -5,12 +5,12 @@ import { useEffect, useState, useCallback } from "react";
 // =============================================================
 // TWR WELCOME TOUR
 // A two-phase onboarding experience:
-//   Phase 1 — Welcome modal (6 slides introducing The Writer's Room)
+//   Phase 1 — Welcome modal (6 slides introducing The Creators Room)
 //   Phase 2 — Spotlight tour (highlights real page elements)
 //
 // HOW TO INSTALL:
 //   1. Save as: app/components/WritersTour.tsx
-//   2. In your Writer's Room layout or page, add:
+//   2. In your Creators Room layout or page, add:
 //      import WritersTour from "./components/WritersTour";
 //      Then place <WritersTour /> just before </body>
 //
@@ -20,7 +20,7 @@ import { useEffect, useState, useCallback } from "react";
 //
 // HOW TO ADD DATA-TOUR-WRITER ATTRIBUTES TO YOUR PAGES:
 //   The spotlight tour looks for elements with data-tour-writer attributes.
-//   Add these to the matching elements in your Writer's Room page:
+//   Add these to the matching elements in your Creators Room page:
 //
 //   Founding 100 banner     → data-tour-writer="twr-founding"
 //   Why Publish section     → data-tour-writer="twr-why"
@@ -41,16 +41,16 @@ const TOUR_KEY = "twr_tour_completed";
 const MODAL_SLIDES = [
   {
     emoji: "🪶",
-    title: "Welcome to\nThe Writer's Room",
+    title: "Welcome to\nThe Creators Room",
     subtitle: "Guided by Quill",
-    body: "This is where independent writers publish, earn, and build their readership on The Tiniest Library. I'm Quill — your Writer's Guide. Let me show you around.",
+    body: "This is where independent writers and artists publish, earn, and build their readership on The Tiniest Library. I'm Quill — your Writer's Guide. Let me show you around.",
     cta: "Let's go →",
   },
   {
     emoji: "🏆",
     title: "The Founding\n100 Writers",
     subtitle: "Limited Spots Remaining",
-    body: "The first 100 writers to join TTL earn Founding Writer status — a permanent badge on your author profile, priority placement in genre listings, and a piece of TTL history.",
+    body: "The first 100 creators to join TTL earn Founding Creator status — a permanent badge on your author profile, priority placement in genre listings, and a piece of TTL history.",
     highlight: "Spots are going fast. Apply before they're gone.",
     cta: "Got it →",
   },
@@ -67,7 +67,7 @@ const MODAL_SLIDES = [
     title: "Earn Through\nInk",
     subtitle: "Real Revenue, Real Readers",
     body: "Readers buy Ink packs starting at $1 and spend it to unlock your chapters and tip you directly. Every Ink transaction on your work sends revenue straight to you via Stripe.",
-    highlight: "No ads. No algorithm tax. Just readers supporting writers they love.",
+    highlight: "No ads. No algorithm tax. Just readers supporting creators they love.",
     cta: "Nice →",
   },
   {
@@ -82,8 +82,8 @@ const MODAL_SLIDES = [
     emoji: "✍️",
     title: "Your Author\nProfile",
     subtitle: "Build Your Readership",
-    body: "Your author profile is your home on TTL. Readers follow you, tip you, and return for every new chapter. Fill it out in The Writer's Room — it displays live in The Reading Room.",
-    highlight: "Ready for a quick tour of The Writer's Room?",
+    body: "Your author profile is your home on TTL. Readers follow you, tip you, and return for every new chapter. Fill it out in The Creators Room — it displays live in The Reading Room.",
+    highlight: "Ready for a quick tour of The Creators Room?",
     cta: "Show me around →",
     isFinal: true,
   },
@@ -98,7 +98,7 @@ const SPOTLIGHT_STEPS = [
     id: "twr-founding",
     target: "[data-tour-writer='twr-founding']",
     title: "The Founding 100",
-    body: "This banner tracks how many founding spots are left. Once 100 writers join, this program closes permanently. Claim your spot now.",
+    body: "This banner tracks how many founding spots are left. Once 100 creators join, this program closes permanently. Claim your spot now.",
     position: "bottom" as const,
   },
   {

@@ -149,7 +149,7 @@ export default function VerifyPage() {
             fontWeight: 600,
             margin: "0 0 8px",
           }}>
-            Writer Verification 🪶
+            Creator Verification 🪶
           </h1>
           <p style={{ color: "#666", fontSize: "14px", lineHeight: 1.7, margin: 0 }}>
             Required before your first payout.
@@ -209,7 +209,7 @@ export default function VerifyPage() {
               STEP 2 — TAX FORM TYPE
             </p>
             <p style={{ color: "#666", fontSize: "13px", margin: "0 0 16px", lineHeight: 1.6 }}>
-              US based writers need a W-9.
+              US based creators need a W-9.
               Writers outside the US need a W-8BEN.
               We will send you the correct form by email after submission.
             </p>

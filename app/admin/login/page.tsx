@@ -155,22 +155,22 @@ export default function WritersRoomLogin() {
             <div className="login-brand">
               <div className="login-logo">TWR</div>
               <div>
-                <div className="login-brand-name">The Writer's Room</div>
+                <div className="login-brand-name">The Creators Room</div>
                 <div className="login-brand-sub">The Tiniest Library</div>
               </div>
             </div>
 
-            <div className="invite-badge">🔒 Approved Writers Only</div>
+            <div className="invite-badge">🔒 Approved Creators Only</div>
 
             <span className="login-eyebrow">
-              {mode === 'signin' ? 'Writer Access' : 'Reset Password'}
+              {mode === 'signin' ? 'Creator Access' : 'Reset Password'}
             </span>
             <h1 className="login-title">
               {mode === 'signin' ? <>Welcome <em>back.</em></> : <>Reset your <em>password.</em></>}
             </h1>
             <p className="login-sub">
               {mode === 'signin'
-                ? 'Sign in to your Writer HQ — manage chapters, track earnings, and request payouts.'
+                ? 'Sign in to your Creator HQ — manage chapters, track earnings, and request payouts.'
                 : 'Enter your email and we\'ll send you a secure reset link.'}
             </p>
 
@@ -202,7 +202,7 @@ export default function WritersRoomLogin() {
                 onClick={mode === 'signin' ? handleSignIn : handleReset}>
                 {loading ? <span className="spinner" /> : null}
                 {loading ? 'Please wait…' :
-                 mode === 'signin' ? 'Sign In to Writer HQ →' : 'Send Reset Link →'}
+                 mode === 'signin' ? 'Sign In to Creator HQ →' : 'Send Reset Link →'}
               </button>
 
               <div className="login-divider">

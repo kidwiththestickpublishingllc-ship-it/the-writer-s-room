@@ -439,7 +439,7 @@ export default function AdQueue() {
                 <span className="aq-header-eyebrow">The Tiniest Library — Community Support</span>
                 <div className="aq-header-title">Today's Ad Queue</div>
                 <p className="aq-header-sub">
-                  View ads to earn Ink and keep TTL running for the writers you love.
+                  View ads to earn Ink and keep TTL running for the creators you love.
                 </p>
               </div>
               <button className="aq-close" onClick={() => setOpen(false)}>Close ✕</button>
@@ -469,7 +469,7 @@ export default function AdQueue() {
               <div className="aq-done">
                 <div className="aq-done-icon">✦</div>
                 <div className="aq-done-title">Thank you for supporting TTL.</div>
-                <p className="aq-done-sub">Every ad you view helps keep this platform free for writers and readers. The Ink you earned has been added to your wallet.</p>
+                <p className="aq-done-sub">Every ad you view helps keep this platform free for writers, artists and readers. The Ink you earned has been added to your wallet.</p>
                 <div className="aq-done-ink">+{inkEarned}</div>
                 <div className="aq-done-ink-label">Ink added to your wallet</div>
                 <button className="aq-done-btn" onClick={() => setOpen(false)}>Keep Reading →</button>
