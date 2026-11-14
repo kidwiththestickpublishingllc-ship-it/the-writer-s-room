@@ -25,7 +25,7 @@ const ADS = [
   {
     eyebrow: 'FEATURED SPONSOR',
     headline: 'Your Brand Here',
-    body: 'Reach hundreds of independent writers and artists. Premium placement on The Writer\'s Room at The Tiniest Library.',
+    body: 'Reach hundreds of independent writers and artists. Premium placement on The Creators Room at The Tiniest Library.',
     cta: 'Advertise With Us →',
     href: 'mailto:hello@the-tiniest-library.com?subject=Creators Room Sponsorship',
     accent: '#C9A84C',
