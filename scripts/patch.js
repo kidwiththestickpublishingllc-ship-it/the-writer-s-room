@@ -3,7 +3,7 @@
  *   node scripts/patch.js           → dry run, reports what would change
  *   node scripts/patch.js --apply   → writes
  *
- * Run from the repo root (~/the-reading-room).
+ * Run from the repo root (~/the-writers-room).
  *
  * Safety:
  *   - Matches against LF internally, writes back in the file's own line ending,
@@ -13,55 +13,39 @@
  *   - If anything is genuinely MISSING, NOTHING is written. All or nothing.
  *   - Refuses to run if a FROM string appears more than once in its file.
  *
- * Batch: Reading Room — sign to the top, genre bar to whiteboard.
+ * Batch: Creators Room — Team tab wired into the dashboard.
  */
 
 const fs = require('fs');
 const path = require('path');
 
 const EDITS = [
+
   {
-    file: 'app/reading-room/page.tsx',
-    label: 'import Chalkboard',
-    from: `import WelcomeBoard from '@/app/components/WelcomeBoard';`,
-    to: `import WelcomeBoard from '@/app/components/WelcomeBoard';
-import Chalkboard from '@/app/components/Chalkboard';`,
+    file: 'app/dashboard/page.tsx',
+    label: "add 'team' to the Tab type",
+    from: "type Tab = 'overview' | 'chapters' | 'earnings' | 'payout' | 'profile' | 'submit' | 'media' | 'verify' | 'world' | 'questions' | 'letters';",
+    to:   "type Tab = 'overview' | 'chapters' | 'earnings' | 'payout' | 'profile' | 'submit' | 'media' | 'verify' | 'world' | 'questions' | 'letters' | 'team';",
   },
   {
-    file: 'app/reading-room/page.tsx',
-    label: 'the page lies on the board',
-    from: `  .ttl-root {
-    min-height: 100vh;
-    background: var(--paper, #F0E7D2);
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    color: #1a1008;
-    position: relative;
-    overflow-x: hidden;
-  }`,
-    to: `  .ttl-root {
-    min-height: 100vh;
-    background: transparent;
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    color: var(--text-main);
-    position: relative;
-    overflow-x: hidden;
-  }
-  /* everything on the page sits above the board */
-  .ttl-root > *:not(.cb-board) { position: relative; z-index: 1; }`,
+    file: 'app/dashboard/page.tsx',
+    label: 'Team nav button under Publish, after Story Media',
+    from: "  <span className=\"hq-nav-icon\">🎨</span> Story Media\n</button>",
+    to:   "  <span className=\"hq-nav-icon\">🎨</span> Story Media\n</button>\n<button className={`hq-nav-item${tab === 'team' ? ' active' : ''}`} onClick={() => setTab('team')}>\n  <span className=\"hq-nav-icon\">🤝</span> Team & Splits\n</button>",
   },
   {
-    file: 'app/reading-room/page.tsx',
-    label: 'render the board',
-    from: `        <div style={{ height: 90 }} />`,
-    to: `        <Chalkboard />
-        <div style={{ height: 90 }} />`,
+    file: 'app/dashboard/page.tsx',
+    label: 'render TeamTab',
+    from: "{tab === 'questions' && <QuestionsTab writerId={writer.id} />}",
+    to:   "{tab === 'questions' && <QuestionsTab writerId={writer.id} />}\n            {tab === 'team' && <TeamTab />}",
   },
+
 ];
 
 // ── engine ───────────────────────────────────────────────────────────
 const apply = process.argv.includes('--apply');
 
-const cache = new Map();   // file → { full, text, crlf, dirty }
+const cache = new Map();   // file → { text, crlf, dirty }
 
 function load(rel) {
   if (cache.has(rel)) return cache.get(rel);
@@ -79,7 +63,7 @@ let ok = 0, already = 0, missing = 0, ambiguous = 0;
 for (const e of EDITS) {
   const f = load(e.file);
   if (!f) {
-    console.log(`  x MISSING FILE   ${e.file}`);
+    console.log(`  ✗ MISSING FILE   ${e.file}`);
     missing++;
     continue;
   }
@@ -90,27 +74,27 @@ for (const e of EDITS) {
     f.text = f.text.replace(e.from, e.to);
     f.dirty = true;
     ok++;
-    console.log(`  + will change    ${e.label}`);
+    console.log(`  ✓ will change    ${e.label}`);
   } else if (hits > 1) {
     ambiguous++;
-    console.log(`  x AMBIGUOUS (${hits}x)  ${e.label}`);
-    console.log(`      the FROM text appears ${hits} times in ${e.file} - needs more context`);
+    console.log(`  ✗ AMBIGUOUS (${hits}×)  ${e.label}`);
+    console.log(`      the FROM text appears ${hits} times in ${e.file} — needs more context`);
   } else if (f.text.includes(e.to)) {
     already++;
-    console.log(`  . already done   ${e.label}`);
+    console.log(`  · already done   ${e.label}`);
   } else {
     missing++;
-    console.log(`  x NOT FOUND      ${e.label}`);
-    console.log(`      in ${e.file} - the file has drifted from what this patch expects`);
+    console.log(`  ✗ NOT FOUND      ${e.label}`);
+    console.log(`      in ${e.file} — the file has drifted from what this patch expects`);
   }
 }
 
 console.log('');
-console.log(`${ok} to change | ${already} already applied | ${missing} not found | ${ambiguous} ambiguous`);
+console.log(`${ok} to change · ${already} already applied · ${missing} not found · ${ambiguous} ambiguous`);
 
 if (missing || ambiguous) {
   console.log('');
-  console.log('Nothing written. Fix the mismatches above first - send me the failing');
+  console.log('Nothing written. Fix the mismatches above first — send me the failing');
   console.log('labels and I will re-cut those edits against the real text.');
   process.exit(1);
 }

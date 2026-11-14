@@ -2,6 +2,7 @@
 
 import WriterNotificationSystem from "@/app/components/WriterNotificationSystem";
 import QuestionsTab from "@/app/components/QuestionsTab";
+import TeamTab from "@/app/components/TeamTab";
 import LettersInbox from "@/app/components/LettersInbox";
 import { useEffect, useState, useCallback } from "react";
 import { createBrowserClient } from "@supabase/ssr";
@@ -406,7 +407,7 @@ const STYLES = `
 // =========================
 // Types
 // =========================
-type Tab = 'overview' | 'chapters' | 'earnings' | 'payout' | 'profile' | 'submit' | 'media' | 'verify' | 'world' | 'questions' | 'letters';
+type Tab = 'overview' | 'chapters' | 'earnings' | 'payout' | 'profile' | 'submit' | 'media' | 'verify' | 'world' | 'questions' | 'letters' | 'team';
 
 type Story = {
   id: string;
@@ -1289,6 +1290,9 @@ if (!writer) return null;
 <button className={`hq-nav-item${tab === 'media' ? ' active' : ''}`} onClick={() => setTab('media')}>
   <span className="hq-nav-icon">🎨</span> Story Media
 </button>
+<button className={`hq-nav-item${tab === 'team' ? ' active' : ''}`} onClick={() => setTab('team')}>
+  <span className="hq-nav-icon">🤝</span> Team & Splits
+</button>
 <div className="hq-nav-section">Verify</div>
             <button className={`hq-nav-item${tab === 'world' ? ' active' : ''}`} onClick={() => setTab('world')}>
               <span className="hq-nav-icon">🌍</span> World Building
@@ -1425,6 +1429,7 @@ if (!writer) return null;
               </div>
             )}
             {tab === 'questions' && <QuestionsTab writerId={writer.id} />}
+            {tab === 'team' && <TeamTab />}
             {tab === 'letters' && <LettersInbox writerId={writer.id} writerName={writer.name} />}
             {tab === 'media' && <MediaTab
               writer={writer}
