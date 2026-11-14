@@ -88,6 +88,8 @@ const STYLES = `
     --text-main: #F2ECFF;
     --text-dim: rgba(242,236,255,0.8);
     --text-faint: rgba(242,236,255,0.58);
+    --ink-surface: rgba(30,12,70,0.55);
+    --ink-border: rgba(180,122,255,0.24);
     background:
       radial-gradient(1200px 600px at 85% -10%, rgba(180,122,255,0.22), transparent 60%),
       radial-gradient(900px 500px at -10% 40%, rgba(255,20,147,0.14), transparent 60%),
@@ -98,6 +100,18 @@ const STYLES = `
   .ap-root.artist .ap-genre-btn.selected { border-color: #FF1493 !important; color: #FF69B4 !important; background: rgba(255,20,147,0.08) !important; }
   .ap-root.artist .ap-type-btn.selected { border-color: #FF1493; background: rgba(255,20,147,0.08); }
   .ap-root.artist .ap-check input { accent-color: #FF1493; }
+  .ap-root.artist .ap-input,
+  .ap-root.artist .ap-textarea,
+  .ap-root.artist .ap-sample-textarea,
+  .ap-root.artist .ap-sidebar-card {
+    background: rgba(30,12,70,0.55) !important;
+    border-color: rgba(180,122,255,0.24) !important;
+  }
+  .ap-root.artist .ap-input:focus,
+  .ap-root.artist .ap-textarea:focus,
+  .ap-root.artist .ap-sample-textarea:focus { border-color: #14F1D9 !important; }
+  .ap-root.artist .ap-review-value.sample { color: var(--text-dim); }
+  .ap-field:empty { display: none; }
 
   .ap-root {
     min-height: 100vh; background: var(--ink-bg);
@@ -401,11 +415,11 @@ const STYLES = `
   }
 `;
 
-function StepIndicator({ current, done }: { current: Step; done: boolean }) {
+function StepIndicator({ current, done, kind = "writer" }: { current: Step; done: boolean; kind?: "writer" | "artist" | "both" }) {
   const steps = [
     { n: 1, label: "About You" },
-    { n: 2, label: "Your Writing" },
-    { n: 3, label: "Your Work" },
+    { n: 2, label: kind === "artist" ? "Your Art" : kind === "both" ? "Your Work" : "Your Writing" },
+    { n: 3, label: kind === "artist" ? "Portfolio" : kind === "both" ? "Samples" : "Your Work" },
     { n: 4, label: "Review" },
   ];
   return (
@@ -635,7 +649,7 @@ export default function ApplyPage() {
 
         {/* PROGRESS */}
         <div className="ap-progress-wrap">
-          <StepIndicator current={step} done={submitted} />
+          <StepIndicator current={step} done={submitted} kind={form.applicant_type} />
         </div>
 
         {/* FORM */}
@@ -683,7 +697,7 @@ export default function ApplyPage() {
                   </div>
                   <div className="ap-field">
                     
-                    <p className="ap-field-hint">You'll use this to log into your Creator Dashboard once approved.</p>
+                    
                   </div>
                   <div className="ap-field">
                     <label className="ap-field-label">About Yourself <span className="req">*</span></label>
