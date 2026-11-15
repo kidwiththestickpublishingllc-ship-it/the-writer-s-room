@@ -9,11 +9,6 @@ const GENRE_GROUPS = [
   { group: "Other", subgenres: ["Serialized Fiction", "Flash Fiction", "Poetry", "Memoir", "Essay", "LitRPG", "Webtoon Script"] },
 ];
 
-const RED_ROOM_GENRES = [
-  "Adult Romance", "Erotic Fiction", "Dark Romance", "BDSM Fiction",
-  "Paranormal Erotica", "Historical Erotica", "Adult Horror", "Adult Thriller",
-  "Adult Fantasy", "Taboo Fiction",
-];
 
 const STYLES = `
   .sub-fork { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
@@ -119,8 +114,7 @@ export default function SubmitTab({
             {/* Genre */}
             <div style={{ marginBottom: 20 }}>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#888', marginBottom: 8 }}>Genre</label>
-              {storyRoom === 'reading-room' ? (
-                <div>
+              <div>
                   <select style={{ width: '100%', padding: '12px 16px', border: '1px solid #e5e7eb', borderRadius: 8, fontFamily: 'var(--font-ui)', fontSize: 14, color: '#111', background: '#fafafa', cursor: 'pointer', marginBottom: 10 }}
                     value={storyGenre} onChange={e => { onSetStoryGenre(e.target.value); onSetStorySubGenre(''); }}>
                     <option value="">Select a genre group…</option>
@@ -134,13 +128,6 @@ export default function SubmitTab({
                     </select>
                   )}
                 </div>
-              ) : (
-                <select style={{ width: '100%', padding: '12px 16px', border: '1px solid #e5e7eb', borderRadius: 8, fontFamily: 'var(--font-ui)', fontSize: 14, color: '#111', background: '#fafafa', cursor: 'pointer' }}
-                  value={storyGenre} onChange={e => onSetStoryGenre(e.target.value)}>
-                  <option value="">Select a genre…</option>
-                  {RED_ROOM_GENRES.map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
-              )}
             </div>
 
             {/* Format */}

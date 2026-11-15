@@ -74,7 +74,7 @@ const MODAL_SLIDES = [
     emoji: "🗂️",
     title: "24 Genres,\nOne Home",
     subtitle: "Your Genre Awaits",
-    body: "TTL publishes across all 24 genres — from Fantasy and Horror to Dark Academia, LGBTQ+ Fiction, Black Stories, Latin Voices, Fan Fiction, Cozy, and Adult 18+. Every story has a shelf.",
+    body: "TTL publishes across every genre — from Fantasy and Horror to Dark Academia, LGBTQ+ Fiction, Black Stories, Latin Voices, Fan Fiction, and Cozy. Every story has a shelf.",
     highlight: "Each genre has its own landing page with dedicated readers.",
     cta: "Love it →",
   },
@@ -126,7 +126,7 @@ const SPOTLIGHT_STEPS = [
     id: "twr-genres",
     target: "[data-tour-writer='twr-genres']",
     title: "Formats & Genres",
-    body: "See all the formats TTL accepts — short stories, serials, poems, fan fiction, early access chapters, and all 24 genres. If you write it, there's a home for it here.",
+    body: "See all the formats TTL accepts — short stories, serials, poems, fan fiction, early access chapters, and every genre. If you write it, there's a home for it here.",
     position: "top" as const,
   },
   {

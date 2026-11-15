@@ -726,7 +726,7 @@ const GENRE_GROUPS = [
     },
     {
       group: 'Slice of Life / Specialty',
-      subgenres: ['Cooking', 'Cooking Romance', 'Adult Literature', 'Smut', 'Sexy Classy', 'Mature Romance']
+      subgenres: ['Cooking', 'Cooking Romance']
     },
     {
       group: 'Literary / General Fiction',
@@ -738,7 +738,7 @@ const GENRE_GROUPS = [
     },
     {
       group: 'Audience / Tone',
-      subgenres: ['PG', 'Tasteful', 'Mature', 'Adult', 'Sexy', 'Classy']
+      subgenres: ['All Ages', 'Teen', 'PG', 'Tasteful', 'Classy']
     },
     {
       group: 'Aesthetic / Visual Mood',
@@ -747,15 +747,6 @@ const GENRE_GROUPS = [
   ];
 
   const READING_ROOM_GENRES = GENRE_GROUPS.flatMap(g => g.subgenres);
-  const RED_ROOM_GENRES = [
-    'Dark Romance', 'Erotica', 'BDSM', 'Paranormal Romance', 'Taboo',
-    'Age Gap', 'Forbidden', 'Reverse Harem', 'Monster Romance', 'Vampire',
-    'Werewolf', 'Mafia Romance', 'Stepdad/Stepmom', 'Office Romance',
-    'Friends to Lovers', 'Enemies to Lovers', 'Slow Burn', 'Second Chance',
-    'Serialized Adult', 'Fan Fiction', 'Explicit Horror', 'Fetish',
-    'Lesbian', 'Gay', 'Bisexual', 'Trans', 'Polyamory', 'Cuckold',
-    'Exhibitionism', 'Voyeurism'
-  ];
 
   const submitStory = async () => {
     if (!storyTitle || !storyGenre || !storyDescription) {
@@ -1244,8 +1235,7 @@ if (!writer) return null;
                   </div>
                   <div className="editor-field">
                     <label className="editor-label" style={{ color: '#8a6510' }}>Genre *</label>
-                    {storyRoom === 'reading-room' ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         <select className="editor-input" value={storyGenre} onChange={e => { setStoryGenre(e.target.value); setStorySubGenre(''); }} style={{ cursor: 'pointer' }}>
                           <option value="">Select a genre group…</option>
                           {GENRE_GROUPS.map(g => <option key={g.group} value={g.group}>{g.group}</option>)}
@@ -1257,12 +1247,6 @@ if (!writer) return null;
                           </select>
                         )}
                       </div>
-                    ) : (
-                      <select className="editor-input" value={storyGenre} onChange={e => setStoryGenre(e.target.value)} style={{ cursor: 'pointer' }}>
-                        <option value="">Select a genre…</option>
-                        {RED_ROOM_GENRES.map(g => <option key={g} value={g}>{g}</option>)}
-                      </select>
-                    )}
                   </div>
                   <div className="editor-field">
                     <label className="editor-label" style={{ color: '#8a6510' }}>Format</label>
