@@ -1100,7 +1100,7 @@ export default function WritersRoomHome() {
 
                 <div className="twr-panel twr-panel-write">
                   <div className="twr-cap">You write.</div>
-                  <svg viewBox="0 0 520 330" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A sheet of typed paper rolling out of a typewriter">
+                  <svg viewBox="0 0 520 330" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A sheet of typed paper rolling out of a typewriter">
                     <rect x="150" y="40" width="230" height="250" fill="#FFFFFF" stroke="#141414" strokeWidth="2.5" />
                     <g fill="#141414">
                       <rect x="172" y="74" width="170" height="7" />
@@ -1125,7 +1125,7 @@ export default function WritersRoomHome() {
 
                 <div className="twr-panel twr-panel-draw">
                   <div className="twr-cap">You draw.</div>
-                  <svg viewBox="0 0 520 330" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A head sketched in blue pencil, half inked over in black">
+                  <svg viewBox="0 0 520 330" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A head sketched in blue pencil, half inked over in black">
                     <g fill="none" stroke="#7FB2E5" strokeWidth="2" strokeLinecap="round">
                       <circle cx="262" cy="160" r="86" />
                       <line x1="262" y1="64" x2="262" y2="262" />
@@ -1157,7 +1157,7 @@ export default function WritersRoomHome() {
 
                 <div className="twr-panel twr-panel-pay">
                   <div className="twr-cap">Every unlock pays you.</div>
-                  <svg viewBox="0 0 520 330" preserveAspectRatio="xMidYMid slice" role="img" aria-label="An ink bottle filling up as readers unlock chapters">
+                  <svg viewBox="0 0 520 330" preserveAspectRatio="xMidYMid meet" role="img" aria-label="An ink bottle filling up as readers unlock chapters">
                     <g fill="#14F1D9">
                       <path d="M300 70 q 8 14 0 20 q -8 -6 0 -20z" />
                       <path d="M330 40 q 6 11 0 16 q -6 -5 0 -16z" />
