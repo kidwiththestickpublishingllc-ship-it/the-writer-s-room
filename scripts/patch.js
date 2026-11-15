@@ -12,805 +12,567 @@
  *   append — TO is added to the end of the file unless MARKER is already there
  * If anything is missing or ambiguous, NOTHING is written. CRLF safe.
  *
- * Batch: Studio pass 2 — the home page and its four sub-pages.
+ * Batch: Studio pass 3a — the dashboard shell (folder, divider tabs, phone tabs,
+ * welcome note) and the shared styles every dashboard tab uses.
  */
 
 const fs = require('fs');
 const path = require('path');
 
-const P = 'app/page.tsx';
+const D = 'app/dashboard/page.tsx';
 
 const EDITS = [
 
-  // ── 1. All home + sub-page styles (same class names, studio look) ───
+  // ── 1. Dashboard styles: same class names and colour names, studio look ──
   {
-    file: P, kind: 'block',
-    label: 'styles: the studio look for the home page and sub-pages',
-    start: 'const TWR_STYLES = `',
-    end: 'const WHY_CARDS = [',
-    to: `const TWR_STYLES = \`
-  /* ═══ The Creators Room home — studio styles ═══
-     Colours and fonts come from globals.css (--st-*).
-     The old names (--gold, --text-main…) are mapped to studio colours
-     so any inline style still using them keeps working. */
+    file: D, kind: 'block',
+    label: 'styles: manila folder, divider tabs, index cards, ledgers, stamps',
+    start: 'const STYLES = `',
+    end: "type Tab = 'overview'",
+    to: `const STYLES = \`
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;500;600;700&display=swap');
 
-  .twr-root {
-    --gold: var(--st-postit); --gold-light: var(--st-postit);
-    --gold-dim: rgba(255,232,115,0.4); --gold-glow: rgba(255,232,115,0.12);
-    --quill: var(--st-pencil-on-mat); --quill-dim: var(--st-pencil-on-mat);
-    --text-main: var(--st-on-mat); --text-dim: var(--st-on-mat-dim); --text-faint: rgba(246,241,228,0.62);
-    --ink-surface: rgba(0,0,0,0.12); --ink-border: rgba(246,241,228,0.2); --ink-border-gold: rgba(246,241,228,0.4);
-    --blue-bright: var(--st-pencil-on-mat);
-    position: relative;
-    min-height: 100vh;
-    background: transparent;
-    color: var(--st-on-mat);
-    font-family: var(--st-font-ui);
-    overflow-x: clip;
-  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* ── Buttons ── */
-  .twr-btn-primary {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-height: 52px; padding: 0 26px; box-sizing: border-box;
-    background: var(--st-paper); color: var(--st-stamp);
-    border: 3px solid var(--st-stamp); outline: 2px solid var(--st-stamp); outline-offset: 3px;
-    border-radius: 4px;
-    font-family: var(--st-font-ui); font-size: 15px; font-weight: 900;
-    letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none;
-    transform: rotate(-2deg); transition: transform 0.12s; cursor: pointer;
-  }
-  .twr-btn-primary:hover { transform: rotate(-0.5deg) scale(1.03); color: var(--st-stamp); }
-  .twr-btn-primary:active { transform: rotate(-0.5deg) scale(0.97); }
-
-  .twr-btn-ghost {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-height: 48px; padding: 0 20px; box-sizing: border-box;
-    background: transparent; color: var(--st-on-mat);
-    border: 2px dashed var(--st-pencil-on-mat); border-radius: 3px;
-    font-family: var(--st-font-ui); font-size: 15px; font-weight: 600;
-    text-decoration: none; cursor: pointer;
-  }
-  .twr-btn-ghost:hover { border-style: solid; border-color: var(--st-on-mat); color: var(--st-on-mat); }
-
-  /* On paper, pencil buttons draw in blue and ink in black */
-  .twr-subpage .twr-btn-ghost, .twr-cta .twr-btn-ghost, .twr-founding-banner .twr-btn-ghost {
-    border-color: var(--st-pencil); color: var(--st-pencil-text);
-  }
-  .twr-subpage .twr-btn-ghost:hover, .twr-cta .twr-btn-ghost:hover, .twr-founding-banner .twr-btn-ghost:hover {
-    border-color: var(--st-ink); color: var(--st-ink);
+  /* The dashboard's colour names, now pointing at the studio.
+     Every tab reads these, so the tabs move over with them.
+     Inside the folder everything is dark ink on paper and manila. */
+  :root {
+    --gold: #8A2E2A;
+    --gold-light: #141414;
+    --gold-dim: rgba(138,46,42,0.35);
+    --gold-glow: rgba(255,232,115,0.35);
+    --quill: #3570A8;
+    --quill-dim: rgba(53,112,168,0.2);
+    --ink: #FBF8EF;
+    --ink2: #F4EEDD;
+    --ink3: #EDE4CC;
+    --ink4: #E2D6B6;
+    --border: rgba(20,20,20,0.14);
+    --border-gold: rgba(20,20,20,0.32);
+    --text: #141414;
+    --text-muted: #4A4234;
+    --text-dim: #6B6250;
+    --green: #2E6B45;
+    --green-dim: rgba(46,107,69,0.12);
+    --red: #C8322F;
+    --red-dim: rgba(200,50,47,0.12);
+    --font-display: var(--st-font-ui, system-ui, sans-serif);
+    --font-ui: var(--st-font-ui, system-ui, sans-serif);
   }
 
-  /* ── Hero ── */
-  .twr-hero-with-ad {
-    max-width: var(--st-max); margin: 0 auto; box-sizing: border-box;
-    padding: 56px 32px 40px;
-    display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 48px; align-items: center;
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-  .twr-hero { min-width: 0; }
-  .twr-hero-inner { padding: 0; }
-  .twr-hero-eyebrow {
-    display: inline-block; margin-bottom: 14px;
-    font-family: var(--st-font-type); font-size: 14px; font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase; color: var(--st-on-mat-dim);
-  }
-  .twr-hero-title {
-    margin: 0;
-    font-family: var(--st-font-ui); font-weight: 900;
-    font-size: clamp(46px, 7vw, 84px); line-height: 0.96; letter-spacing: -0.02em;
-    color: var(--st-on-mat);
-  }
-  .twr-hero-note {
-    display: flex; align-items: flex-start; gap: 8px;
-    margin: 14px 0 0 4px; max-width: 580px;
-    font-family: var(--st-font-hand); font-weight: 700;
-    font-size: clamp(24px, 3vw, 31px); line-height: 1.15;
-    color: var(--st-pencil-on-mat);
-  }
-  .twr-hero-note svg { flex: none; margin-top: -4px; }
-  .twr-hero-sub {
-    margin: 22px 0 30px; max-width: 580px;
-    font-family: var(--st-font-type); font-size: 17px; line-height: 1.6;
-    color: var(--st-on-mat-dim);
-  }
-  .twr-hero-actions { display: flex; flex-wrap: wrap; gap: 16px 18px; align-items: center; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-  /* The promo panel, taped to the mat like a photo */
-  .twr-hero-ad {
-    position: relative;
-    background: var(--st-paper); color: var(--st-ink);
-    padding: 14px 14px 20px;
-    transform: rotate(1.5deg);
-    box-shadow: 0 2px 0 rgba(0,0,0,0.1), 0 18px 36px rgba(0,0,0,0.35);
-  }
-  .twr-hero-ad::before {
-    content: ""; position: absolute; z-index: 2;
-    top: -12px; left: 50%; width: 90px; height: 24px; margin-left: -45px;
-    background: rgba(233,220,180,0.85); transform: rotate(-3deg);
-  }
+  .fade-up { animation: fadeUp 0.5s ease forwards; }
 
-  /* ── The comic page ── */
-  .twr-comic-wrap { max-width: var(--st-max); margin: 0 auto 88px; padding: 0 32px; box-sizing: border-box; }
-  .twr-comic {
-    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
-    background: #FFFFFF; padding: 18px;
-    box-shadow: 0 2px 0 rgba(0,0,0,0.15), 0 24px 50px rgba(0,0,0,0.35);
-    transform: rotate(-0.4deg);
-  }
-  .twr-panel { position: relative; height: clamp(160px, 26vw, 320px); border: 3px solid #141414; overflow: hidden; }
-  .twr-panel svg { display: block; width: 100%; height: 100%; }
-  .twr-panel-write { background: #FBF8EF; }
-  .twr-panel-draw { background: #FFFFFF; }
-  .twr-panel-team {
-    background-color: #FFE3EF;
-    background-image: radial-gradient(var(--st-pink) 1.6px, transparent 1.7px);
-    background-size: 13px 13px;
-  }
-  .twr-panel-pay { background: var(--st-night); }
-  .twr-cap {
-    position: absolute; top: 12px; left: 12px; z-index: 2;
-    background: #FFF6C9; padding: 6px 12px;
-    font-family: var(--st-font-type); font-weight: 700;
-    font-size: clamp(13px, 1.7vw, 20px); color: #141414;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.25);
-  }
-  .twr-cap::before {
-    content: ""; position: absolute; top: -8px; left: -10px;
-    width: 40px; height: 16px; background: rgba(233,220,180,0.85); transform: rotate(-24deg);
-  }
-  .twr-balloon {
-    position: absolute; width: 50%; box-sizing: border-box;
-    background: #FFFFFF; border: 3px solid #141414; border-radius: 50%;
-    padding: clamp(12px, 2.6vw, 30px) clamp(8px, 1.6vw, 18px);
-    text-align: center;
-    font-family: var(--st-font-comic); font-size: clamp(16px, 2.6vw, 32px);
-    line-height: 1; letter-spacing: 0.04em; color: #141414;
-  }
-  .twr-balloon::after {
-    content: ""; position: absolute; bottom: -15px; left: 28%;
-    border: 9px solid transparent; border-top: 16px solid #141414; border-bottom: 0;
-  }
-  .twr-balloon-a { left: 6%; top: 26%; }
-  .twr-balloon-b { right: 6%; top: 54%; color: var(--st-night); }
-  .twr-balloon-b::after { left: auto; right: 28%; }
+  /* ── Layout ── */
+  .hq-root { min-height: 100vh; display: flex; flex-direction: column; }
 
-  /* ── Page body ── */
-  .twr-wrap { max-width: var(--st-max); margin: 0 auto; padding: 0 32px 24px; box-sizing: border-box; }
-  .twr-section { margin-bottom: 88px; scroll-margin-top: 96px; }
-  .twr-section-accent { display: flex; align-items: flex-end; gap: 14px; margin-bottom: 26px; }
-  .twr-section-bar, .twr-divider { display: none; }
-  .twr-section-eyebrow {
-    display: block; margin-bottom: 4px;
-    font-family: var(--st-font-hand); font-weight: 700; font-size: 26px; line-height: 1;
-    color: var(--st-pencil-on-mat);
-    transform: rotate(-1.5deg); transform-origin: left;
+  /* ── Top bar: the edge of the cutting mat ── */
+  .hq-nav {
+    position: sticky; top: 0; z-index: 50;
+    background-color: var(--st-mat-deep, #234A3D);
+    border-bottom: 1px solid rgba(246,241,228,0.18);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.28);
   }
-  .twr-section-title {
-    margin: 0;
-    font-family: var(--st-font-ui); font-weight: 900;
-    font-size: clamp(30px, 4.4vw, 44px); line-height: 1.05; letter-spacing: -0.01em;
-    color: var(--st-on-mat);
+  .hq-nav-line {
+    height: 8px;
+    background-image:
+      repeating-linear-gradient(90deg, rgba(246,241,228,0.5) 0 1px, transparent 1px 10px),
+      repeating-linear-gradient(90deg, rgba(246,241,228,0.85) 0 1px, transparent 1px 50px);
+    background-size: 100% 4px, 100% 8px;
+    background-repeat: no-repeat;
   }
-
-  /* ── Founding 100: a sign-up sheet ── */
-  .twr-founding-banner {
-    position: relative;
-    background-color: var(--st-paper); color: var(--st-ink);
-    background-image: linear-gradient(90deg, transparent 104px, #E0605A 104px, #E0605A 106px, transparent 106px);
-    padding: 40px 44px 40px 132px;
-    box-shadow: 0 2px 0 rgba(0,0,0,0.08), 0 18px 36px rgba(0,0,0,0.32);
+  .hq-nav-inner {
+    max-width: 1200px; margin: 0 auto; padding: 0 32px; height: 66px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
   }
-  .twr-founding-num {
-    position: absolute; left: 18px; top: 36px; width: 74px; padding: 12px 0;
-    text-align: center;
-    font-family: var(--st-font-hand); font-weight: 700; font-size: 38px; line-height: 1;
-    color: var(--st-stamp);
-    border: 3px solid var(--st-stamp); border-radius: 50%;
+  .hq-nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; min-width: 0; }
+  .hq-nav-logo {
+    width: 42px; height: 42px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border: 2.5px solid var(--st-on-mat, #F6F1E4); border-radius: 50%;
+    font-family: var(--font-ui); font-size: 13px; font-weight: 900; letter-spacing: 0.06em;
+    color: var(--st-on-mat, #F6F1E4);
     transform: rotate(-8deg);
   }
-  .twr-founding-content { position: relative; }
-  .twr-founding-label {
-    display: block;
-    font-family: var(--st-font-type); font-size: 13px; font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase; color: var(--st-margin-red);
+  .hq-nav-title { font-family: var(--st-font-type, monospace); font-size: 18px; font-weight: 700; color: var(--st-on-mat, #F6F1E4); white-space: nowrap; }
+  .hq-nav-sub { font-family: var(--st-font-type, monospace); font-size: 12px; color: var(--st-on-mat-dim, rgba(246,241,228,0.78)); }
+  .hq-nav-right { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .hq-nav-writer {
+    font-family: var(--st-font-hand, cursive); font-size: 24px; font-weight: 700; line-height: 1;
+    color: var(--st-pencil-on-mat, #A9CDF0);
+    max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .twr-founding-headline {
-    margin: 8px 0 10px;
-    font-family: var(--st-font-ui); font-weight: 900;
-    font-size: clamp(28px, 4vw, 40px); line-height: 1.1; color: var(--st-ink);
+  .hq-nav-logout {
+    display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px;
+    background: transparent; color: var(--st-on-mat, #F6F1E4);
+    border: 2px dashed var(--st-pencil-on-mat, #A9CDF0); border-radius: 3px;
+    font-family: var(--font-ui); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
   }
-  .twr-founding-sub {
-    margin: 0 0 22px; max-width: 640px;
-    font-family: var(--st-font-type); font-size: 16px; line-height: 1.6; color: var(--st-ink-soft);
-  }
-  .twr-founding-spots { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-  .twr-spot-dot {
-    width: 22px; height: 22px; box-sizing: border-box;
-    border: 2px dashed var(--st-pencil); border-radius: 3px;
-  }
-  .twr-spot-dot.taken { border: 2px solid var(--st-ink); background: var(--st-ink); }
-  .twr-founding-count {
-    margin: 0 0 24px;
-    font-family: var(--st-font-hand); font-size: 27px; font-weight: 700; line-height: 1.1;
-    color: var(--st-pencil-text);
-  }
-  .twr-founding-count strong { color: var(--st-stamp); }
+  .hq-nav-logout:hover { border-style: solid; border-color: var(--st-on-mat, #F6F1E4); }
 
-  /* ── Why TTL: index cards pinned to cork ── */
-  .twr-why-grid {
-    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px;
-    padding: 40px 30px 44px;
-    border: 12px solid var(--st-cork-frame); border-radius: 4px;
-    background-color: var(--st-cork);
-    background-image: radial-gradient(rgba(90,55,25,0.35) 1.2px, transparent 1.4px), radial-gradient(rgba(255,235,200,0.25) 1px, transparent 1.2px);
-    background-size: 9px 11px, 13px 7px;
-    background-position: 0 0, 4px 3px;
-    box-shadow: inset 0 0 36px rgba(60,30,10,0.35), 0 16px 34px rgba(0,0,0,0.3);
+  /* ── The desk: divider tabs on the left, the manila folder on the right ── */
+  .hq-body {
+    display: flex; align-items: flex-start; flex: 1;
+    width: 100%; max-width: 1200px; margin: 0 auto;
+    padding: 36px 32px 64px;
   }
-  .twr-why-card {
-    --pin: var(--st-stamp);
+
+  .hq-sidebar {
+    width: 200px; flex-shrink: 0;
+    display: flex; flex-direction: column; gap: 6px;
+    padding-top: 26px; margin-right: -6px;
+  }
+  .hq-nav-section {
+    margin: 14px 0 2px 10px;
+    font-family: var(--st-font-type, monospace); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--st-on-mat-dim, rgba(246,241,228,0.78));
+  }
+  .hq-nav-section:first-child { margin-top: 0; }
+
+  .hq-nav-item {
+    position: relative; z-index: 1;
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; min-height: 42px; padding: 0 16px;
+    background: var(--st-manila-tab, #D9BD80); color: #3B2F17;
+    border: none; border-radius: 8px 0 0 8px;
+    font-family: var(--font-ui); font-size: 14px; font-weight: 600; text-align: left;
+    cursor: pointer;
+    box-shadow: inset -8px 0 10px rgba(80,55,15,0.16), 0 2px 4px rgba(0,0,0,0.2);
+    transition: background 0.12s, transform 0.12s;
+  }
+  .hq-nav-item:hover { background: #E4C98E; transform: translateX(-3px); }
+  .hq-nav-item.active {
+    z-index: 3;
+    background: var(--st-manila, #EAD5A4); color: var(--st-ink, #141414); font-weight: 800;
+    box-shadow: -3px 2px 5px rgba(0,0,0,0.18);
+    transform: none;
+  }
+  .hq-nav-icon { display: none; }
+
+  .hq-content {
+    position: relative; z-index: 2;
+    flex: 1; min-width: 0; min-height: 70vh;
+    padding: 40px 40px 48px;
+    background-color: var(--st-manila, #EAD5A4);
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0) 160px);
+    border-radius: 4px 8px 8px 4px;
+    box-shadow: 0 24px 50px rgba(0,0,0,0.4);
+    color: var(--text);
+    font-family: var(--font-ui);
+  }
+
+  /* ── Page header ── */
+  .hq-page-header { margin-bottom: 30px; }
+  .hq-page-eyebrow {
+    display: block; margin-bottom: 6px;
+    font-family: var(--st-font-type, monospace); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold);
+  }
+  .hq-page-title {
+    margin-bottom: 8px;
+    font-family: var(--font-ui); font-weight: 900;
+    font-size: clamp(30px, 4vw, 42px); line-height: 1.05; letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .hq-page-sub { max-width: 660px; font-family: var(--st-font-type, monospace); font-size: 15px; line-height: 1.6; color: var(--text-muted); }
+
+  /* ── Stats: index cards ── */
+  .hq-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-bottom: 34px; }
+  .hq-stat {
     position: relative;
-    background: var(--st-paper); color: var(--st-ink);
-    padding: 20px 20px 24px;
-    box-shadow: 0 6px 14px rgba(40,20,5,0.35);
-    transform: rotate(-1.2deg); transition: transform 0.15s;
+    padding: 16px 16px 18px;
+    background-color: var(--st-paper, #FBF8EF);
+    background-image: linear-gradient(#E0605A, #E0605A);
+    background-size: 100% 2px; background-position: 0 40px; background-repeat: no-repeat;
+    box-shadow: 0 4px 10px rgba(80,55,15,0.25);
+    transform: rotate(-0.6deg);
   }
-  .twr-why-card:nth-child(2) { --pin: #14C9B5; transform: rotate(1deg); }
-  .twr-why-card:nth-child(3) { --pin: #E8B730; transform: rotate(-0.6deg); }
-  .twr-why-card:hover { transform: rotate(0deg) translateY(-3px); }
-  .twr-why-card::before {
-    content: ""; position: absolute; top: -9px; left: calc(50% - 10px);
-    width: 20px; height: 20px; border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.6) 0 3px, transparent 4px), var(--pin);
-    box-shadow: 0 2px 3px rgba(0,0,0,0.4);
+  .hq-stat:nth-child(even) { transform: rotate(0.6deg); }
+  .hq-stat::before { content: none; }
+  .hq-stat-label {
+    height: 24px; overflow: hidden;
+    font-family: var(--st-font-type, monospace); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold);
   }
-  .twr-why-num {
-    font-family: var(--st-font-type); font-size: 13px; font-weight: 700;
-    letter-spacing: 0.1em; color: var(--st-margin-red);
-  }
-  .twr-why-title {
-    margin-top: 6px; padding-bottom: 10px; border-bottom: 2px solid #E0605A;
-    font-family: var(--st-font-ui); font-weight: 800; font-size: 21px; line-height: 1.15;
-  }
-  .twr-why-text {
-    margin-top: 10px;
-    font-family: var(--st-font-type); font-size: 15px; line-height: 26px; color: #2A2418;
-    background-image: repeating-linear-gradient(transparent 0 25px, #9CC3E6 25px 26px);
+  .hq-stat-value { margin-top: 12px; font-family: var(--font-ui); font-weight: 900; font-size: 30px; line-height: 1.1; color: var(--text); }
+  .hq-stat-sub { margin-top: 4px; font-family: var(--st-font-type, monospace); font-size: 13px; color: var(--text-muted); }
+
+  /* ── Sections ── */
+  .hq-section { margin-bottom: 36px; }
+  .hq-section-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+  .hq-section-title { font-family: var(--font-ui); font-weight: 800; font-size: 20px; color: var(--text); }
+  .hq-divider {
+    height: 2px; margin: 28px 0; border: 0;
+    background: repeating-linear-gradient(90deg, var(--st-pencil, #7FB2E5) 0 8px, transparent 8px 14px);
   }
 
-  /* ── How it works: a typed page with a margin ── */
-  .twr-steps {
-    display: flex; flex-direction: column;
-    background-color: var(--st-paper); color: var(--st-ink);
-    background-image: linear-gradient(90deg, transparent 72px, #E0605A 72px, #E0605A 74px, transparent 74px);
-    padding: 14px 0;
-    box-shadow: 0 2px 0 rgba(0,0,0,0.08), 0 18px 36px rgba(0,0,0,0.32);
+  /* ── Tables: a ruled ledger ── */
+  .hq-table-wrap { background: var(--st-paper, #FBF8EF); box-shadow: 0 4px 12px rgba(80,55,15,0.22); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .hq-table { width: 100%; min-width: 520px; border-collapse: collapse; font-family: var(--st-font-type, monospace); }
+  .hq-table th {
+    padding: 12px 14px; text-align: left; white-space: nowrap;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--gold); border-bottom: 2px solid var(--text);
   }
-  .twr-step { display: flex; align-items: center; gap: 18px; padding: 22px 28px 22px 0; border-bottom: 1px solid #9CC3E6; }
-  .twr-step:last-child { border-bottom: none; }
-  .twr-step-num {
-    width: 72px; flex-shrink: 0; text-align: center;
-    font-family: var(--st-font-hand); font-weight: 700; font-size: 30px; line-height: 1;
-    color: var(--st-pencil-text);
-  }
-  .twr-step-body { flex: 1; min-width: 0; padding-left: 14px; }
-  .twr-step-title { font-family: var(--st-font-ui); font-weight: 800; font-size: 20px; line-height: 1.2; }
-  .twr-step-text { margin-top: 6px; font-family: var(--st-font-type); font-size: 15px; line-height: 1.6; color: var(--st-ink-soft); }
-  .twr-step-badge {
-    flex-shrink: 0; white-space: nowrap;
-    padding: 6px 10px;
-    font-family: var(--st-font-ui); font-size: 12px; font-weight: 900;
-    letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--st-stamp); border: 2px solid var(--st-stamp);
-    transform: rotate(-4deg);
-  }
+  .hq-table td { padding: 12px 14px; font-size: 14.5px; color: var(--text-muted); border-bottom: 1px solid #9CC3E6; }
+  .hq-table tr:last-child td { border-bottom: none; }
+  .hq-table tr:hover td { background: rgba(255,232,115,0.18); }
+  .hq-table td.primary { color: var(--text); font-weight: 700; }
+  .hq-table td.gold { color: var(--text); font-family: var(--font-ui); font-weight: 800; font-size: 16px; }
+  .hq-table td.green { color: var(--green); font-weight: 700; }
+  .hq-table td.dim { color: var(--text-dim); font-size: 13px; }
 
-  /* ── Formats: post-its ── */
-  .twr-formats-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 26px; }
-  .twr-format-card {
-    box-sizing: border-box; min-height: 120px;
-    background: var(--st-postit); color: #2A2418;
-    padding: 20px 20px 22px;
-    box-shadow: 0 10px 18px rgba(0,0,0,0.3);
-    transform: rotate(-1.5deg); transition: transform 0.15s;
+  /* ── Badges: small rubber stamps ── */
+  .badge {
+    display: inline-block; padding: 3px 8px; white-space: nowrap;
+    font-family: var(--font-ui); font-size: 11px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;
+    border: 2px solid currentColor; border-radius: 2px; background: transparent;
+    transform: rotate(-3deg);
   }
-  .twr-format-card:nth-child(3n+2) { background: var(--st-postit-teal); transform: rotate(1.2deg); }
-  .twr-format-card:nth-child(3n+3) { background: var(--st-postit-pink); transform: rotate(-0.5deg); }
-  .twr-format-card:hover { transform: rotate(0deg) translateY(-3px); }
-  .twr-format-icon { display: none; }
-  .twr-format-label { font-family: var(--st-font-hand); font-weight: 700; font-size: 29px; line-height: 1.05; }
-  .twr-format-desc { margin-top: 6px; font-family: var(--st-font-type); font-size: 14px; line-height: 1.45; }
+  .badge-free { color: var(--green); border-color: currentColor; background: transparent; }
+  .badge-locked { color: var(--text-dim); border-style: dashed; border-color: currentColor; background: transparent; }
+  .badge-pending { color: #3570A8; border-style: dashed; border-color: currentColor; background: transparent; }
+  .badge-paid { color: var(--green); border-color: currentColor; background: transparent; }
 
-  /* ── The Ink economy: a sheet and a dry-erase board ── */
-  .twr-ink-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; align-items: start; }
-  .twr-ink-panel {
-    background: #FDFDFB; color: #2A4F78;
-    border: 10px solid #B9BFC5; border-radius: 4px;
-    padding: 24px 26px 30px;
-    box-shadow: 0 12px 26px rgba(0,0,0,0.3), inset 0 0 18px rgba(120,130,140,0.12);
+  /* ── Chapter editor: index cards and a lined page ── */
+  .editor-grid { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 22px; align-items: start; }
+  .chapter-list-panel { background: var(--st-paper, #FBF8EF); box-shadow: 0 4px 12px rgba(80,55,15,0.22); }
+  .chapter-list-header {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 14px 16px; border-bottom: 2px solid var(--text);
+    font-family: var(--st-font-type, monospace); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold);
   }
-  .twr-ink-panel-gold {
-    background: var(--st-paper); color: var(--st-ink);
-    border: none; border-radius: 0;
-    padding: 30px 32px 32px;
-    box-shadow: 0 2px 0 rgba(0,0,0,0.08), 0 18px 36px rgba(0,0,0,0.32);
+  .chapter-list-item {
+    display: flex; align-items: center; gap: 10px;
+    min-height: 44px; padding: 12px 16px;
+    border-bottom: 1px solid #9CC3E6; cursor: pointer;
+    font-family: var(--font-ui); font-size: 14px; font-weight: 600; color: var(--text-muted);
   }
-  .twr-ink-label {
-    font-family: var(--st-font-hand); font-weight: 700; font-size: 27px; line-height: 1.1;
-    color: #1F7A6E;
-  }
-  .twr-ink-panel-gold .twr-ink-label {
-    font-family: var(--st-font-type); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--st-margin-red);
-  }
-  .twr-ink-num {
-    margin: 8px 0 16px;
-    font-family: var(--st-font-ui); font-weight: 900; font-size: 68px; line-height: 1;
-    color: #1E2A6B;
-  }
-  .twr-ink-text { margin: 0; font-family: var(--st-font-type); font-size: 16px; line-height: 1.65; color: var(--st-ink-soft); }
-  .twr-ink-flow { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; counter-reset: inkstep; }
-  .twr-ink-flow-step { display: flex; align-items: baseline; gap: 10px; counter-increment: inkstep; }
-  .twr-ink-flow-step::before {
-    content: counter(inkstep) "."; min-width: 22px;
-    font-family: var(--st-font-hand); font-weight: 700; font-size: 26px; line-height: 1;
-    color: var(--st-stamp);
-  }
-  .twr-ink-flow-icon { display: none; }
-  .twr-ink-flow-text { font-family: var(--st-font-hand); font-weight: 600; font-size: 23px; line-height: 1.25; color: #2A4F78; }
-  .twr-ink-flow-text strong { color: #1F7A6E; font-weight: 700; }
+  .chapter-list-item:last-child { border-bottom: none; }
+  .chapter-list-item:hover { background: rgba(255,232,115,0.25); color: var(--text); }
+  .chapter-list-item.active { background: var(--st-postit, #FFE873); color: var(--text); font-weight: 800; }
+  .chapter-num { min-width: 22px; font-family: var(--st-font-type, monospace); font-size: 12px; color: #3570A8; }
 
-  /* ── Rules: slips of paper taped to the mat ── */
-  .twr-rules-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px 28px; }
-  .twr-rule-card {
-    position: relative; display: flex; gap: 14px; align-items: flex-start;
-    background: var(--st-paper); color: var(--st-ink);
-    padding: 24px 22px 22px 18px;
-    box-shadow: 0 8px 18px rgba(0,0,0,0.28);
-    transform: rotate(-0.5deg);
+  .editor-panel { background: var(--st-paper, #FBF8EF); box-shadow: 0 4px 12px rgba(80,55,15,0.22); }
+  .editor-header {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 16px 22px; border-bottom: 2px solid var(--text);
   }
-  .twr-rule-card:nth-child(even) { transform: rotate(0.6deg); }
-  .twr-rule-card::before {
-    content: ""; position: absolute; top: -10px; left: 50%;
-    width: 70px; height: 20px; margin-left: -35px;
-    background: rgba(233,220,180,0.85); transform: rotate(-2deg);
-  }
-  .twr-rule-icon {
-    flex-shrink: 0; width: 30px; height: 30px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0;
-  }
-  .twr-rule-icon.yes::before { content: "\\\\2713"; font-family: var(--st-font-hand); font-weight: 700; font-size: 32px; line-height: 1; color: #2E6B45; }
-  .twr-rule-icon.no::before { content: "\\\\2715"; font-family: var(--st-font-hand); font-weight: 700; font-size: 26px; line-height: 1; color: var(--st-stamp); }
-  .twr-rule-title { font-family: var(--st-font-ui); font-weight: 800; font-size: 18px; line-height: 1.2; }
-  .twr-rule-text { margin-top: 6px; font-family: var(--st-font-type); font-size: 14.5px; line-height: 1.55; color: var(--st-ink-soft); }
-
-  /* ── Call to action: an application slip ── */
-  .twr-cta {
-    position: relative; margin-bottom: 40px;
-    background: var(--st-paper); color: var(--st-ink);
-    padding: 44px 48px;
-    box-shadow: 0 2px 0 rgba(0,0,0,0.08), 0 18px 36px rgba(0,0,0,0.32);
-    transform: rotate(0.3deg);
-  }
-  .twr-cta::before {
-    content: "APPLICATION SLIP"; display: block; margin-bottom: 10px;
-    font-family: var(--st-font-type); font-size: 13px; font-weight: 700;
-    letter-spacing: 0.1em; color: var(--st-margin-red);
-  }
-  .twr-cta-title {
-    margin: 0;
-    font-family: var(--st-font-ui); font-weight: 900;
-    font-size: clamp(28px, 4vw, 40px); line-height: 1.1;
-  }
-  .twr-cta-sub { margin: 12px 0 28px; max-width: 660px; font-family: var(--st-font-type); font-size: 17px; line-height: 1.6; color: var(--st-ink-soft); }
-  .twr-cta-actions { display: flex; flex-wrap: wrap; gap: 18px 22px; align-items: center; }
-
-  /* ── More pages (Guidelines, FAQs, Copyright, Contact) ── */
-  .twr-page-links { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; margin-bottom: 24px; }
-  .twr-page-links-label { font-family: var(--st-font-hand); font-weight: 700; font-size: 26px; color: var(--st-pencil-on-mat); margin-right: 4px; }
-
-  /* ── The older in-page footer (kept for any page still using it) ── */
-  .twr-footer { margin-top: 60px; padding: 30px 0; border-top: 1px solid rgba(246,241,228,0.2); font-family: var(--st-font-type); }
-  .twr-footer-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 18px; }
-  .twr-footer-brand { display: flex; align-items: center; gap: 12px; }
-  .twr-footer-logo {
-    width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
-    border: 2.5px solid var(--st-on-mat); border-radius: 50%;
-    font-family: var(--st-font-ui); font-size: 13px; font-weight: 900; color: var(--st-on-mat);
-    transform: rotate(-8deg); text-decoration: none;
-  }
-  .twr-footer-brand-main { font-size: 18px; font-weight: 700; color: var(--st-on-mat); }
-  .twr-footer-brand-sub, .twr-footer-copy { font-size: 13px; color: var(--st-on-mat-dim); }
-  .twr-footer-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-  .twr-footer-pages { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 18px; }
-  .twr-footer-page-link {
-    min-height: 44px; background: none; border: none; cursor: pointer;
-    font-family: var(--st-font-ui); font-size: 14px; font-weight: 600; color: var(--st-on-mat);
-    text-decoration: underline; text-decoration-color: var(--st-pencil-on-mat); text-underline-offset: 5px;
-  }
-  .twr-footer-page-link:hover { color: #FFFFFF; }
-  .twr-footer-page-sep { color: var(--st-on-mat-dim); }
-
-  /* ═══ Sub-pages: a typed manuscript page on the mat ═══ */
-  .twr-subpage {
-    --text-main: var(--st-ink); --text-dim: var(--st-ink-soft); --text-faint: #6B6250;
-    --gold: var(--st-margin-red); --gold-light: var(--st-margin-red); --gold-dim: var(--st-paper-line);
-    --quill: var(--st-pencil-text); --quill-dim: var(--st-pencil-text);
-    --ink-border: var(--st-paper-line); --ink-border-gold: var(--st-ink); --ink-surface: rgba(0,0,0,0.03);
-    --blue-bright: var(--st-pencil-text);
-    position: relative; box-sizing: border-box;
-    max-width: 860px; margin: 48px auto 0;
-    padding: 48px 56px 56px 92px;
-    background-color: var(--st-paper); color: var(--st-ink);
-    background-image: linear-gradient(90deg, transparent 62px, #E0605A 62px, #E0605A 64px, transparent 64px);
-    box-shadow: 0 2px 0 rgba(0,0,0,0.08), 0 20px 40px rgba(0,0,0,0.35);
-    animation: twr-fadein 0.3s ease;
-  }
-  @keyframes twr-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-  .twr-subpage-back {
-    display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; margin-bottom: 22px;
-    background: transparent; color: var(--st-pencil-text);
-    border: 2px dashed var(--st-pencil); border-radius: 3px;
-    font-family: var(--st-font-ui); font-size: 15px; font-weight: 600; cursor: pointer;
-  }
-  .twr-subpage-back:hover { border-style: solid; border-color: var(--st-ink); color: var(--st-ink); }
-  .twr-subpage-eyebrow {
-    display: block;
-    font-family: var(--st-font-type); font-size: 13px; font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase; color: var(--st-margin-red);
-  }
-  .twr-subpage-title {
-    margin: 8px 0 16px;
-    font-family: var(--st-font-ui); font-weight: 900;
-    font-size: clamp(36px, 6vw, 58px); line-height: 1; letter-spacing: -0.02em; color: var(--st-ink);
-  }
-  .twr-subpage-intro { margin: 0 0 32px; max-width: 640px; font-family: var(--st-font-type); font-size: 18px; line-height: 1.65; color: var(--st-ink-soft); }
-  .twr-content-block { margin-bottom: 36px; }
-  .twr-content-h2 {
-    display: flex; align-items: center; gap: 10px; margin: 0 0 14px;
-    font-family: var(--st-font-ui); font-weight: 800; font-size: 24px; line-height: 1.2; color: var(--st-ink);
-  }
-  .twr-content-h2-bar { width: 22px; height: 3px; flex-shrink: 0; background: var(--st-pencil); }
-  .twr-content-h2-bar-quill { background: #1F7A6E; }
-  .twr-content-p { margin: 0 0 14px; font-family: var(--st-font-type); font-size: 16px; line-height: 1.75; color: #2A2418; }
-  .twr-content-p a { color: var(--st-pencil-text); text-decoration: underline; text-underline-offset: 3px; }
-  .twr-content-p a:hover { color: var(--st-ink); }
-
-  .twr-checklist { display: flex; flex-direction: column; gap: 10px; }
-  .twr-checklist-item {
-    display: flex; gap: 12px; align-items: flex-start;
-    padding: 12px 14px; border: 1px solid #9CC3E6; background: rgba(156,195,230,0.08);
-  }
-  .twr-checklist-icon {
-    position: relative; flex-shrink: 0; width: 18px; height: 18px; margin-top: 3px;
-    border: 2px solid var(--st-ink); border-radius: 2px; font-size: 0;
-  }
-  .twr-checklist-icon::after {
-    content: "\\\\2713"; position: absolute; left: 1px; top: -11px;
-    font-family: var(--st-font-hand); font-weight: 700; font-size: 26px; line-height: 1; color: #2E6B45;
-  }
-  .twr-checklist-text { font-family: var(--st-font-type); font-size: 15.5px; line-height: 1.6; color: #2A2418; }
-  .twr-checklist-text strong { color: var(--st-ink); font-weight: 700; }
-
-  .twr-info-panel {
-    margin: 24px 0; padding: 20px 22px;
-    background: var(--st-postit); color: #2A2418;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.18); transform: rotate(-0.6deg);
-  }
-  .twr-info-panel-quill { background: var(--st-postit-teal); transform: rotate(0.5deg); }
-  .twr-info-panel-label {
+  .editor-chapter-title { font-family: var(--font-ui); font-weight: 800; font-size: 20px; color: var(--text); }
+  .editor-body { padding: 24px 22px; }
+  .editor-field { margin-bottom: 20px; }
+  .editor-label {
     display: block; margin-bottom: 8px;
-    font-family: var(--st-font-hand); font-weight: 700; font-size: 25px; line-height: 1; color: #2A2418;
+    font-family: var(--st-font-type, monospace); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold);
   }
-  .twr-info-panel-label-quill { color: #1F4F49; }
-  .twr-info-panel-text { font-family: var(--st-font-type); font-size: 15.5px; line-height: 1.6; color: #2A2418; }
-  .twr-info-panel-text strong, .twr-info-panel-quill .twr-info-panel-text strong { color: var(--st-ink); }
+  .editor-input {
+    width: 100%; min-height: 46px; padding: 10px 4px;
+    background: transparent; color: var(--text);
+    border: none; border-bottom: 2px dashed var(--st-pencil, #7FB2E5); border-radius: 0;
+    font-family: var(--st-font-type, monospace); font-size: 17px; outline: none;
+  }
+  .editor-input:focus { border-bottom: 2px solid var(--text); }
+  .editor-textarea {
+    width: 100%; min-height: 420px; padding: 6px 14px; resize: vertical;
+    background-color: #FFFEF9;
+    background-image: repeating-linear-gradient(transparent 0 31px, #9CC3E6 31px 32px);
+    background-attachment: local;
+    border: 1px solid #D8CFB8; color: var(--text);
+    font-family: var(--st-font-type, monospace); font-size: 17px; line-height: 32px; outline: none;
+  }
+  .editor-textarea:focus { border-color: var(--text); }
+  .editor-footer {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 14px 22px; border-top: 1px solid #D8CFB8;
+  }
+  .editor-char-count { font-family: var(--st-font-type, monospace); font-size: 13px; color: var(--text-dim); }
 
-  .twr-faq-list { display: flex; flex-direction: column; border-top: 2px solid var(--st-ink); }
-  .twr-faq-item { border-bottom: 1px solid #9CC3E6; }
-  .twr-faq-item.open { background: rgba(255,232,115,0.2); }
-  .twr-faq-q {
-    display: flex; justify-content: space-between; align-items: center; gap: 14px;
-    width: 100%; min-height: 56px; padding: 14px 6px;
-    background: none; border: none; cursor: pointer; text-align: left; color: var(--st-ink);
+  /* ── Payouts ── */
+  .payout-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
+  .payout-card { position: relative; padding: 26px; background: var(--st-paper, #FBF8EF); box-shadow: 0 4px 12px rgba(80,55,15,0.22); }
+  .payout-card::before { content: none; }
+  .payout-balance { margin: 8px 0 6px; font-family: var(--font-ui); font-weight: 900; font-size: 46px; line-height: 1; color: #1E2A6B; }
+  .payout-balance-label {
+    font-family: var(--st-font-type, monospace); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold);
   }
-  .twr-faq-q-text { font-family: var(--st-font-ui); font-weight: 700; font-size: 17px; line-height: 1.35; }
-  .twr-faq-arrow {
-    flex-shrink: 0; transition: transform 0.2s;
-    font-family: var(--st-font-hand); font-weight: 700; font-size: 22px; line-height: 1; color: var(--st-pencil-text);
+  .payout-method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .payout-method-btn {
+    min-height: 48px; padding: 10px 12px;
+    background: transparent; color: #3570A8;
+    border: 2px dashed var(--st-pencil, #7FB2E5); border-radius: 3px;
+    font-family: var(--font-ui); font-size: 14px; font-weight: 600; cursor: pointer;
   }
-  .twr-faq-item.open .twr-faq-arrow { transform: rotate(180deg); color: var(--st-stamp); }
-  .twr-faq-a { display: none; padding: 0 6px 18px; font-family: var(--st-font-type); font-size: 15.5px; line-height: 1.7; color: #2A2418; }
-  .twr-faq-item.open .twr-faq-a { display: block; }
+  .payout-method-btn:hover { border-style: solid; border-color: var(--text); color: var(--text); }
+  .payout-method-btn.selected { border: 2px solid var(--text); background: var(--st-postit, #FFE873); color: var(--text); font-weight: 800; }
+  .payout-input {
+    width: 100%; min-height: 46px; padding: 10px 4px;
+    background: transparent; color: var(--text);
+    border: none; border-bottom: 2px dashed var(--st-pencil, #7FB2E5); border-radius: 0;
+    font-family: var(--st-font-type, monospace); font-size: 17px; outline: none;
+  }
+  .payout-input:focus { border-bottom: 2px solid var(--text); }
+  .payout-info-card { padding: 20px 22px; background: var(--st-postit, #FFE873); color: #2A2418; box-shadow: 0 6px 14px rgba(80,55,15,0.25); transform: rotate(0.6deg); }
+  .payout-info-row {
+    display: flex; justify-content: space-between; gap: 12px; padding: 9px 0;
+    border-bottom: 1px dashed rgba(42,36,24,0.3);
+    font-family: var(--st-font-type, monospace); font-size: 14px;
+  }
+  .payout-info-row:last-child { border-bottom: none; }
+  .payout-info-label { color: #4A4234; }
+  .payout-info-val { color: var(--text); font-weight: 700; }
 
-  .twr-contact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin-bottom: 20px; }
-  .twr-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
-  .twr-field-label {
-    font-family: var(--st-font-type); font-size: 13px; font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase; color: var(--st-margin-red);
+  /* ── Buttons: stamp, pencil, and a red cross-out for danger ── */
+  .btn-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 50px; padding: 0 24px;
+    background: var(--st-paper, #FBF8EF); color: var(--st-stamp, #C8322F);
+    border: 3px solid var(--st-stamp, #C8322F); outline: 2px solid var(--st-stamp, #C8322F); outline-offset: 3px;
+    border-radius: 4px;
+    font-family: var(--font-ui); font-size: 14px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase;
+    transform: rotate(-1.5deg); transition: transform 0.12s; cursor: pointer;
   }
-  .twr-field-input, .twr-field-select, .twr-field-textarea {
-    width: 100%; box-sizing: border-box; min-height: 46px; padding: 10px 4px;
-    background: transparent; color: var(--st-ink);
-    border: none; border-bottom: 2px dashed var(--st-pencil); border-radius: 0;
-    font-family: var(--st-font-type); font-size: 17px; outline: none;
+  .btn-primary:hover:not(:disabled) { transform: rotate(-0.5deg) scale(1.03); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-ghost {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 0 18px;
+    background: transparent; color: #3570A8;
+    border: 2px dashed var(--st-pencil, #7FB2E5); border-radius: 3px;
+    font-family: var(--font-ui); font-size: 14px; font-weight: 600; cursor: pointer;
   }
-  .twr-field-textarea {
-    min-height: 160px; padding: 12px; resize: vertical; line-height: 26px;
-    border: 2px dashed var(--st-pencil);
-    background-image: repeating-linear-gradient(transparent 0 37px, #9CC3E6 37px 38px);
-    background-position: 0 0;
+  .btn-ghost:hover { background: transparent; border-style: solid; border-color: var(--text); color: var(--text); }
+  .btn-danger {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 0 16px;
+    background: transparent; color: var(--red);
+    border: 2px solid var(--red); border-radius: 3px;
+    font-family: var(--font-ui); font-size: 14px; font-weight: 700; cursor: pointer;
   }
-  .twr-field-input::placeholder, .twr-field-textarea::placeholder { color: #8A8170; }
-  .twr-field-input:focus, .twr-field-select:focus, .twr-field-textarea:focus { border-style: solid; border-color: var(--st-ink); }
-  .twr-field-select option { background: #FFFFFF; color: var(--st-ink); }
+  .btn-danger:hover { background: var(--red); color: var(--st-paper, #FBF8EF); }
 
-  .twr-contact-sent { text-align: center; padding: 30px 10px; }
-  .twr-contact-sent-icon { display: none; }
-  .twr-contact-sent-title { font-family: var(--st-font-ui); font-weight: 900; font-size: 28px; color: var(--st-ink); margin-bottom: 10px; }
-  .twr-contact-sent-text { font-family: var(--st-font-type); font-size: 16px; line-height: 1.6; color: var(--st-ink-soft); }
+  /* ── Empty, loading and toast ── */
+  .empty-state { padding: 48px 20px; text-align: center; background: var(--st-paper, #FBF8EF); box-shadow: 0 4px 12px rgba(80,55,15,0.22); }
+  .empty-icon { display: none; }
+  .empty-title { margin-bottom: 8px; font-family: var(--font-ui); font-weight: 800; font-size: 24px; color: var(--text); }
+  .empty-sub { max-width: 460px; margin: 0 auto; font-family: var(--st-font-type, monospace); font-size: 15px; line-height: 1.6; color: var(--text-muted); }
 
-  .twr-copyright-highlight {
-    margin: 26px 0; padding: 22px 24px;
-    border: 3px solid var(--st-stamp); outline: 2px solid var(--st-stamp); outline-offset: 3px;
-    transform: rotate(-0.4deg);
+  .spinner {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 3px solid rgba(169,205,240,0.35); border-top-color: var(--st-pencil-on-mat, #A9CDF0);
+    animation: spin 0.8s linear infinite;
   }
-  .twr-copyright-highlight p { margin: 0; font-family: var(--st-font-type); font-weight: 700; font-size: 18px; line-height: 1.5; color: var(--st-ink); }
+  .hq-content .spinner { border-color: rgba(53,112,168,0.25); border-top-color: #3570A8; }
+  .loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-height: 50vh; padding: 80px 20px; }
+  .loading-text { font-family: var(--st-font-hand, cursive); font-size: 26px; font-weight: 700; color: var(--st-on-mat, #F6F1E4); }
+  .hq-content .loading-text { color: #3570A8; }
+
+  .toast {
+    position: fixed; right: 24px; bottom: 24px; z-index: 200; max-width: 380px;
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px;
+    background: var(--st-paper, #FBF8EF); color: var(--text);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+    font-family: var(--st-font-type, monospace); font-size: 15px; line-height: 1.45;
+    transform: rotate(-1deg);
+  }
+  .toast-success { border: none; border-top: 4px solid var(--green); background: var(--st-paper, #FBF8EF); color: var(--text); }
+  .toast-error { border: none; border-top: 4px solid var(--red); background: var(--st-paper, #FBF8EF); color: var(--text); }
+
+  /* ── Welcome note (first visit) ── */
+  .hq-welcome-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(20,32,27,0.75);
+  }
+  .hq-welcome {
+    position: relative; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto;
+    padding: 40px 40px 36px;
+    background: var(--st-paper, #FBF8EF); color: var(--text);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  }
+  .hq-welcome-label {
+    display: block;
+    font-family: var(--st-font-type, monospace); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold);
+  }
+  .hq-welcome-title { margin: 8px 0 8px; font-family: var(--font-ui); font-weight: 900; font-size: clamp(26px, 4vw, 34px); line-height: 1.1; }
+  .hq-welcome-sub { font-family: var(--st-font-type, monospace); font-size: 15px; line-height: 1.6; color: var(--text-muted); }
+  .hq-welcome-steps { display: grid; gap: 12px; margin: 24px 0; }
+  .hq-welcome-step {
+    display: flex; align-items: flex-start; gap: 14px; width: 100%;
+    padding: 14px 16px; text-align: left;
+    background: #FFFEF9; color: var(--text);
+    border: 1px solid #D8CFB8; border-top: 2px solid #E0605A;
+    box-shadow: 0 3px 8px rgba(80,55,15,0.15);
+    font-family: var(--font-ui);
+  }
+  button.hq-welcome-step { cursor: pointer; }
+  button.hq-welcome-step:hover { background: rgba(255,232,115,0.25); }
+  .hq-welcome-num {
+    flex: none; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px dashed var(--st-pencil, #7FB2E5); border-radius: 50%;
+    font-family: var(--st-font-hand, cursive); font-size: 22px; font-weight: 700; color: #3570A8;
+  }
+  .hq-welcome-text { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .hq-welcome-text strong { font-size: 16px; font-weight: 800; }
+  .hq-welcome-text span { font-family: var(--st-font-type, monospace); font-size: 14px; line-height: 1.5; color: var(--text-muted); }
+  .hq-welcome-go { flex: none; align-self: center; font-family: var(--st-font-hand, cursive); font-size: 22px; font-weight: 700; color: var(--red); }
+  .hq-welcome-ink {
+    margin-bottom: 26px; padding: 16px 18px;
+    background: var(--st-postit, #FFE873); color: #2A2418;
+    box-shadow: 0 6px 14px rgba(80,55,15,0.2); transform: rotate(-0.6deg);
+  }
+  .hq-welcome-ink-label { font-family: var(--st-font-hand, cursive); font-size: 24px; font-weight: 700; }
+  .hq-welcome-ink-row { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 6px; }
+  .hq-welcome-ink-row div { display: flex; flex-direction: column; }
+  .hq-welcome-ink-row strong { font-family: var(--font-ui); font-size: 28px; font-weight: 900; line-height: 1.1; }
+  .hq-welcome-ink-row span { font-family: var(--st-font-type, monospace); font-size: 13px; }
+  .hq-welcome-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+
+  /* ── The submit form popup keeps its white page ── */
+  .submit-modal-body .editor-label { color: #8a6510; }
+  .submit-modal-body .editor-input { background: #fafafa; border: 1px solid #e5e7eb; color: #111; padding: 12px 16px; }
+  .submit-modal-body .editor-input:focus { border-color: #C9A84C; }
+  .submit-modal-body .editor-textarea { background: #fafafa; border: 1px solid #e5e7eb; color: #111; }
+  .submit-modal-body .editor-textarea:focus { border-color: #C9A84C; }
+  .submit-modal-body .editor-field { margin-bottom: 20px; }
+  .submit-modal-body .hq-divider { background: linear-gradient(to right, rgba(201,168,76,0.4), transparent); }
+  .submit-modal-body .badge-free { color: #166534; border-color: rgba(22,101,52,0.3); background: rgba(22,101,52,0.06); }
+  .submit-modal-body .badge-locked { color: #6b7280; border-color: #d1d5db; background: #f3f4f6; }
 
   /* ═══ Tablets ═══ */
-  @media (max-width: 1023px) {
-    .twr-hero-with-ad { grid-template-columns: minmax(0, 1fr); padding: 40px 24px 32px; }
-    .twr-hero-ad { display: none; }
+  @media (max-width: 1100px) {
+    .hq-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .editor-grid { grid-template-columns: minmax(0, 1fr); }
+    .payout-grid { grid-template-columns: minmax(0, 1fr); }
   }
 
+  /* ═══ Tablets and phones: the divider tabs run across the top of the folder ═══ */
   @media (max-width: 900px) {
-    .twr-wrap { padding: 0 24px 24px; }
-    .twr-comic-wrap { padding: 0 24px; }
-    .twr-why-grid { grid-template-columns: minmax(0, 1fr); padding: 34px 22px 36px; }
-    .twr-formats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .twr-ink-grid { grid-template-columns: minmax(0, 1fr); }
-    .twr-rules-grid { grid-template-columns: minmax(0, 1fr); }
-    .twr-contact-grid { grid-template-columns: minmax(0, 1fr); }
+    .hq-body { flex-direction: column; align-items: stretch; padding: 20px 12px 48px; }
+    .hq-sidebar {
+      width: auto; flex-direction: row; gap: 6px;
+      margin: 0 0 -2px; padding: 0 10px;
+      overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    .hq-sidebar::-webkit-scrollbar { display: none; }
+    .hq-nav-section { display: none; }
+    .hq-nav-item {
+      flex: none; width: auto; min-height: 44px; padding: 0 14px; white-space: nowrap;
+      border-radius: 10px 10px 0 0; transform: none;
+      box-shadow: inset 0 -8px 10px rgba(80,55,15,0.16);
+    }
+    .hq-nav-item:hover { transform: none; }
+    .hq-nav-item.active { box-shadow: none; }
+    .hq-content { padding: 26px 18px 36px; border-radius: 6px; }
   }
 
   /* ═══ Phones ═══ */
   @media (max-width: 640px) {
-    .twr-hero-with-ad { padding: 28px 16px 26px; }
-    .twr-hero-actions { gap: 14px; }
-    .twr-comic-wrap { padding: 0 16px; margin-bottom: 64px; }
-    .twr-comic { padding: 10px; gap: 8px; }
-    .twr-panel { border-width: 2px; }
-    .twr-balloon { border-width: 2px; }
-    .twr-wrap { padding: 0 16px 16px; }
-    .twr-section { margin-bottom: 64px; }
-    .twr-founding-banner { padding: 28px 20px; background-image: none; }
-    .twr-founding-num { position: static; display: inline-block; width: 64px; font-size: 30px; padding: 10px 0; margin-bottom: 14px; }
-    .twr-why-grid { border-width: 8px; padding: 28px 16px 30px; gap: 26px; }
-    .twr-steps { background-image: linear-gradient(90deg, transparent 46px, #E0605A 46px, #E0605A 48px, transparent 48px); }
-    .twr-step { flex-wrap: wrap; gap: 10px 0; padding: 18px 16px 18px 0; }
-    .twr-step-num { width: 46px; font-size: 24px; }
-    .twr-step-body { flex: 1 1 calc(100% - 60px); padding-left: 12px; }
-    .twr-step-badge { margin-left: 58px; }
-    .twr-format-card { min-height: 0; padding: 16px 14px 18px; }
-    .twr-format-label { font-size: 25px; }
-    .twr-ink-panel { padding: 20px 18px 24px; border-width: 8px; }
-    .twr-ink-panel-gold { padding: 24px 20px; }
-    .twr-ink-num { font-size: 54px; }
-    .twr-cta { padding: 30px 22px; }
-    .twr-subpage { margin: 24px 12px 0; padding: 30px 20px 36px 40px; background-image: linear-gradient(90deg, transparent 26px, #E0605A 26px, #E0605A 28px, transparent 28px); }
+    .hq-nav-inner { padding: 0 16px; height: 60px; }
+    .hq-nav-sub { display: none; }
+    .hq-nav-title { font-size: 16px; }
+    .hq-nav-writer { font-size: 20px; max-width: 130px; }
+    .hq-body { padding: 16px 8px 40px; }
+    .hq-content { padding: 22px 14px 30px; }
+    .hq-stats { gap: 12px; }
+    .hq-stat-value { font-size: 24px; }
+    .payout-method-grid { grid-template-columns: minmax(0, 1fr); }
+    .hq-welcome { padding: 28px 20px 24px; }
+    .toast { left: 12px; right: 12px; bottom: 12px; max-width: none; }
   }
 
-  @media (max-width: 380px) {
-    .twr-formats-grid { grid-template-columns: minmax(0, 1fr); }
+  @media (max-width: 400px) {
+    .hq-stats { grid-template-columns: minmax(0, 1fr); }
+    .hq-nav-writer { display: none; }
   }
 \`;
 
 // =========================
-// Data
+// Types
 // =========================
 `,
   },
 
-  // ── 2. Data: comics belong here too ──────────────────────────────────
+  // ── 2. Welcome popup → a paper note with index-card steps ─────────────
   {
-    file: P, kind: 'exact',
-    label: 'formats: add Comics & Manga',
-    from: `const FORMATS = [`,
-    to: `const FORMATS = [
-  { icon: "", label: "Comics & Manga", desc: "Pages, panels and webtoons, published in The Galleria" },`,
-  },
-  {
-    file: P, kind: 'exact',
-    label: 'steps: submit covers stories and comics',
-    from: `{ num: "01", title: "Submit Your Story", text: "Fill out the submission form with your story, genre, and a short description. We review every submission personally.", badge: "Free" },`,
-    to: `{ num: "01", title: "Submit Your Work", text: "Fill out the submission form with your story or comic, genre, and a short description. We review every submission personally.", badge: "Free" },`,
-  },
-  {
-    file: P, kind: 'exact',
-    label: 'steps: comics go to The Galleria',
-    from: `text: "Approved stories appear in the Reading Room and Browse All Stories pages, searchable by genre and author."`,
-    to: `text: "Approved stories appear in the Reading Room and comics in The Galleria, searchable by genre and creator."`,
-  },
-
-  // ── 3. Hero: The Creators Room, plus the comic page ──────────────────
-  {
-    file: P, kind: 'block',
-    label: 'hero: The Creators Room, a pencil note, and the four-panel comic page',
-    start: '{/* HERO */}',
-    end: '{/* MAIN CONTENT */}',
-    to: `{/* HERO */}
-            <div className="twr-hero-with-ad">
-              <div className="twr-hero">
-                <div className="twr-hero-inner">
-                  <span className="twr-hero-eyebrow">The Tiniest Library</span>
-                  <h1 className="twr-hero-title">The Creators Room</h1>
-                  <div className="twr-hero-note">
-                    <svg width="58" height="38" viewBox="0 0 64 40" aria-hidden="true">
-                      <path d="M4 4 C 10 26, 30 34, 56 30" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                      <path d="M48 22 L 57 30 L 47 36" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <span>a studio for writers and artists. bring a book, a comic, or half of one.</span>
-                  </div>
-                  <p className="twr-hero-sub">
-                    A home for independent writers and artists. Publish your stories, earn through Ink,
-                    keep your copyright, and build the readership your work deserves.
-                  </p>
-                  <div className="twr-hero-actions">
-                    <a href="/apply" className="twr-btn-primary">Apply to Join</a>
-                    <a href="#how" className="twr-btn-ghost">How it works</a>
-                    <a href={TTL_READING_ROOM_URL} target="_blank" rel="noopener noreferrer" className="twr-btn-ghost">Visit the Reading Room</a>
-                  </div>
+    file: D, kind: 'block',
+    label: 'welcome: a paper note with the four start-up steps',
+    start: '{showWelcome && (',
+    end: '{/* Toast */}',
+    to: `{showWelcome && (
+        <div className="hq-welcome-overlay" role="dialog" aria-modal="true" aria-labelledby="hq-welcome-title">
+          <div className="hq-welcome">
+            <span className="hq-welcome-label">The Creators Room</span>
+            <h1 id="hq-welcome-title" className="hq-welcome-title">Welcome to the studio, {writer?.name.split(" ")[0] ?? "Creator"}.</h1>
+            <p className="hq-welcome-sub">Your desk is set up. Here&apos;s how to get going in the next ten minutes.</p>
+            <div className="hq-welcome-steps">
+              {[
+                { n: "1", title: "Complete your profile", desc: "Add your photo, bio, genres and social links. This is what readers see.", tab: "profile" },
+                { n: "2", title: "Sign your agreements", desc: "Plagiarism Clause and Copyright Agreement. Takes about 2 minutes.", tab: "agreements" },
+                { n: "3", title: "Submit your first work", desc: "A story or a comic: title, description and the first chapter.", tab: "submit" },
+                { n: "4", title: "Share your profile link", desc: "Tell your audience where to find you on TTL.", tab: null },
+              ].map(s => s.tab ? (
+                <button key={s.n} className="hq-welcome-step" onClick={() => { setTab(s.tab as any); setShowWelcome(false); }}>
+                  <span className="hq-welcome-num">{s.n}</span>
+                  <span className="hq-welcome-text"><strong>{s.title}</strong><span>{s.desc}</span></span>
+                  <span className="hq-welcome-go">Go →</span>
+                </button>
+              ) : (
+                <div key={s.n} className="hq-welcome-step">
+                  <span className="hq-welcome-num">{s.n}</span>
+                  <span className="hq-welcome-text"><strong>{s.title}</strong><span>{s.desc}</span></span>
                 </div>
-              </div>
-              <div className="twr-hero-ad">
-                <WritersRoomAdPanel />
+              ))}
+            </div>
+            <div className="hq-welcome-ink">
+              <div className="hq-welcome-ink-label">How Ink pays you</div>
+              <div className="hq-welcome-ink-row">
+                <div><strong>{writerPct}%</strong><span>of every chapter unlock</span></div>
+                <div><strong>100%</strong><span>of every tip</span></div>
+                <div><strong>$0</strong><span>minimum payout</span></div>
               </div>
             </div>
-
-            {/* THE COMIC PAGE */}
-            <div className="twr-comic-wrap">
-              <div className="twr-comic">
-
-                <div className="twr-panel twr-panel-write">
-                  <div className="twr-cap">You write.</div>
-                  <svg viewBox="0 0 520 330" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A sheet of typed paper rolling out of a typewriter">
-                    <rect x="150" y="40" width="230" height="250" fill="#FFFFFF" stroke="#141414" strokeWidth="2.5" />
-                    <g fill="#141414">
-                      <rect x="172" y="74" width="170" height="7" />
-                      <rect x="172" y="96" width="186" height="7" />
-                      <rect x="172" y="118" width="150" height="7" />
-                      <rect x="172" y="140" width="178" height="7" />
-                      <rect x="172" y="162" width="120" height="7" />
-                      <rect x="172" y="198" width="160" height="7" />
-                      <rect x="172" y="220" width="96" height="7" />
-                      <rect x="272" y="218" width="3" height="12" />
-                    </g>
-                    <rect x="96" y="246" width="338" height="64" rx="10" fill="#141414" />
-                    <rect x="120" y="236" width="290" height="16" rx="4" fill="#3B3B3B" />
-                    <g fill="#FBF8EF">
-                      <circle cx="140" cy="276" r="7" /><circle cx="166" cy="276" r="7" /><circle cx="192" cy="276" r="7" />
-                      <circle cx="218" cy="276" r="7" /><circle cx="244" cy="276" r="7" /><circle cx="270" cy="276" r="7" />
-                      <circle cx="296" cy="276" r="7" /><circle cx="322" cy="276" r="7" /><circle cx="348" cy="276" r="7" />
-                      <circle cx="374" cy="276" r="7" /><circle cx="400" cy="276" r="7" />
-                    </g>
-                  </svg>
-                </div>
-
-                <div className="twr-panel twr-panel-draw">
-                  <div className="twr-cap">You draw.</div>
-                  <svg viewBox="0 0 520 330" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A head sketched in blue pencil, half inked over in black">
-                    <g fill="none" stroke="#7FB2E5" strokeWidth="2" strokeLinecap="round">
-                      <circle cx="262" cy="160" r="86" />
-                      <line x1="262" y1="64" x2="262" y2="262" />
-                      <line x1="170" y1="168" x2="354" y2="168" />
-                      <line x1="190" y1="206" x2="334" y2="206" />
-                      <path d="M200 120 Q 262 60 326 116" />
-                      <path d="M214 230 Q 262 300 312 232" />
-                      <line x1="120" y1="300" x2="420" y2="40" strokeDasharray="4 7" />
-                    </g>
-                    <g fill="none" stroke="#141414" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M262 74 C 210 74, 178 112, 178 160 C 178 214, 214 258, 262 262" />
-                      <path d="M212 168 Q 228 156 244 168" />
-                      <path d="M240 206 Q 254 214 262 210" />
-                      <path d="M262 168 L 252 196 L 264 198" />
-                    </g>
-                    <g transform="rotate(-38 430 236)">
-                      <rect x="380" y="226" width="130" height="18" fill="#6FA8DC" stroke="#141414" strokeWidth="2" />
-                      <path d="M380 226 L 356 235 L 380 244 Z" fill="#E8D3B0" stroke="#141414" strokeWidth="2" />
-                      <path d="M362 233 L 356 235 L 362 237 Z" fill="#3570A8" />
-                    </g>
-                  </svg>
-                </div>
-
-                <div className="twr-panel twr-panel-team">
-                  <div className="twr-cap">Or you team up.</div>
-                  <div className="twr-balloon twr-balloon-a">I&apos;ll write it.</div>
-                  <div className="twr-balloon twr-balloon-b">I&apos;ll draw it.</div>
-                </div>
-
-                <div className="twr-panel twr-panel-pay">
-                  <div className="twr-cap">Every unlock pays you.</div>
-                  <svg viewBox="0 0 520 330" preserveAspectRatio="xMidYMid slice" role="img" aria-label="An ink bottle filling up as readers unlock chapters">
-                    <g fill="#14F1D9">
-                      <path d="M300 70 q 8 14 0 20 q -8 -6 0 -20z" />
-                      <path d="M330 40 q 6 11 0 16 q -6 -5 0 -16z" />
-                      <path d="M276 30 q 5 9 0 13 q -5 -4 0 -13z" />
-                    </g>
-                    <rect x="238" y="108" width="64" height="30" fill="#0A0420" stroke="#F6F1E4" strokeWidth="3" />
-                    <path d="M196 150 Q 196 138 210 138 L 330 138 Q 344 138 344 150 L 344 280 Q 344 296 328 296 L 212 296 Q 196 296 196 280 Z" fill="none" stroke="#F6F1E4" strokeWidth="3" />
-                    <path d="M199 206 C 240 196, 300 216, 341 204 L 341 280 Q 341 293 328 293 L 212 293 Q 199 293 199 280 Z" fill="#14F1D9" />
-                    <rect x="214" y="226" width="112" height="40" fill="#FBF8EF" />
-                    <text x="270" y="252" textAnchor="middle" fontFamily="Courier Prime, monospace" fontWeight="700" fontSize="16" fill="#0A0420">INK</text>
-                    <text x="270" y="318" textAnchor="middle" fontFamily="Courier Prime, monospace" fontSize="15" fill="#F6F1E4">70% of every unlock · 80% Founding 100</text>
-                  </svg>
-                </div>
-
-              </div>
+            <div className="hq-welcome-actions">
+              <button className="btn-primary" onClick={() => { setTab('submit'); setShowWelcome(false); }}>Submit my first work</button>
+              <button className="btn-ghost" onClick={() => setShowWelcome(false)}>Explore the dashboard</button>
             </div>
-
-            `,
-  },
-
-  // ── 4. Small markup fixes ────────────────────────────────────────────
-  {
-    file: P, kind: 'exact',
-    label: 'founding: spots-left line in handwriting',
-    from: `<p style={{ fontFamily: "'Syne', sans-serif", fontSize: 12, color: 'var(--gold-light)', marginBottom: 24, letterSpacing: '0.08em' }}>`,
-    to: `<p className="twr-founding-count">`,
-  },
-  {
-    file: P, kind: 'exact',
-    label: 'rules: a pencil tick or a red cross instead of emoji',
-    from: `<span className="twr-rule-icon">{r.icon}</span>`,
-    to: `<span className={r.icon === "🚫" ? "twr-rule-icon no" : "twr-rule-icon yes"} aria-hidden="true">{r.icon}</span>`,
-  },
-  {
-    file: P, kind: 'exact',
-    label: 'rules: guidelines button at full size',
-    from: `<button className="twr-btn-ghost" style={{ fontSize: '10px', padding: '10px 22px' }} onClick={() => goPage('guidelines')}>`,
-    to: `<button className="twr-btn-ghost" onClick={() => goPage('guidelines')}>`,
-  },
-  {
-    file: P, kind: 'exact',
-    label: 'cta: apply button at full size',
-    from: `className="twr-btn-primary" style={{ fontSize: '11px', padding: '16px 36px' }}`,
-    to: `className="twr-btn-primary"`,
-  },
-  {
-    file: P, kind: 'exact',
-    label: 'cta: reading room button at full size',
-    from: `className="twr-btn-ghost" style={{ fontSize: '11px', padding: '16px 36px' }}`,
-    to: `className="twr-btn-ghost"`,
-  },
-
-  // ── 5. Footer runs the full width of the mat; sub-pages reachable ────
-  {
-    file: P, kind: 'block',
-    label: 'footer: full-width mat edge, plus links to Guidelines, FAQs, Copyright, Contact',
-    start: '{/* FOOTER */}',
-    end: '{/* Footer on sub-pages */}',
-    to: `{/* MORE PAGES */}
-              <div className="twr-page-links">
-                <span className="twr-page-links-label">More on the desk:</span>
-                {NAV_PAGES.map(p => (
-                  <button key={p.key} className="twr-btn-ghost" onClick={() => goPage(p.key)}>{p.label}</button>
-                ))}
-              </div>
-
-              {/* FOOTER */}
-            </div>
-            <TWRFooter />
-          </>
-        )}
-
+          </div>
+        </div>
+      )}
         `,
   },
+
+  // ── 3. Top bar and tab names ─────────────────────────────────────────
   {
-    file: P, kind: 'exact',
-    label: 'sub-pages: footer runs the full width too',
-    from: `<div style={{ maxWidth: 900, margin: '0 auto', padding: '0 40px 60px' }}>`,
-    to: `<div className="twr-subpage-footer">`,
+    file: D, kind: 'exact',
+    label: 'top bar: The Creators Room',
+    from: `<span className="hq-nav-title">The Tiniest Library</span>`,
+    to: `<span className="hq-nav-title">The Creators Room</span>`,
+  },
+  {
+    file: D, kind: 'exact',
+    label: 'top bar: your name in pencil, no emoji',
+    from: `<div className="hq-nav-writer">✍️ {writer.name}</div>`,
+    to: `<div className="hq-nav-writer">hi, {writer.name}</div>`,
+  },
+  {
+    file: D, kind: 'exact',
+    label: 'tabs: Submit Work (stories and comics)',
+    from: `<span className="hq-nav-icon">📝</span> Submit Story`,
+    to: `<span className="hq-nav-icon">📝</span> Submit Work`,
   },
 
 ];
