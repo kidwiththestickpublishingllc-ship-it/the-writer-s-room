@@ -12,21 +12,30 @@
  *   append — TO is added to the end of the file unless MARKER is already there
  * If anything is missing or ambiguous, NOTHING is written. CRLF safe.
  *
- * Batch: Studio pass 3a, comic edition — the dashboard becomes a comic book:
- * Ben-Day blue with white dots, black-bordered panels, hard shadows,
- * yellow caption boxes, Bangers lettering.
+ * Batch: Creator HQ — numbered CONTENTS panel with hover/press/pop, tabs as
+ * comic pages that flip in order with a page footer, colours locked to the
+ * dashboard, plus the Overview tab (two pages, comic Getting Started panel).
+ * Needs app/components/ComicPages.tsx.
  */
 
 const fs = require('fs');
 const path = require('path');
 
 const D = 'app/dashboard/page.tsx';
+const O = 'app/components/OverviewTab.tsx';
+
+if (!fs.existsSync(path.join(process.cwd(), 'app/components/ComicPages.tsx'))) {
+  console.log('  ✗ app/components/ComicPages.tsx is missing — create it first (from my earlier message), then run this again.');
+  process.exit(1);
+}
 
 const EDITS = [
 
+  // ═══ DASHBOARD ═══════════════════════════════════════════════════════
+
   {
     file: D, kind: 'block',
-    label: 'styles: the dashboard as a comic book (blue dots, panels, captions)',
+    label: 'styles: comic dashboard + numbered contents, page turns, page footer',
     start: 'const STYLES = `',
     end: "type Tab = 'overview'",
     to: `const STYLES = \`
@@ -37,8 +46,10 @@ const EDITS = [
   /* ═══ Creator HQ — comic book edition ═══
      The dashboard's colour names point at a classic comic palette.
      Every tab reads these, so the tabs move over with them.
-     Panels are white with black ink borders; captions are yellow. */
-  :root {
+     Panels are white with black ink borders; captions are yellow.
+     Set on .hq-root as well as :root so no other component's colours
+     can overwrite them inside the dashboard. */
+  :root, .hq-root {
     --cb-blue: #2A64C8;
     --cb-yellow: #FFE14D;
     --cb-red: #E8322E;
@@ -89,7 +100,7 @@ const EDITS = [
   }
 
   /* ── Masthead ── */
-  .hq-nav { position: sticky; top: 0; z-index: 50; background: var(--cb-ink); }
+  .hq-nav { position: relative; z-index: 5; background: var(--cb-ink); }
   .hq-nav-line {
     height: 6px;
     background: repeating-linear-gradient(90deg, var(--cb-yellow) 0 32px, var(--cb-pink) 32px 64px, var(--cb-teal) 64px 96px);
@@ -143,25 +154,45 @@ const EDITS = [
     font-family: var(--font-display); font-size: 18px; letter-spacing: 0.06em;
     transform: rotate(-2deg);
   }
+  .hq-sidebar { counter-reset: hqpage; }
   .hq-nav-section {
-    margin: 12px 4px 4px;
-    font-family: var(--font-ui); font-size: 11px; font-weight: 800;
-    letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim);
+    width: fit-content; margin: 14px 0 4px 2px; padding: 1px 7px;
+    background: #111111; color: #FFFFFF;
+    font-family: var(--font-display); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
+    transform: rotate(-1.5deg);
   }
-  .hq-nav-section:first-child { margin-top: 6px; }
+  .hq-nav-section:first-child { margin-top: 4px; }
   .hq-nav-item {
-    display: flex; align-items: center; gap: 8px;
-    width: 100%; min-height: 40px; padding: 0 12px;
-    background: transparent; color: var(--cb-ink);
-    border: 2px solid transparent; border-radius: 0;
+    counter-increment: hqpage;
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; min-height: 42px; padding: 0 10px; margin-bottom: 3px;
+    background: #FFFFFF; color: #111111;
+    border: 2px solid #111111; border-radius: 0; box-shadow: 2px 2px 0 #111111;
     font-family: var(--font-ui); font-size: 14px; font-weight: 700; text-align: left;
-    cursor: pointer; transition: transform 0.08s, box-shadow 0.08s, background 0.08s;
+    cursor: pointer; transition: transform 0.1s, box-shadow 0.1s, background 0.1s;
   }
-  .hq-nav-item:hover { background: #FFF3B0; border-color: var(--cb-ink); }
+  .hq-nav-item::before {
+    content: counter(hqpage);
+    flex: none; width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    background: #FFFFFF; color: #111111;
+    border: 2px solid #111111; border-radius: 50%;
+    font-family: var(--font-display); font-size: 14px; line-height: 1;
+    transition: background 0.1s, color 0.1s;
+  }
+  .hq-nav-item:hover { background: #FFF3B0; transform: translate(-2px, -2px); box-shadow: 4px 4px 0 #111111; }
+  .hq-nav-item:hover::before { background: #FF1493; color: #FFFFFF; }
+  .hq-nav-item:active { transform: translate(1px, 1px); box-shadow: 0 0 0 #111111; }
   .hq-nav-item.active {
-    background: var(--cb-yellow); border-color: var(--cb-ink);
-    box-shadow: 3px 3px 0 var(--cb-ink); transform: translate(-1px, -1px);
-    font-weight: 800;
+    background: #FFE14D; font-weight: 800;
+    transform: translate(-2px, -2px); box-shadow: 5px 5px 0 #111111;
+    animation: hqPop 0.32s ease-out;
+  }
+  .hq-nav-item.active::before { background: #111111; color: #FFE14D; }
+  @keyframes hqPop {
+    0%   { transform: translate(-2px, -2px) scale(0.92); }
+    60%  { transform: translate(-2px, -2px) scale(1.05) rotate(-1.2deg); }
+    100% { transform: translate(-2px, -2px) scale(1) rotate(0deg); }
   }
   .hq-nav-icon { display: none; }
 
@@ -171,7 +202,41 @@ const EDITS = [
     background: var(--cb-paper); color: var(--text);
     border: 4px solid var(--cb-ink); box-shadow: 8px 8px 0 var(--cb-ink);
     font-family: var(--font-ui);
+    scroll-margin-top: 96px;
   }
+
+  /* ── Page turns: each tab flips in like the next page of the comic ── */
+  .hq-turn-fwd { transform-origin: left center; animation: hqTurnFwd 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .hq-turn-back { transform-origin: right center; animation: hqTurnBack 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  @keyframes hqTurnFwd {
+    0%   { opacity: 0; transform: perspective(1400px) rotateY(-24deg) translateX(48px); }
+    55%  { opacity: 1; }
+    100% { opacity: 1; transform: none; }
+  }
+  @keyframes hqTurnBack {
+    0%   { opacity: 0; transform: perspective(1400px) rotateY(24deg) translateX(-48px); }
+    55%  { opacity: 1; }
+    100% { opacity: 1; transform: none; }
+  }
+
+  /* ── Page footer: turn to the page before or after ── */
+  .hq-pagefoot {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+    margin-top: 44px; padding-top: 20px; border-top: 4px solid var(--cb-ink);
+  }
+  .hq-pagefoot-num { font-family: var(--font-display); font-size: 20px; letter-spacing: 0.06em; color: var(--cb-ink); }
+  .hq-pagefoot-btn {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+    min-height: 52px; padding: 6px 16px;
+    background: #FFFFFF; color: var(--cb-ink);
+    border: 3px solid var(--cb-ink); border-radius: 0; box-shadow: 4px 4px 0 var(--cb-ink);
+    text-align: left; cursor: pointer; transition: transform 0.08s, box-shadow 0.08s, background 0.08s;
+  }
+  .hq-pagefoot-btn.next { align-items: flex-end; text-align: right; background: var(--cb-yellow); }
+  .hq-pagefoot-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--cb-ink); }
+  .hq-pagefoot-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--cb-ink); }
+  .hq-pagefoot-pg { font-family: var(--font-display); font-size: 16px; letter-spacing: 0.05em; color: var(--cb-red); }
+  .hq-pagefoot-label { font-size: 14px; font-weight: 800; }
 
   /* ── Page header: a pink tag and a yellow caption box ── */
   .hq-page-header { margin-bottom: 28px; }
@@ -472,10 +537,7 @@ const EDITS = [
     }
     .hq-sidebar::-webkit-scrollbar { display: none; }
     .hq-nav-section { display: none; }
-    .hq-nav-item {
-      flex: none; width: auto; min-height: 44px; padding: 0 14px; white-space: nowrap;
-      background: #FFFFFF; border-color: var(--cb-ink);
-    }
+    .hq-nav-item { flex: none; width: auto; min-height: 44px; padding: 0 12px 0 8px; margin-bottom: 4px; white-space: nowrap; }
     .hq-content { padding: 26px 18px 34px; box-shadow: 6px 6px 0 var(--cb-ink); }
   }
 
@@ -492,6 +554,9 @@ const EDITS = [
     .payout-method-grid { grid-template-columns: minmax(0, 1fr); }
     .hq-welcome { padding: 26px 18px 22px; box-shadow: 6px 6px 0 var(--cb-ink); }
     .toast { left: 12px; right: 12px; bottom: 12px; max-width: none; }
+    .hq-pagefoot { flex-direction: column; align-items: stretch; }
+    .hq-pagefoot-num { text-align: center; }
+    .hq-pagefoot-btn, .hq-pagefoot-btn.next { align-items: center; text-align: center; }
   }
 
   @media (max-width: 400px) {
@@ -504,6 +569,211 @@ const EDITS = [
 // Types
 // =========================
 `,
+  },
+  {
+    file: D, kind: 'exact',
+    label: 'react: add useRef',
+    from: `import { useEffect, useState, useCallback } from "react";`,
+    to: `import { useEffect, useState, useCallback, useRef } from "react";`,
+  },
+  {
+    file: D, kind: 'exact',
+    label: 'the order of the pages (matches the CONTENTS list)',
+    from: `function Toast({ msg, type, onClose }`,
+    to: `// The dashboard reads like a comic: each tab is a page, in this order.
+const PAGE_ORDER: { key: Tab; label: string }[] = [
+  { key: 'overview', label: 'Dashboard' },
+  { key: 'chapters', label: 'My Chapters' },
+  { key: 'earnings', label: 'Earnings' },
+  { key: 'payout', label: 'Request Payout' },
+  { key: 'profile', label: 'My Profile' },
+  { key: 'submit', label: 'Submit Work' },
+  { key: 'media', label: 'Story Media' },
+  { key: 'team', label: 'Team & Splits' },
+  { key: 'world', label: 'World Building' },
+  { key: 'verify', label: 'Verification' },
+  { key: 'questions', label: 'Questions' },
+  { key: 'letters', label: 'Letters' },
+];
+
+function Toast({ msg, type, onClose }`,
+  },
+  {
+    file: D, kind: 'exact',
+    label: 'page turning: which way the page flips, and the pages either side',
+    from: `const [tab, setTab] = useState<Tab>('overview');`,
+    to: `const [tab, setTab] = useState<Tab>('overview');
+
+  // ── Comic page turning ──
+  const pageIndex = PAGE_ORDER.findIndex(p => p.key === tab);
+  const prevPage = pageIndex > 0 ? PAGE_ORDER[pageIndex - 1] : null;
+  const nextPage = pageIndex >= 0 && pageIndex < PAGE_ORDER.length - 1 ? PAGE_ORDER[pageIndex + 1] : null;
+  const [turn, setTurn] = useState<{ tab: Tab; dir: 'fwd' | 'back' }>({ tab: 'overview', dir: 'fwd' });
+  if (turn.tab !== tab) {
+    const from = PAGE_ORDER.findIndex(p => p.key === turn.tab);
+    setTurn({ tab, dir: pageIndex >= from ? 'fwd' : 'back' });
+  }
+  const firstPageRef = useRef(true);
+  useEffect(() => {
+    if (firstPageRef.current) { firstPageRef.current = false; return; }
+    document.querySelector('.hq-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [tab]);`,
+  },
+  {
+    file: D, kind: 'exact',
+    label: 'each tab flips in as a page',
+    from: `<main className="hq-content">`,
+    to: `<main className="hq-content">
+            <div key={tab} className={\`hq-turn-\${turn.dir}\`}>`,
+  },
+  {
+    file: D, kind: 'exact',
+    label: 'page footer: back a page, page number, next page',
+    from: `</main>`,
+    to: `</div>
+            {pageIndex >= 0 && (
+              <nav className="hq-pagefoot" aria-label="Turn the page">
+                {prevPage ? (
+                  <button className="hq-pagefoot-btn prev" onClick={() => setTab(prevPage.key)}>
+                    <span className="hq-pagefoot-pg">← Page {pageIndex}</span>
+                    <span className="hq-pagefoot-label">{prevPage.label}</span>
+                  </button>
+                ) : <span />}
+                <span className="hq-pagefoot-num">Page {pageIndex + 1} of {PAGE_ORDER.length}</span>
+                {nextPage ? (
+                  <button className="hq-pagefoot-btn next" onClick={() => setTab(nextPage.key)}>
+                    <span className="hq-pagefoot-pg">Page {pageIndex + 2} →</span>
+                    <span className="hq-pagefoot-label">{nextPage.label}</span>
+                  </button>
+                ) : <span />}
+              </nav>
+            )}
+          </main>`,
+  },
+
+  // ═══ OVERVIEW TAB ════════════════════════════════════════════════════
+
+  {
+    file: O, kind: 'exact',
+    label: 'import the page-turner',
+    from: `import WriterCommunityFeed from "./WriterCommunityFeed";`,
+    to: `import WriterCommunityFeed from "./WriterCommunityFeed";
+import ComicPages from "./ComicPages";`,
+  },
+  {
+    file: O, kind: 'exact',
+    label: 'styles for the Getting Started panel',
+    from: `type Story = { id: string; title: string; slug: string; };`,
+    to: `const OV_STYLES = \`
+  .ov-start {
+    position: relative; margin: 10px 0 34px; padding: 30px 24px 26px;
+    background-color: #FFFFFF;
+    background-image: radial-gradient(rgba(42,100,200,0.12) 1.2px, transparent 1.4px);
+    background-size: 10px 10px;
+    border: 3px solid #111111; box-shadow: 6px 6px 0 #111111;
+  }
+  .ov-start-tag {
+    position: absolute; top: -17px; left: 18px; padding: 2px 10px;
+    background: #FF1493; color: #FFFFFF; border: 2px solid #111111;
+    font-family: var(--st-font-comic, Impact, sans-serif); font-size: 17px; letter-spacing: 0.06em; text-transform: uppercase;
+    transform: rotate(-2deg);
+  }
+  .ov-start-title {
+    display: inline-block; margin-bottom: 12px; padding: 4px 12px 2px;
+    background: #FFE14D; color: #111111; border: 3px solid #111111; box-shadow: 4px 4px 0 #111111;
+    font-family: var(--st-font-comic, Impact, sans-serif); font-size: clamp(22px, 3vw, 30px); line-height: 1.1; letter-spacing: 0.03em;
+  }
+  .ov-start-sub { max-width: 620px; margin-bottom: 18px; font-size: 15px; line-height: 1.6; color: #3A3A3A; }
+  .ov-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .ov-step {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+    padding: 14px; text-align: left;
+    background: #FFFFFF; color: #111111;
+    border: 2.5px solid #111111; box-shadow: 3px 3px 0 #111111;
+    font-family: var(--st-font-ui, system-ui, sans-serif);
+  }
+  button.ov-step { cursor: pointer; transition: transform 0.08s, box-shadow 0.08s, background 0.08s; }
+  button.ov-step:hover { background: #FFF7C2; transform: translate(-2px, -2px); box-shadow: 5px 5px 0 #111111; }
+  .ov-step-num {
+    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+    background: #FFE14D; border: 2px solid #111111; border-radius: 50%;
+    font-family: var(--st-font-comic, Impact, sans-serif); font-size: 18px;
+  }
+  .ov-step-title { font-size: 15px; font-weight: 800; }
+  .ov-step-desc { font-size: 13px; line-height: 1.5; color: #3A3A3A; }
+  .ov-step-go { margin-top: auto; padding-top: 4px; font-family: var(--st-font-comic, Impact, sans-serif); font-size: 18px; letter-spacing: 0.04em; color: #E8322E; }
+
+  @media (max-width: 1100px) { .ov-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 520px) {
+    .ov-steps { grid-template-columns: minmax(0, 1fr); }
+    .ov-start { padding: 26px 16px 22px; box-shadow: 5px 5px 0 #111111; }
+  }
+\`;
+
+type Story = { id: string; title: string; slug: string; };`,
+  },
+  {
+    file: O, kind: 'exact',
+    label: 'load the panel styles',
+    from: `<div className="fade-up">`,
+    to: `<div className="fade-up">
+      <style>{OV_STYLES}</style>`,
+  },
+  {
+    file: O, kind: 'exact',
+    label: 'page 1 opens under the title',
+    from: `<p className="hq-page-sub">Here's how your work is performing.</p>
+      </div>`,
+    to: `<p className="hq-page-sub">Here's how your work is performing.</p>
+      </div>
+
+      <ComicPages pages={[
+        { label: "Your desk", content: (<>`,
+  },
+  {
+    file: O, kind: 'block',
+    label: 'Getting Started becomes a comic panel (no emoji, stories or comics)',
+    start: '{stories.length === 0 && (',
+    end: '<div className="hq-stats">',
+    to: `{stories.length === 0 && (
+        <div className="ov-start">
+          <span className="ov-start-tag">Getting started</span>
+          <div className="ov-start-title">Welcome to your Creator HQ, {writer.name.split(' ')[0]}.</div>
+          <p className="ov-start-sub">You&apos;re all set up. Here&apos;s how to get your first story or comic published on TTL:</p>
+          <div className="ov-steps">
+            {[
+              { step: "1", title: "Fill out your profile", desc: "Add your bio, photo and genres so readers can find you.", tab: "profile" },
+              { step: "2", title: "Submit your work", desc: "A story or a comic: title, description and the first chapter.", tab: "submit" },
+              { step: "3", title: "Add your chapters", desc: "Paste your chapter content in the Chapters tab.", tab: "chapters" },
+              { step: "4", title: "Wait for approval", desc: "We review every submission personally, usually within 5–7 days.", tab: null },
+            ].map(s => s.tab ? (
+              <button key={s.step} className="ov-step" onClick={() => onNavigate(s.tab)}>
+                <span className="ov-step-num">{s.step}</span>
+                <span className="ov-step-title">{s.title}</span>
+                <span className="ov-step-desc">{s.desc}</span>
+                <span className="ov-step-go">Go →</span>
+              </button>
+            ) : (
+              <div key={s.step} className="ov-step">
+                <span className="ov-step-num">{s.step}</span>
+                <span className="ov-step-title">{s.title}</span>
+                <span className="ov-step-desc">{s.desc}</span>
+              </div>
+            ))}
+          </div>
+          <button className="btn-primary" onClick={() => onNavigate('submit')}>Submit your first work</button>
+        </div>
+      )}
+
+      `,
+  },
+  {
+    file: O, kind: 'exact',
+    label: 'page 2 is the community feed',
+    from: `<WriterCommunityFeed />`,
+    to: `</>) },
+        { label: "Community", content: <WriterCommunityFeed /> },
+      ]} />`,
   },
 
 ];
@@ -539,7 +809,7 @@ for (const e of EDITS) {
   }
 
   if (e.kind === 'block') {
-    if (f.text.includes(e.to.trim().slice(0, 400)) && f.text.includes(e.to.trim().slice(-200))) {
+    if (f.text.includes(e.to)) {
       already++; report('·', 'already done', e); continue;
     }
     const s = count(f.text, e.start), n = count(f.text, e.end);

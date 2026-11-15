@@ -1,5 +1,52 @@
 "use client";
 import WriterCommunityFeed from "./WriterCommunityFeed";
+import ComicPages from "./ComicPages";
+
+const OV_STYLES = `
+  .ov-start {
+    position: relative; margin: 10px 0 34px; padding: 30px 24px 26px;
+    background-color: #FFFFFF;
+    background-image: radial-gradient(rgba(42,100,200,0.12) 1.2px, transparent 1.4px);
+    background-size: 10px 10px;
+    border: 3px solid #111111; box-shadow: 6px 6px 0 #111111;
+  }
+  .ov-start-tag {
+    position: absolute; top: -17px; left: 18px; padding: 2px 10px;
+    background: #FF1493; color: #FFFFFF; border: 2px solid #111111;
+    font-family: var(--st-font-comic, Impact, sans-serif); font-size: 17px; letter-spacing: 0.06em; text-transform: uppercase;
+    transform: rotate(-2deg);
+  }
+  .ov-start-title {
+    display: inline-block; margin-bottom: 12px; padding: 4px 12px 2px;
+    background: #FFE14D; color: #111111; border: 3px solid #111111; box-shadow: 4px 4px 0 #111111;
+    font-family: var(--st-font-comic, Impact, sans-serif); font-size: clamp(22px, 3vw, 30px); line-height: 1.1; letter-spacing: 0.03em;
+  }
+  .ov-start-sub { max-width: 620px; margin-bottom: 18px; font-size: 15px; line-height: 1.6; color: #3A3A3A; }
+  .ov-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .ov-step {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+    padding: 14px; text-align: left;
+    background: #FFFFFF; color: #111111;
+    border: 2.5px solid #111111; box-shadow: 3px 3px 0 #111111;
+    font-family: var(--st-font-ui, system-ui, sans-serif);
+  }
+  button.ov-step { cursor: pointer; transition: transform 0.08s, box-shadow 0.08s, background 0.08s; }
+  button.ov-step:hover { background: #FFF7C2; transform: translate(-2px, -2px); box-shadow: 5px 5px 0 #111111; }
+  .ov-step-num {
+    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+    background: #FFE14D; border: 2px solid #111111; border-radius: 50%;
+    font-family: var(--st-font-comic, Impact, sans-serif); font-size: 18px;
+  }
+  .ov-step-title { font-size: 15px; font-weight: 800; }
+  .ov-step-desc { font-size: 13px; line-height: 1.5; color: #3A3A3A; }
+  .ov-step-go { margin-top: auto; padding-top: 4px; font-family: var(--st-font-comic, Impact, sans-serif); font-size: 18px; letter-spacing: 0.04em; color: #E8322E; }
+
+  @media (max-width: 1100px) { .ov-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 520px) {
+    .ov-steps { grid-template-columns: minmax(0, 1fr); }
+    .ov-start { padding: 26px 16px 22px; box-shadow: 5px 5px 0 #111111; }
+  }
+`;
 
 type Story = { id: string; title: string; slug: string; };
 type Chapter = { id: string; chapter_number: number; title: string; };
@@ -23,38 +70,43 @@ export default function OverviewTab({
 }: OverviewTabProps) {
   return (
     <div className="fade-up">
+      <style>{OV_STYLES}</style>
       <div className="hq-page-header">
         <span className="hq-page-eyebrow">The Creators Room</span>
         <h1 className="hq-page-title">Good to see you, {writer.name.split(' ')[0]}.</h1>
         <p className="hq-page-sub">Here's how your work is performing.</p>
       </div>
 
+      <ComicPages pages={[
+        { label: "Your desk", content: (<>
+
       {stories.length === 0 && (
-        <div style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.08), rgba(201,168,76,0.04))", border: "1px solid rgba(201,168,76,0.25)", borderLeft: "4px solid var(--gold)", borderRadius: 12, padding: 28, marginBottom: 32 }}>
-          <div style={{ fontSize: 9, letterSpacing: "0.28em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 12 }}>Getting Started</div>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 300, color: "var(--text)", marginBottom: 8 }}>Welcome to your Creator HQ, {writer.name.split(' ')[0]}. 🪶</div>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.8, marginBottom: 20 }}>You're all set up. Here's how to get your first story published on TTL:</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 24 }}>
+        <div className="ov-start">
+          <span className="ov-start-tag">Getting started</span>
+          <div className="ov-start-title">Welcome to your Creator HQ, {writer.name.split(' ')[0]}.</div>
+          <p className="ov-start-sub">You&apos;re all set up. Here&apos;s how to get your first story or comic published on TTL:</p>
+          <div className="ov-steps">
             {[
               { step: "1", title: "Fill out your profile", desc: "Add your bio, photo and genres so readers can find you.", tab: "profile" },
-              { step: "2", title: "Submit your story", desc: "Upload your manuscript title, description and first chapter.", tab: "submit" },
+              { step: "2", title: "Submit your work", desc: "A story or a comic: title, description and the first chapter.", tab: "submit" },
               { step: "3", title: "Add your chapters", desc: "Paste your chapter content in the Chapters tab.", tab: "chapters" },
-              { step: "4", title: "Wait for approval", desc: "We review every story personally. Usually within 5-7 days.", tab: null },
-            ].map(s => (
-              <div key={s.step} onClick={() => s.tab && onNavigate(s.tab)}
-                style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(201,168,76,0.15)", borderRadius: 8, padding: 16, cursor: s.tab ? "pointer" : "default", transition: "all 0.2s" }}
-                onMouseEnter={e => s.tab && (e.currentTarget.style.borderColor = "rgba(201,168,76,0.4)")}
-                onMouseLeave={e => s.tab && (e.currentTarget.style.borderColor = "rgba(201,168,76,0.15)")}>
-                <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "var(--gold)", marginBottom: 10 }}>{s.step}</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>{s.title}</div>
-                <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.6 }}>{s.desc}</div>
-                {s.tab && <div style={{ fontSize: 10, color: "var(--gold)", marginTop: 8, letterSpacing: "0.1em" }}>Go →</div>}
+              { step: "4", title: "Wait for approval", desc: "We review every submission personally, usually within 5–7 days.", tab: null },
+            ].map(s => s.tab ? (
+              <button key={s.step} className="ov-step" onClick={() => onNavigate(s.tab)}>
+                <span className="ov-step-num">{s.step}</span>
+                <span className="ov-step-title">{s.title}</span>
+                <span className="ov-step-desc">{s.desc}</span>
+                <span className="ov-step-go">Go →</span>
+              </button>
+            ) : (
+              <div key={s.step} className="ov-step">
+                <span className="ov-step-num">{s.step}</span>
+                <span className="ov-step-title">{s.title}</span>
+                <span className="ov-step-desc">{s.desc}</span>
               </div>
             ))}
           </div>
-          <button onClick={() => onNavigate('submit')} style={{ fontFamily: "var(--font-ui)", fontSize: 11, fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", padding: "12px 28px", borderRadius: 8, border: "none", cursor: "pointer", background: "linear-gradient(135deg,var(--gold),#8a6510)", color: "#000" }}>
-            Submit Your First Story →
-          </button>
+          <button className="btn-primary" onClick={() => onNavigate('submit')}>Submit your first work</button>
         </div>
       )}
 
@@ -140,7 +192,9 @@ export default function OverviewTab({
         </div>
       )}
 
-      <WriterCommunityFeed />
+      </>) },
+        { label: "Community", content: <WriterCommunityFeed /> },
+      ]} />
     </div>
   );
 }
