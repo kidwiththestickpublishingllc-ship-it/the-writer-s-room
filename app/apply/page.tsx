@@ -19,7 +19,7 @@ const ALL_GENRES = [
   "Historical Fiction", "Serialized Fiction", "Fan Fiction",
   "Slice Of Life", "Dark Academia", "Multi-Cultural", "Black Stories",
   "Latin Stories", "AAPI Authors", "Indigenous Stories",
-  "LGBTQ+ Fiction", "Adult 18+",
+  "LGBTQ+ Fiction",
 ];
 
 type Step = 1 | 2 | 3 | 4;

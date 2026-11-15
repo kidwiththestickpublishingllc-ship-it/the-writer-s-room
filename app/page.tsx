@@ -624,7 +624,7 @@ const RULES = [
   { icon: "✅", title: "All experience levels welcome", text: "First-time writers, artists and published authors both belong here. There's no gatekeeping based on credentials or follower count." },
   { icon: "✅", title: "Original work only", text: "All submissions must be your own original work. You retain copyright but warrant that you own the rights to what you submit." },
   { icon: "✅", title: "One piece per month minimum", text: "Founding creators commit to at least one piece per month. Serials can be shorter chapters published on a regular schedule." },
-  { icon: "✅", title: "All genres accepted", text: "We publish across all 24 TTL genres — from Horror Mystery to Children's Literature to Adult 18+ — each with its own dedicated space." },
+  { icon: "✅", title: "All genres accepted", text: "We publish across all 24 TTL genres — from Horror Mystery to Children's Literature — each with its own dedicated space." },
   { icon: "🚫", title: "No plagiarism or AI-only content", text: "Work that is entirely AI-generated without meaningful human authorship will not be accepted. Human stories, always." },
   { icon: "🚫", title: "No hate speech or harmful content", text: "Content that targets individuals or groups with harassment, hate, or abuse is not permitted regardless of genre or framing." },
 ];
@@ -707,7 +707,7 @@ function PageSubmissionGuidelines({ onBack }: BackProps) {
             { icon: "🪶", text: "<strong>Poetry and personal essays</strong> — verse, memoir, and lyric nonfiction" },
             { icon: "🌺", text: "<strong>Fan fiction</strong> — transformative works welcome across all fandoms" },
             { icon: "✨", text: "<strong>Early access chapters</strong> — share work-in-progress before a wider release" },
-            { icon: "🔥", text: "<strong>All 24 TTL genres</strong> — including Adult 18+, Horror, Fantasy, Romance, Literary, LGBTQ+, YA, and more" },
+            { icon: "🔥", text: "<strong>All 24 TTL genres</strong> — including Horror, Fantasy, Romance, Literary, LGBTQ+, YA, and more" },
           ].map((item, i) => (
             <div key={i} className="twr-checklist-item">
               <span className="twr-checklist-icon">{item.icon}</span>
