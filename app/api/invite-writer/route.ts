@@ -1,8 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { requireAdmin } from '../../../lib/admin-auth'
 
 export async function POST(req: Request) {
   try {
+    // Admins only — checked before the service-role key is used.
+    const gate = await requireAdmin(req)
+    if (gate instanceof NextResponse) return gate
+
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!

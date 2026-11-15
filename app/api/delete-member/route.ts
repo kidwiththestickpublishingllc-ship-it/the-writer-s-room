@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { requireAdmin } from '../../../lib/admin-auth'
 
 // Server-side admin client — uses the service-role key.
 // This key bypasses Row Level Security, so it MUST stay server-only.
@@ -12,10 +13,22 @@ const admin = createClient(
 
 export async function POST(req: Request) {
   try {
+    // Admins only — checked before the service-role key is used.
+    const gate = await requireAdmin(req)
+    if (gate instanceof NextResponse) return gate
+
     const { id, email } = await req.json()
 
     if (!id) {
       return NextResponse.json({ error: 'Missing member id' }, { status: 400 })
+    }
+
+    if (id === gate.userId) {
+      return NextResponse.json({ error: "You can't delete your own account from the panel." }, { status: 400 })
+    }
+    const { data: target } = await admin.from('profiles').select('role').eq('id', id).maybeSingle()
+    if (target?.role === 'admin') {
+      return NextResponse.json({ error: 'Admin accounts cannot be deleted from the panel.' }, { status: 403 })
     }
 
     // 1. Delete the profile row.

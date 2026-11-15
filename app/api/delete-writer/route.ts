@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { requireAdmin } from '../../../lib/admin-auth'
 
 // Service-role client — bypasses RLS. Server-only.
 const admin = createClient(
@@ -10,6 +11,10 @@ const admin = createClient(
 
 export async function POST(req: Request) {
   try {
+    // Admins only — checked before the service-role key is used.
+    const gate = await requireAdmin(req)
+    if (gate instanceof NextResponse) return gate
+
     const { id, name } = await req.json()
     if (!id) {
       return NextResponse.json({ error: 'Missing writer id' }, { status: 400 })

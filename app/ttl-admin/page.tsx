@@ -222,6 +222,15 @@ function AdsTab() {
 
 type Tab = "applications" | "stories" | "writers" | "agreements" | "ink" | "media" | "payouts" | "members" | "world" | "comics";
 
+// Calls an admin-only API route with the signed-in admin's login attached.
+// The route checks it (lib/admin-auth.ts) before doing anything.
+async function adminFetch(url: string, init: RequestInit = {}) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const headers = new Headers(init.headers);
+  if (session?.access_token) headers.set("Authorization", `Bearer ${session.access_token}`);
+  return fetch(url, { ...init, headers });
+}
+
 type Application = {
   id: string;
   created_at: string;
@@ -684,7 +693,7 @@ function ApplicationsTab() {
     async function updateStatus(id: string, status: string, email: string, name: string) {
     await supabase.from("applications").update({ status }).eq("id", id);
     if (status === "approved") {
-      const inviteRes = await fetch("/api/invite-writer", {
+      const inviteRes = await adminFetch("/api/invite-writer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, name }),
@@ -1401,7 +1410,7 @@ function WritersTab() {
                             className="adm-btn adm-btn-reject"
                             onClick={async () => {
                               if (!window.confirm(`Delete "${w.name}"? This permanently removes their profile, all their stories, and chapters. This cannot be undone.`)) return;
-                              const res = await fetch("/api/delete-writer", {
+                              const res = await adminFetch("/api/delete-writer", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ id: w.id, name: w.name }),
@@ -1992,7 +2001,7 @@ function MembersTab() {
     if (!window.confirm(`Permanently delete "${selected.full_name ?? selected.email}"? This removes their profile AND their login account. This cannot be undone.`)) return;
     setSaving(true);
     try {
-      const res = await fetch("/api/delete-member", {
+      const res = await adminFetch("/api/delete-member", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: selected.id, email: selected.email }),
