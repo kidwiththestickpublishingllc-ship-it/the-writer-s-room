@@ -13,3 +13,145 @@
   .ttl-filter-btn { flex-shrink: 0 !important; white-space: nowrap !important; }
   button, a { min-height: 44px !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   The Creators Room — studio
+   The desk is a green self-healing cutting mat. Work in progress is
+   drawn in blue pencil; finished work is inked black.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  --st-mat: #2E5B4C;
+  --st-mat-deep: #234A3D;
+  --st-grid: rgba(246,241,228,0.06);
+  --st-grid-major: rgba(246,241,228,0.13);
+  --st-on-mat: #F6F1E4;
+  --st-on-mat-dim: rgba(246,241,228,0.78);
+
+  --st-paper: #FBF8EF;
+  --st-paper-line: #D8CFB8;
+  --st-ink: #141414;
+  --st-ink-soft: #4A4234;
+  --st-margin-red: #8A2E2A;
+
+  --st-pencil: #7FB2E5;          /* lines and outlines */
+  --st-pencil-text: #3570A8;     /* pencil-coloured text on paper (passes contrast) */
+  --st-pencil-on-mat: #A9CDF0;   /* pencil on the green mat */
+  --st-stamp: #C8322F;
+
+  --st-manila: #EAD5A4;
+  --st-manila-tab: #D9BD80;
+  --st-cork: #C59A68;
+  --st-cork-frame: #7A4E2A;
+  --st-postit: #FFE873;
+  --st-postit-pink: #FFC2D4;
+  --st-postit-teal: #A8F0E6;
+
+  --st-teal: #14F1D9;            /* from The Galleria */
+  --st-pink: #FF1493;            /* from The Galleria */
+  --st-night: #0A0420;           /* from The Galleria */
+
+  --st-font-ui: var(--font-archivo), Archivo, system-ui, sans-serif;
+  --st-font-type: var(--font-courier), "Courier Prime", "Courier New", monospace;
+  --st-font-hand: var(--font-caveat), Caveat, cursive;
+  --st-font-comic: var(--font-bangers), Bangers, Impact, sans-serif;
+
+  --st-max: 1200px;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background-color: var(--st-mat);
+  background-image:
+    linear-gradient(var(--st-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--st-grid) 1px, transparent 1px),
+    linear-gradient(var(--st-grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--st-grid-major) 1px, transparent 1px);
+  background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
+  color: var(--st-on-mat);
+  font-family: var(--st-font-ui);
+  overflow-x: clip;
+}
+
+/* Phones: 16px form text stops iPhones zooming in while you type */
+@media (max-width: 768px) {
+  input, select, textarea { font-size: 16px !important; }
+}
+
+:focus-visible { outline: 3px solid var(--st-pencil); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* ── The studio kit: shared pieces every page can use ─────────────── */
+
+/* Content never stretches past 1200px, like the Reading Room and Galleria */
+.st-wrap { max-width: var(--st-max); margin: 0 auto; padding: 0 32px; box-sizing: border-box; }
+@media (max-width: 640px) { .st-wrap { padding: 0 16px; } }
+
+/* A sheet of paper on the mat */
+.st-paper {
+  background: var(--st-paper); color: var(--st-ink);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.08), 0 16px 34px rgba(0,0,0,0.3);
+}
+
+/* Small typed label in margin red: "SPLIT AGREEMENT", "CARD 1" */
+.st-label {
+  font-family: var(--st-font-type); font-size: 13px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--st-margin-red);
+}
+
+/* An index card: red head rule, blue lines */
+.st-card {
+  position: relative; background-color: var(--st-paper); color: var(--st-ink);
+  background-image: linear-gradient(#E0605A, #E0605A), repeating-linear-gradient(transparent 0 25px, #9CC3E6 25px 26px);
+  background-size: 100% 2px, 100% 100%;
+  background-position: 0 44px, 0 46px;
+  background-repeat: no-repeat;
+  padding: 16px 16px 20px;
+  box-shadow: 0 6px 14px rgba(40,20,5,0.35);
+}
+
+/* Cork board in a wooden frame */
+.st-cork {
+  border: 12px solid var(--st-cork-frame); border-radius: 4px;
+  background-color: var(--st-cork);
+  background-image: radial-gradient(rgba(90,55,25,0.35) 1.2px, transparent 1.4px), radial-gradient(rgba(255,235,200,0.25) 1px, transparent 1.2px);
+  background-size: 9px 11px, 13px 7px;
+  background-position: 0 0, 4px 3px;
+  box-shadow: inset 0 0 36px rgba(60,30,10,0.35), 0 16px 34px rgba(0,0,0,0.3);
+}
+
+/* A post-it */
+.st-postit {
+  background: var(--st-postit); color: #2A2418;
+  font-family: var(--st-font-hand); font-weight: 700;
+  padding: 22px 20px; box-shadow: 0 10px 18px rgba(0,0,0,0.3);
+}
+
+/* Buttons: pencil (draft actions), ink (confirm), stamp (the one big action) */
+.st-pencil-btn, .st-ink-btn, .st-stamp {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; box-sizing: border-box; cursor: pointer; text-decoration: none;
+  font-family: var(--st-font-ui); font-size: 15px; font-weight: 600;
+}
+.st-pencil-btn { padding: 0 18px; border: 2px dashed var(--st-pencil); border-radius: 3px; background: transparent; color: var(--st-pencil-text); }
+.st-pencil-btn:hover { border-style: solid; border-color: var(--st-ink); color: var(--st-ink); }
+.st-ink-btn { padding: 0 20px; border: 2px solid var(--st-ink); border-radius: 3px; background: var(--st-ink); color: var(--st-paper); }
+.st-ink-btn:hover { background: var(--st-paper); color: var(--st-ink); }
+.st-stamp {
+  padding: 0 24px; min-height: 52px; border: 3px solid var(--st-stamp); outline: 2px solid var(--st-stamp); outline-offset: 3px;
+  border-radius: 4px; background: var(--st-paper); color: var(--st-stamp);
+  font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase;
+  transform: rotate(-2.5deg); transition: transform 0.12s;
+}
+.st-stamp:hover { transform: rotate(-1deg) scale(1.03); color: var(--st-stamp); }
+.st-stamp:active { transform: rotate(-1deg) scale(0.97); }
+.st-pencil-btn:disabled, .st-ink-btn:disabled, .st-stamp:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+/* On the mat, pencil buttons draw in light blue and ink in cream */
+.st-on-mat .st-pencil-btn { border-color: var(--st-pencil-on-mat); color: var(--st-on-mat); }
+.st-on-mat .st-pencil-btn:hover { border-color: var(--st-on-mat); color: var(--st-on-mat); }
