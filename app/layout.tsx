@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/react";
 import type { Metadata, Viewport } from "next";
 import { Archivo, Courier_Prime, Caveat, Bangers } from "next/font/google";
 import "./globals.css";
@@ -29,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <QuillChatWidget />
         <WritersTour />
-      </body>
+      <Analytics /></body>
     </html>
   );
 }
