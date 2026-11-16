@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { createClient } from "@supabase/supabase-js";
 import { japaneseApprovedEmail, japaneseOnboardingEmail } from './japanese-templates';
 import { isArabicWriter, detectWriterLanguage, arabicApprovedEmail, arabicOnboardingEmail } from './arabic-templates';
 
@@ -14,11 +15,52 @@ const FROM = "The Tiniest Library <hello@the-tiniest-library.com>";
 const ADMIN_EMAIL = "kidwiththestickpublishingllc@gmail.com";
 const DASHBOARD_URL = "https://write.the-tiniest-library.com/dashboard";
 const APPLY_URL = "https://write.the-tiniest-library.com/apply";
-const READING_ROOM_URL = "https://the-reading-room-three.write.the-tiniest-library.com/reading-room";
+const READING_ROOM_URL = "https://read.the-tiniest-library.com/reading-room";
+
+// ── Who may send what ─────────────────────────────────────────────
+// Public: a fixed confirmation that only goes to the applicant.
+const PUBLIC_TYPES = ["application-submitted"];
+// Any signed-in account, but only ever to the TTL admin inbox.
+const TO_ADMIN_TYPES = ["story-submitted", "admin-message"];
+// Everything else: admins only.
+
+async function emailCaller(req: NextRequest): Promise<{ isAdmin: boolean } | null> {
+  const header = req.headers.get("authorization") ?? "";
+  const token = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+  if (!token) return null;
+  const asCaller = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { autoRefreshToken: false, persistSession: false },
+    }
+  );
+  const { data: { user } } = await asCaller.auth.getUser(token);
+  if (!user) return null;
+  const { data: isAdmin } = await asCaller.rpc("is_admin");
+  return { isAdmin: isAdmin === true };
+}
+
+// Names come from forms; never let them carry HTML into an email.
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
 export async function POST(req: NextRequest) {
   try {
-    const { type, to, name, data } = await req.json();
+    const { type, to, name: rawName, data } = await req.json();
+    const name = escapeHtml(String(rawName ?? ""));
+
+    if (!PUBLIC_TYPES.includes(type)) {
+      const caller = await emailCaller(req);
+      if (!caller) {
+        return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+      }
+      const toAdminInbox = TO_ADMIN_TYPES.includes(type) && String(to ?? "").trim().toLowerCase() === ADMIN_EMAIL;
+      if (!caller.isAdmin && !toAdminInbox) {
+        return NextResponse.json({ error: "Admins only." }, { status: 403 });
+      }
+    }
 
     switch (type) {
 

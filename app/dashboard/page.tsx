@@ -620,6 +620,14 @@ const PAGE_ORDER: { key: Tab; label: string }[] = [
   { key: 'letters', label: 'Letters' },
 ];
 
+// Calls a signed-in API route (e.g. /api/email) with this writer's login attached.
+async function authFetch(url: string, init: RequestInit = {}) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const headers = new Headers(init.headers);
+  if (session?.access_token) headers.set("Authorization", `Bearer ${session.access_token}`);
+  return fetch(url, { ...init, headers });
+}
+
 function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error'; onClose: () => void }) {
   useEffect(() => {
     const t = setTimeout(onClose, 3000);
@@ -776,7 +784,7 @@ const GENRE_GROUPS = [
       if (error) throw error;
 
       // Notify admin
-      await fetch('/api/email', {
+      await authFetch('/api/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -997,7 +1005,7 @@ if (docxChapters.length > 0 && storyData?.id) {
     if (unlocks && unlocks.length > 0) {
       // Has paid unlocks — request deletion instead
       if (!window.confirm(`"${story.title}" has readers who paid to unlock chapters. This will request deletion — Daniel will review and approve.\n\nSend deletion request?`)) return;
-      await fetch('/api/email', {
+      await authFetch('/api/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

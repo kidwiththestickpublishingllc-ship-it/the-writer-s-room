@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     try {
       await fetch(new URL('/api/email', req.url).toString(), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: req.headers.get('authorization') ?? '' },
         body: JSON.stringify({
           type: 'admin-message',
           to: 'kidwiththestickpublishingllc@gmail.com',

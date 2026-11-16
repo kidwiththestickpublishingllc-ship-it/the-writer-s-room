@@ -347,7 +347,7 @@ function ComicsTab() {
       .eq("id", sub.id);
 
     // 3. Admin confirmation email (mirrors story-approved admin-message pattern)
-    await fetch("/api/email", {
+    await adminFetch("/api/email", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         type: "admin-message",
@@ -704,7 +704,7 @@ function ApplicationsTab() {
       }
       const tempPassword = inviteData.tempPassword ?? "";
 
-      await fetch("/api/email", {
+      await adminFetch("/api/email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -715,7 +715,7 @@ function ApplicationsTab() {
         }),
       });
     // Phase 2 — Welcome + rules + ink guide
-    await fetch("/api/email", {
+    await adminFetch("/api/email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -725,7 +725,7 @@ function ApplicationsTab() {
       }),
     });
     } else if (status === "rejected") {
-      await fetch("/api/email", {
+      await adminFetch("/api/email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "application-rejected", to: email, name }),
@@ -849,7 +849,7 @@ function StoriesTab() {
     if (publishError) { alert(`❌ Publish failed: ${publishError.message}`); return; }
 
     // Email 1 — story approved (to writer)
-    const r1 = await fetch("/api/email", {
+    const r1 = await adminFetch("/api/email", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "story-approved", to: authorEmail, data: { title } }),
     });
@@ -861,7 +861,7 @@ function StoriesTab() {
       .eq('email', authorEmail)
       .single();
 
-    const r2 = await fetch("/api/email", {
+    const r2 = await adminFetch("/api/email", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         type: "story-live-share",
@@ -872,7 +872,7 @@ function StoriesTab() {
     });
 
     // Email 3 — admin confirmation
-    const r3 = await fetch("/api/email", {
+    const r3 = await adminFetch("/api/email", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         type: "admin-message",
@@ -891,7 +891,7 @@ function StoriesTab() {
   }
   async function rejectStory(id: string, authorEmail: string, title: string) {
     await supabase.from("stories").update({ is_published: false, status: "rejected" }).eq("id", id);
-    await fetch("/api/email", {
+    await adminFetch("/api/email", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "story-rejected", to: authorEmail, data: { title, note: rejectNote } }),
     });
@@ -1077,7 +1077,7 @@ function WritersTab() {
   async function resendOnboarding(writer: Writer) {
     const email = writer.email ?? prompt(`Email address for ${writer.name}?`);
     if (!email) return;
-    await fetch("/api/email", {
+    await adminFetch("/api/email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1098,7 +1098,7 @@ function WritersTab() {
   async function sendReminder(writer: Writer) {
     if (!writer.email) { alert("No email on file for this writer."); return; }
     setReminding(writer.id);
-    await fetch("/api/email", {
+    await adminFetch("/api/email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "writer-reminder", to: writer.email, name: writer.name }),
@@ -1132,7 +1132,7 @@ function WritersTab() {
       }
       const { error } = await supabase.from("writers").delete().eq("id", id);
       if (error) throw error;
-      await fetch("/api/email", {
+      await adminFetch("/api/email", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "admin-message",
@@ -1601,7 +1601,7 @@ async function markProcessed(id: string) {
 
     // Send receipt email to writer
     try {
-      await fetch("/api/email", {
+      await adminFetch("/api/email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1620,7 +1620,7 @@ async function markProcessed(id: string) {
 
     // Admin receipt
     try {
-      await fetch("/api/email", {
+      await adminFetch("/api/email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1649,7 +1649,7 @@ async function markProcessed(id: string) {
       if (data && (data as any).ok === false) { alert((data as any).error ?? "Payout failed"); return; }
       // Send receipt email to writer
       try {
-        await fetch("/api/email", {
+        await adminFetch("/api/email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1665,7 +1665,7 @@ async function markProcessed(id: string) {
           }),
         });
         // Admin receipt
-        await fetch("/api/email", {
+        await adminFetch("/api/email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1817,7 +1817,7 @@ async function payViaWise(w: any) {
                         status: newHold ? "on_hold" : "pending",
                       }).eq("id", r.id);
                       if (newHold) {
-                        await fetch("/api/email", {
+                        await adminFetch("/api/email", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
@@ -1849,7 +1849,7 @@ async function payViaWise(w: any) {
                         failure_reason: reason,
                         failed_at: new Date().toISOString(),
                       }).eq("id", r.id);
-                      await fetch("/api/email", {
+                      await adminFetch("/api/email", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -2054,7 +2054,7 @@ function MembersTab() {
           </div>
           <div style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 8 }}>Send Message</div>
           <textarea value={msg} onChange={e => setMsg(e.target.value)} placeholder="Write a message..." rows={4} style={{ width: "100%", background: "var(--ink-surface2)", border: "1px solid var(--ink-border)", borderRadius: 6, padding: "10px 12px", fontSize: 13, color: "var(--text-main)", outline: "none", fontFamily: "inherit", resize: "vertical" as const, boxSizing: "border-box" as const }} />
-          <button className="adm-btn adm-btn-approve" disabled={saving || !msg.trim()} style={{ marginTop: 8, width: "100%", justifyContent: "center" }} onClick={async () => { setSaving(true); await fetch("/api/email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "admin-message", to: selected.email, name: selected.full_name, data: { message: msg } }) }); setMsg(""); setSaving(false); }}>{saving ? "Sending…" : "Send Message"}</button>
+          <button className="adm-btn adm-btn-approve" disabled={saving || !msg.trim()} style={{ marginTop: 8, width: "100%", justifyContent: "center" }} onClick={async () => { setSaving(true); await adminFetch("/api/email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "admin-message", to: selected.email, name: selected.full_name, data: { message: msg } }) }); setMsg(""); setSaving(false); }}>{saving ? "Sending…" : "Send Message"}</button>
           <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid rgba(248,113,113,0.2)" }}>
             <div style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "#f87171", marginBottom: 8 }}>Danger Zone</div>
             <button
@@ -2111,7 +2111,7 @@ function WorldContentTab() {
         const contentType = table === 'glossary' ? 'glossary term' 
           : table === 'characters' ? 'character card' 
           : 'map location';
-        await fetch('/api/email', {
+        await adminFetch('/api/email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
