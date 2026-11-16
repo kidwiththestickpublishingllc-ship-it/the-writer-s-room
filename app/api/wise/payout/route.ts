@@ -32,6 +32,16 @@ export async function POST(req: NextRequest) {
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
+    // Payouts are admin-only: the caller must be in the admins table.
+    const asCaller = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${access_token}` } },
+      auth: { persistSession: false },
+    });
+    const { data: isAdmin } = await asCaller.rpc("is_admin");
+    if (isAdmin !== true) {
+      return NextResponse.json({ error: "Admins only" }, { status: 403 });
+    }
+
     const { data: writer } = await admin
       .from("writers")
       .select("id, email, name, payout_handle, payout_method")
