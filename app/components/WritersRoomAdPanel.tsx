@@ -1,18 +1,12 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 
-declare global {
-  interface Window { AdProvider?: any[] }
-}
-
-const EXO_ZONE_ID = '5938672'
 const FOX_COVER_SRC = '/images/fox-cover.mp4'
 const FOX_STORY_LINK = 'https://read.the-tiniest-library.com/reading-room/stories/fox-vs-the-world/chapters/1'
 const SPIRIT_COVER_SRC = 'https://dgymtdkxusdsgxmjirfl.supabase.co/storage/v1/object/public/story-media/covers/Where%20The%20Spirit%20Moves%20You.mp4'
 const SPIRIT_STORY_LINK = 'https://read.the-tiniest-library.com/reading-room/stories/when-the-spirit-moves-you-1780530480755/chapters/1'
 
-// Each ad in the rotation. The ExoClick slide is marked with `exo: true`
-// so it renders the live ad slot instead of a house-ad layout.
+// Each ad in the rotation (TTL house ads and sponsors).
 const ADS = [
   {
     eyebrow: 'FEATURED SPONSOR',
@@ -29,11 +23,6 @@ const ADS = [
     cta: 'Advertise With Us →',
     href: 'mailto:hello@the-tiniest-library.com?subject=Creators Room Sponsorship',
     accent: '#C9A84C',
-  },
-  // ── ExoClick rotating slide ──
-  {
-    exo: true,
-    accent: '#A78BFA',
   },
   {
     eyebrow: 'THE READING ROOM',
@@ -88,19 +77,6 @@ export default function WritersRoomAdPanel() {
     const delay = current && current.cover ? 8000 : 5000
     const t = setTimeout(() => setIdx(i => (i + 1) % ADS.length), delay)
 
-    // Load ExoClick provider once and serve.
-    if (!initialized.current) {
-      initialized.current = true
-      if (!document.querySelector('script[src="https://a.magsrv.com/ad-provider.js"]')) {
-        const script = document.createElement('script')
-        script.src = 'https://a.magsrv.com/ad-provider.js'
-        script.async = true
-        script.type = 'application/javascript'
-        document.body.appendChild(script)
-      }
-      window.AdProvider = window.AdProvider || []
-      window.AdProvider.push({ serve: {} })
-    }
 
     return () => clearTimeout(t)
   }, [idx])
@@ -150,51 +126,8 @@ export default function WritersRoomAdPanel() {
         transition: 'background 0.6s ease',
       }} />
 
-      {/* ── ExoClick slot: always mounted, only visible on its slide ── */}
-      <div style={{
-        display: ad.exo ? 'flex' : 'none',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flex: 1,
-        width: '100%',
-        gap: 14,
-      }}>
-        <span style={{
-          fontSize: 9,
-          fontWeight: 700,
-          letterSpacing: '0.22em',
-          color: '#A78BFA',
-          border: '1px solid rgba(167,139,250,0.4)',
-          borderRadius: 20,
-          padding: '3px 10px',
-          fontFamily: 'var(--font-inter, sans-serif)',
-        }}>SPONSORED</span>
-        <div style={{
-          padding: 2,
-          background: 'linear-gradient(120deg, #6D28D9, #A78BFA, #C4B5FD, #A78BFA, #6D28D9)',
-          backgroundSize: '300% 300%',
-          animation: 'wrAdwinShift 6s ease infinite, wrAdwinPulse 2.8s ease-in-out infinite',
-        }}>
-          <div style={{ background: '#0d0817', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-            <ins className="eas6a97888e2" data-zoneid={EXO_ZONE_ID} style={{ display: 'block', width: 300, height: 500 }} />
-          </div>
-        </div>
-        <style>{`
-          @keyframes wrAdwinPulse {
-            0%,100% { box-shadow: 0 0 0 1px rgba(167,139,250,0.55), 0 0 18px rgba(167,139,250,0.40), 0 0 42px rgba(167,139,250,0.20); }
-            50% { box-shadow: 0 0 0 1px rgba(196,181,253,0.75), 0 0 30px rgba(167,139,250,0.65), 0 0 72px rgba(167,139,250,0.35); }
-          }
-          @keyframes wrAdwinShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-        `}</style>
-      </div>
-
-      {/* ── House-ad slide content (hidden on the ExoClick slide) ── */}
-      {!ad.exo && !ad.cover && !ad.storyCard && (
+      {/* ── House-ad slide content ── */}
+      {!ad.cover && !ad.storyCard && (
         <>
           <span style={{
             display: 'inline-block',
