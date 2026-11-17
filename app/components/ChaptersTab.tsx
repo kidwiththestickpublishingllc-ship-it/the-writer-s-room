@@ -55,8 +55,8 @@ export default function ChaptersTab({
         content,
         is_free: i === 0,
         ink_cost: i === 0 ? 0 : 25,
-      }).select().single();
-      if (data) { onSetChapters([...chapters, data]); added++; }
+      }).select('id, story_id, chapter_number, title, is_free, ink_cost, created_at, media_type, publish_at, split_id').single();
+      if (data) { onSetChapters([...chapters, { ...data, content } as any]); added++; }
     }
     onSetBulkText('');
     onToast(`${added} chapter${added !== 1 ? 's' : ''} imported!`);
