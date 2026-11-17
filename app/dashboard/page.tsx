@@ -628,6 +628,16 @@ async function authFetch(url: string, init: RequestInit = {}) {
   return fetch(url, { ...init, headers });
 }
 
+// Chapter text and media come through get_chapter_body, which always
+// answers for a writer's own chapters.
+async function withBodies(list: any[] | null): Promise<any[] | null> {
+  if (!list) return list;
+  return Promise.all(list.map(async (ch) => {
+    const { data: body } = await supabase.rpc('get_chapter_body', { p_chapter_id: ch.id });
+    return { ...ch, ...(body ?? {}) };
+  }));
+}
+
 function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error'; onClose: () => void }) {
   useEffect(() => {
     const t = setTimeout(onClose, 3000);
@@ -879,11 +889,12 @@ if (docxChapters.length > 0 && storyData?.id) {
           setCurrentStoryId(storiesData[0].id);
 
           // Get chapters for first story
-          const { data: chaptersData } = await supabase
+          const { data: chaptersRaw } = await supabase
             .from('chapters')
-            .select('*')
+            .select('id, story_id, chapter_number, title, is_free, ink_cost, created_at, media_type, publish_at, split_id')
             .eq('story_id', storiesData[0].id)
             .order('chapter_number');
+          const chaptersData = await withBodies(chaptersRaw);
 
           if (chaptersData) {
             setChapters(chaptersData);
@@ -939,8 +950,9 @@ if (docxChapters.length > 0 && storyData?.id) {
   // Reload chapters when the writer switches story in My Chapters
   useEffect(() => {
     if (!currentStoryId) return;
-    supabase.from('chapters').select('*').eq('story_id', currentStoryId).order('chapter_number')
-      .then(({ data }) => {
+    supabase.from('chapters').select('id, story_id, chapter_number, title, is_free, ink_cost, created_at, media_type, publish_at, split_id').eq('story_id', currentStoryId).order('chapter_number')
+      .then(async ({ data: raw }) => {
+        const data = await withBodies(raw);
         setChapters(data ?? []);
         if (data && data.length > 0) { selectChapter(data[0]); }
         else { setSelectedChapter(null); setEditTitle(''); setEditContent(''); }
@@ -976,8 +988,9 @@ if (docxChapters.length > 0 && storyData?.id) {
           is_free: nextNum === 1,
           ink_cost: nextNum === 1 ? 0 : 25,
         })
-        .select()
-        .single();
+        .select('id, story_id, chapter_number, title, is_free, ink_cost, created_at, media_type, publish_at, split_id')
+        .single()
+        .then(r => ({ ...r, data: r.data ? { ...r.data, content: '' } : r.data }));
       if (error) throw error;
       if (data) {
         setChapters(prev => [...prev, data]);
